@@ -1,0 +1,28 @@
+.inner {
+    font-family: "メイリオ", "Meiryo", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", Sans-Serif;
+    padding: 1em;
+    color: #333333;
+    background-color: #fff;
+    padding-bottom: 4em;
+}
+
+a:link { color: #333333; }
+a:visited { color: #333333; }
+a:hover { color: #ff0000; }
+a:active { color: #ff8000; }
+a { text-decoration: none; }
+
+header, article, footer {
+    margin: 0 auto;
+    width: 70%;
+    max-width: 780px;
+    font-family: 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+    padding: 1em 4em;
+    margin-bottom: 1em;
+    background-color: white;
+}
+
+footer {
+    background-image: url('../images/wavegrid.png')
+ }
+

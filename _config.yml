@@ -1,0 +1,36 @@
+
+# Basic
+title : 包丁一本さらしに巻いて
+tagline: 
+author :
+  name : Akira Chiku
+  email : akira.chiku@gmail.com
+  github : achiku
+  twitter : akirachiku
+
+exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
+pygments: True
+
+production_url : http://achiku.github.io
+
+source:      .
+excerpt_separator: "。"
+destination: ./_site
+plugins:     ./_plugins
+layouts:     ./_layouts
+include:     ['.htaccess']
+exclude:     []
+gems:        []
+timezone:    nil
+encoding:    nil
+
+future:      true
+show_drafts: nil
+limit_posts: 0
+pygments:    true
+
+relative_permalinks: true
+
+permalink:     date
+paginate_path: 'page:num'
+

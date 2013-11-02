@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <title>chcsvというツールがすごい</title>
+</head>
+<body>
+<header role='banner'>
+    <h1>包丁一本さらしに巻いて</h1>
+    <nav role='navigation'>
+        <div class="pure-menu pure-menu-open pure-menu-horizontal">
+            <ul>
+                <li class="pure-menu-selected"><a href="/">Top</a></li>
+                <li class="pure-menu-selected"><a href="/about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<article>
+    <div class='pure-menu-heading'>
+    <h3>chcsvというツールがすごい</h3>
+    <p>2010.09.04</p>
+</div>
+<div>
+    
+<p>このツール超便利だ。Oracle DBを標準入出力で操れる。Linux/GNU最高。</p>
+
+<p><a href="http://www.asahi-net.or.jp/~nq7t-kwbt/">ORACLEの部屋</a></p>
+
+<p>tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。</p>
+<div class='highlight'><pre><code class='basemake'><span class='nv'>ORAHOME</span> <span class='o'>=</span> <span class='k'>${</span><span class='nv'>ORACLE_HOME</span><span class='k'>}</span>
+<span class='nv'>OBJS</span> <span class='o'>=</span> chcsv.o sqlda.o Option.o OutPut.o Signal.o
+
+<span class='nf'>build </span><span class='o'>:</span> <span class='m'>chcsv</span>
+
+<span class='nf'>chcsv </span><span class='o'>:</span> <span class='m'>$(OBJS)</span>
+  gcc -o chcsv <span class='k'>$(</span>OBJS<span class='k'>)</span> -L<span class='k'>$(</span>ORAHOME<span class='k'>)</span>/lib/   -lclntsh -lclntst11 <span class='sb'>`</span>cat <span class='k'>$(</span>ORAHOME<span class='k'>)</span>/lib/ldflags<span class='sb'>`</span>   <span class='sb'>`</span>cat <span class='k'>$(</span>ORAHOME<span class='k'>)</span>lib/sysliblist<span class='sb'>`</span> -ldl -lm
+
+<span class='nf'>chcsv.c</span><span class='o'>:</span>  <span class='m'>chcsv.pc</span>
+<span class='nf'>chcsv.o</span><span class='o'>:</span>  <span class='m'>chcsv.c</span>
+<span class='nf'>Option.c</span><span class='o'>:</span> <span class='m'>Option.pc</span>
+<span class='nf'>Option.o</span><span class='o'>:</span> <span class='m'>Option.c</span>
+<span class='nf'>OutPut.c</span><span class='o'>:</span> <span class='m'>OutPut.pc</span>
+<span class='nf'>OutPut.o</span><span class='o'>:</span> <span class='m'>OutPut.c</span>
+<span class='nf'>Signal.c</span><span class='o'>:</span> <span class='m'>Signal.pc</span>
+<span class='nf'>Signal.o</span><span class='o'>:</span> <span class='m'>Signal.c</span>
+<span class='nf'>sqlda.c</span><span class='o'>:</span>  <span class='m'>sqlda.pc</span>
+<span class='nf'>sqlda.o</span><span class='o'>:</span>  <span class='m'>sqlda.c</span>
+
+<span class='nf'>%.o</span><span class='o'>:</span> <span class='m'>%.c </span>
+  gcc -O -c <span class='nv'>$&lt;</span> -o <span class='nv'>$@</span>
+
+<span class='nf'>%.c</span><span class='o'>:</span> <span class='m'>%.pc</span>
+  proc <span class='nv'>$&lt;</span>
+
+<span class='nf'>clean</span><span class='o'>:</span>
+  /bin/rm -f *.o *.c *.lis chcsv
+</code></pre></div>
+</div>
+
+</article>
+<footer>
+    akira.chiku at gmail.com
+</footer>
+</body>
