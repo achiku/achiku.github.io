@@ -12,6 +12,10 @@ a:hover { color: #ff0000; }
 a:active { color: #ff8000; }
 a { text-decoration: none; }
 
+blockquote {
+    background-color: #D3D3D3;
+}
+
 header, article, footer {
     margin: 0 auto;
     width: 70%;
