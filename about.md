@@ -16,7 +16,8 @@ Birthday: 1985/08/18
 
 ### Work and Education
 
-- Accenture (2008 - present)
+- Kanmu, Inc. (2013/11 - present)
+- Accenture (2008/08 - 2013/11)
 - The University of Texas at Austin B.A. Economics, Minor in Mathmatics (2006 - 2008)
 - The Midwestern State University (2004 - 2006)
 - Kariya High School, Aichi (2000 - 2004)
