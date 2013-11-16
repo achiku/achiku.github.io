@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <title>AWS: EIP + VPC + NAT + ELB + EC2 + RDS #1</title>
+</head>
+<body>
+<header role='banner'>
+    <h1>包丁一本さらしに巻いて</h1>
+    <nav role='navigation'>
+        <div class="pure-menu pure-menu-open pure-menu-horizontal">
+            <ul>
+                <li class="pure-menu-selected"><a href="/">Top</a></li>
+                <li class="pure-menu-selected"><a href="/about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+<article>
+    <div class='pure-menu-heading'>
+    <h3>AWS: EIP + VPC + NAT + ELB + EC2 + RDS #1</h3>
+    <p>2013.11.04</p>
+</div>
+<div>
+    
+<p>Amazonの提供するクラウド系サービスを利用してひと通りの環境を構築してみる。作りたいのはパブリックなサブネットとプライベートなサブネットに分割し、Public側にNAT Instance + ELB + 踏み台サーバを配置、Private側にWeb/APサーバ + RDSを置く、という構成。DMZとDC内部、的な構成でやってみようと思います。本当はDC内部はVPNつないでみたいけど、今回は踏み台サーバを用意してプライベート側のEC2にログインして作業する構成とする。</p>
+
+<p>キャプチャは取らない方式でまとめます。</p>
+
+<h2 id="">アカウント作成</h2>
+
+<p>まずはAWS用のアカウントを作成する。既にAmazonのアカウント持っている人はそのアカウントにAWSアカウントをひもづける事が可能。アカウント作成時に必要なものは住所、電話（アカウント作成時に電話で認証をとっている）、クレジットカード情報。</p>
+
+<p><a href="http://aws.amazon.com/jp/">Amazon Web Service</a></p>
+
+<h2 id="vpc">VPC</h2>
+
+<p>Amazon Virtual Private Cloudの略。要はいつもオンプレミスでやっているようなNWレイヤでのセキュリティコントロールや、ルーティングやサブネットの分割がAWS上でもできるということ。設定したVPC上にEC2等のAWSオブジェクトを作成していく。また、今回はやらないけど、既存のデータセンターとの間にHardware VPN(IPsec VPN)を使って接続することもできる。うーむ。便利。以下VPCのサイトから引用。</p>
+
+<blockquote>
+<p>Amazon VPC のネットワーク設定は容易にカスタマイズすることができます。例えば、インターネットとのアクセスが可能なウェブサーバーのパブリック サブネットを作成し、データベースやアプリケーションサーバーなどのバックエンドシステムをインターネットとのアクセスを許可していないプライベート サブネットに配置できます。セキュリティグループやネットワークアクセスコントロールリストなどの複数のセキュリティレイヤーを活用し、各サブネットの Amazon EC2 インスタンスへのアクセスをコントロールすることができます。<a href="http://aws.amazon.com/jp/vpc/">Amazon VPC公式サイトから引用</a></p>
+</blockquote>
+
+<p>VPCのコントロールパネルを開く。Start VPC Wizardをクリックしてウィザード開始。 VPC with Public and Private Subnetsを選択。デフォルトの選択のまま、Create VPCを実行。</p>
+
+<p>そうすると作成されるものが以下。</p>
+
+<ul>
+<li>VPC x 1</li>
+
+<li>Subnet x 2</li>
+
+<li>Route Table x 2</li>
+
+<li>Internet Gate Way x 1</li>
+
+<li>Elastic IP x 1</li>
+
+<li>EC2 NAT Instance x 1</li>
+</ul>
+
+<p>NAT Instanceは普通にEC2のインスタンス作成時にNATインスタンス用にAMIを選択したやつっぽい。最初NATのサービスを探してた。AMI IDは、amzn-ami-vpc-nat-pv-2013.03.1.x86_64-ebs。</p>
+
+<p>NATは外部と通信するためGlobal IPが必要なので、VPCウィザード先輩が自動的にElastic IPを振り出しNATインスタンスに割り当てている模様。先輩はいい感じにやってくれる。</p>
+
+<p>更に先輩は、2つ作ったサブネットの内、一つのデフォゲをInternet Gateway、もう一つのサブネットのデフォゲを自動的に作成したNATに設定してくれる。これでInternet Gatewayがデフォゲに指定されている方がパブリックサブネット、いわゆるDMZ的なものになる。一方で、NATがデフォゲに指定されている方がプライベートサブネット、というくくりになる。</p>
+
+<h2 id="bastion_serverec2">Bastion Server(EC2)</h2>
+
+<p>EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、踏み台サーバはPublicサブネットに配置する。というか踏み台サーバの事をBastion Host/Serverという事を今日始めて知りました。ばすちょん。</p>
+
+<p><a href="http://www.sans.org/security-resources/idfaq/bastion.php">What is a bastion host?</a></p>
+
+<p>作成が完了すると、pem形式のキーの名前を聞かれるので適当に命名。ダウンロードしたpem keyをローカルに配置し、以下のコマンドを実行してBastionサーバに接続できることを確認する。pem keyを何単位で分けるのが適切かは、セキュリティと運用の容易さのトレードオフで決めるのかな。今回は一つのpem keyで全てのサーバにアクセスできるようにしておく。本当は本番/ステージング別とか、プライベート/パブリックサブネット別とかに分けるのだろう。</p>
+<div class='highlight'><pre><code class='bash'>    <span class='nv'>$ </span>ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com
+</code></pre></div>
+<h2 id="ap_serverec2">AP Server(EC2)</h2>
+
+<p>EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、APサーバはPrivateサブネットに配置する。VPCをウィザードで作成すると、自動的に10.0.1.0/24がプライベートなサブネット（Default GawtewayがNATインスタンスになってるやつ）になっているっぽい。逆に、10.0.0.0/24がパブリックになっており、Default GatewayにはInternet Gatewayが指定されている。よって、Configuration Instance Detailsから以下の設定を実施する。それ以外はデフォルトで問題なし。プライベートなサブネットに配置するので、Public IPとかは設定しないでよし。ちなみに今回はUbuntu Server 13.10 - ami-b945ddb8を利用。</p>
+
+<ul>
+<li>Network: 10.0.0.0/16</li>
+
+<li>Subnet: subnet-xxxxx(10.0.1.0/24)</li>
+</ul>
+
+<h2 id="load_balancerec2_elb">Load Balancer(EC2, ELB)</h2>
+
+<p>EC2ダッシュボードに行くと、左側のNETWORK&amp;SECURITYタグの中にLoad Balancerという項目があるので、ここから新規作成する。</p>
+
+<p>適当な名前をつける。 Create LB Inside:の部分は新規に作成したVPCを選択。今回の場合は、10.0.0.0/16。 LBが通すプロトコルとポートを指定する。今回はデフォルトのHTTPとポート80番のみ。 ヘルスチェックはデフォルトのまま。</p>
+
+<p>ロードバランス「される」インスタンスが存在するサブネットを選択する。今回はAPサーバをPrivateサブネット（Internet Gatewayがついてない方のサブネット）に配置しているので、そちらを選択。デフォルトでは、10.0.1.0/24。</p>
+
+<blockquote>
+<p>You will need to select a Subnet for each Availability Zone where you wish to have load balanced instances. A Virtual Network Interface will be placed inside the Subnet and allow traffic to be routed into that Availability Zone. Only one subnet per Availability Zone may be selected.</p>
+</blockquote>
+
+<p>セキュリティグループは一旦デフォルト。</p>
+
+<dl>
+<dt>作成完了したら、EC2のマネジメントコンソール左ペインからLoad Balancerを選択して新規作成されたレコードを確認。Instancesに先ほど作成したAP Serverをひもづける。コレで以下の通信経路の基礎が完成。次回はSecurity Groupと、APサーバに実際のWebアプリをデプロイする！</dt>
+
+<dd>
+<p>:</p>
+
+<p>[client] -&gt; [ELB] -&gt; [Web/AP Server]</p>
+</dd>
+</dl>
+
+</div>
+
+</article>
+<footer>
+    akira.chiku at gmail.com
+</footer>
+</body>
