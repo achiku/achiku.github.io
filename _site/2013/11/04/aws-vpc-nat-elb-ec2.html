@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
   <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="http://achiku.github.io/feed.xml">
   <title>AWS: EIP + VPC + NAT + ELB + EC2 + RDS #1</title>
 </head>
 <body>
@@ -14,6 +15,7 @@
             <ul>
                 <li class="pure-menu-selected"><a href="/">Top</a></li>
                 <li class="pure-menu-selected"><a href="/about.html">About</a></li>
+                <li class="pure-menu-selected"><a href="/feed.xml"><img src="/images/redorange016.gif"</a></li>
             </ul>
         </div>
     </nav>
@@ -78,8 +80,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <p>2013.11.04</p>
 </div>
 <div>
-    
-<p>Amazonの提供するクラウド系サービスを利用してひと通りの環境を構築してみる。作りたいのはパブリックなサブネットとプライベートなサブネットに分割し、Public側にNAT Instance + ELB + 踏み台サーバを配置、Private側にWeb/APサーバ + RDSを置く、という構成。DMZとDC内部、的な構成でやってみようと思います。本当はDC内部はVPNつないでみたいけど、今回は踏み台サーバを用意してプライベート側のEC2にログインして作業する構成とする。</p>
+    <p>Amazonの提供するクラウド系サービスを利用してひと通りの環境を構築してみる。作りたいのはパブリックなサブネットとプライベートなサブネットに分割し、Public側にNAT Instance + ELB + 踏み台サーバを配置、Private側にWeb/APサーバ + RDSを置く、という構成。DMZとDC内部、的な構成でやってみようと思います。本当はDC内部はVPNつないでみたいけど、今回は踏み台サーバを用意してプライベート側のEC2にログインして作業する構成とする。</p>
 
 <p>キャプチャは取らない方式でまとめます。</p>
 
@@ -163,7 +164,6 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>[client] -&gt; [ELB] -&gt; [Web/AP Server]</p>
 </dd>
 </dl>
-
 </div>
 <div class="post-sharing">
  
@@ -200,6 +200,5 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 </article>
 <footer>
-    akira.chiku at gmail.com
 </footer>
 </body>

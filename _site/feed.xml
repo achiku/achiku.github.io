@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title></title>
+		<description>Python + Data</description>
+		<link>http://achiku.github.io</link>
+		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
+		
+			<item>
+				<title>今日のVimキーマップ</title>
+				<description>&lt;p&gt;MacVimで長い文章を書く際に劇的に役立つキーマップ。これを入れておく事で1行なのにGUI上改行されている改行も、通常のj,kで移動できる！ @seizans の.vimrcから拝借しました。&lt;/p&gt;
+&lt;div class='highlight'&gt;&lt;pre&gt;&lt;code class='vim'&gt;&lt;span class='nb'&gt;nnoremap&lt;/span&gt; &lt;span class='k'&gt;j&lt;/span&gt; gj
+&lt;span class='nb'&gt;nnoremap&lt;/span&gt; &lt;span class='k'&gt;k&lt;/span&gt; gk 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+				<pubDate>Tue, 19 Nov 2013 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2013/11/19/todays-vim-keymap.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2013/11/19/todays-vim-keymap.html</guid>
+			</item>
+		
+			<item>
+				<title>転職しました</title>
+				<description>&lt;p&gt;5年間お世話になったアクセンチュアを卒業し、本日より株式会社カンムで働きます。&lt;/p&gt;
+
+&lt;p&gt;思い返せばゴミ虫のごとく無能なのに、「俺が日本で適当に大学生活送ってきた輩どもに負けるわけねー。どいつもこいつも雑魚ばっかだ。」とか比較的本気で信じてた22歳でした。恥ずかし過ぎて鼻血がでますが、そんな無邪気な万能感は、ファーストアサインで木っ端微塵に吹っ飛び、ちょっと仕事を覚えては新しいジョブにアサインされ、懲りずに調子に乗り、調子に乗ったまま守備範囲を広げ、自分から広げたくせにボコボコになり、鼻っ柱というか脊椎の辺りからバックリ折られて呆然とする、という事を繰り返してここまできました。&lt;/p&gt;
+
+&lt;p&gt;この5年間、自分の目指すスーパーな姿と実際のミジンコクラスの実力の断絶に、何度も嫌気がさし、嫌気が差しては飲んだくれ、歌を歌い、ちょっと泣き、また次の仕事に取り組んできました。そうやって振り返った時思い出すのは、やはりお世話になりまくった上司、チームは全然違うのに飲むときはやたら一緒にいる先輩や後輩、事ある毎に飲み会を開く同期達です。&lt;/p&gt;
+
+&lt;p&gt;皆さんと働けて、自分の5年間は本当に幸せでした。&lt;/p&gt;
+
+&lt;p&gt;本当にありがとうございました。&lt;/p&gt;
+
+&lt;p&gt;アクセンチュアで働き続ける事もきっとすごく面白い事なのでしょうが、ただ、もっと作りたくなってしまいました。自分の頭で考えたものを自分の手で実装する。自分の中でサービスやプロダクトを作るということは、各人がもっている「世はかくあれかし」という精神を実装する事だと思っています。カンムはまだ小さい会社ですが「世はかくあれかし」を持っています。ただ持っているだけではなく、作る、ということがどういうことが知っている会社だと思います。いいものを作るという事は、綺麗に整理整頓された思想や精神性だけで行える事ではなく、底なし沼ばりにドロドロしたトレードオフ、血の滴るような戦術レベルの意思決定、ヒリヒリするような関係各所の利害関係調整など、時に目をそむけたくなるようなものも沢山あるのです。&lt;/p&gt;
+
+&lt;p&gt;そんな鉄火場で、自分の核にある技術を使い、尊敬できるチームと一緒に「いいものを！」と叫びながら働きまくる。そういうことを新しい場所で全力でやってみたいと感じ、最終的な転職を決めました。&lt;/p&gt;
+
+&lt;p&gt;お世話になった皆様方。&lt;/p&gt;
+
+&lt;p&gt;知久は今後もバチバチに仕事とどつきあってきます。&lt;/p&gt;
+
+&lt;p&gt;へこんでたら、酒とレッドブルを注入してください。&lt;/p&gt;
+
+&lt;p&gt;あとミスチル。&lt;/p&gt;
+
+&lt;p&gt;5年間、本当にありがとうございました！！&lt;/p&gt;
+
+&lt;p&gt;今後ともよろしくお願いします！！&lt;/p&gt;</description>
+				<pubDate>Mon, 18 Nov 2013 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2013/11/18/job.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2013/11/18/job.html</guid>
+			</item>
+		
+			<item>
+				<title>AWS: EIP + VPC + NAT + ELB + EC2 + RDS #1</title>
+				<description>&lt;p&gt;Amazonの提供するクラウド系サービスを利用してひと通りの環境を構築してみる。作りたいのはパブリックなサブネットとプライベートなサブネットに分割し、Public側にNAT Instance + ELB + 踏み台サーバを配置、Private側にWeb/APサーバ + RDSを置く、という構成。DMZとDC内部、的な構成でやってみようと思います。本当はDC内部はVPNつないでみたいけど、今回は踏み台サーバを用意してプライベート側のEC2にログインして作業する構成とする。&lt;/p&gt;
+
+&lt;p&gt;キャプチャは取らない方式でまとめます。&lt;/p&gt;
+
+&lt;h2 id=&quot;&quot;&gt;アカウント作成&lt;/h2&gt;
+
+&lt;p&gt;まずはAWS用のアカウントを作成する。既にAmazonのアカウント持っている人はそのアカウントにAWSアカウントをひもづける事が可能。アカウント作成時に必要なものは住所、電話（アカウント作成時に電話で認証をとっている）、クレジットカード情報。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://aws.amazon.com/jp/&quot;&gt;Amazon Web Service&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;vpc&quot;&gt;VPC&lt;/h2&gt;
+
+&lt;p&gt;Amazon Virtual Private Cloudの略。要はいつもオンプレミスでやっているようなNWレイヤでのセキュリティコントロールや、ルーティングやサブネットの分割がAWS上でもできるということ。設定したVPC上にEC2等のAWSオブジェクトを作成していく。また、今回はやらないけど、既存のデータセンターとの間にHardware VPN(IPsec VPN)を使って接続することもできる。うーむ。便利。以下VPCのサイトから引用。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Amazon VPC のネットワーク設定は容易にカスタマイズすることができます。例えば、インターネットとのアクセスが可能なウェブサーバーのパブリック サブネットを作成し、データベースやアプリケーションサーバーなどのバックエンドシステムをインターネットとのアクセスを許可していないプライベート サブネットに配置できます。セキュリティグループやネットワークアクセスコントロールリストなどの複数のセキュリティレイヤーを活用し、各サブネットの Amazon EC2 インスタンスへのアクセスをコントロールすることができます。&lt;a href=&quot;http://aws.amazon.com/jp/vpc/&quot;&gt;Amazon VPC公式サイトから引用&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;VPCのコントロールパネルを開く。Start VPC Wizardをクリックしてウィザード開始。 VPC with Public and Private Subnetsを選択。デフォルトの選択のまま、Create VPCを実行。&lt;/p&gt;
+
+&lt;p&gt;そうすると作成されるものが以下。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;VPC x 1&lt;/li&gt;
+
+&lt;li&gt;Subnet x 2&lt;/li&gt;
+
+&lt;li&gt;Route Table x 2&lt;/li&gt;
+
+&lt;li&gt;Internet Gate Way x 1&lt;/li&gt;
+
+&lt;li&gt;Elastic IP x 1&lt;/li&gt;
+
+&lt;li&gt;EC2 NAT Instance x 1&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;NAT Instanceは普通にEC2のインスタンス作成時にNATインスタンス用にAMIを選択したやつっぽい。最初NATのサービスを探してた。AMI IDは、amzn-ami-vpc-nat-pv-2013.03.1.x86_64-ebs。&lt;/p&gt;
+
+&lt;p&gt;NATは外部と通信するためGlobal IPが必要なので、VPCウィザード先輩が自動的にElastic IPを振り出しNATインスタンスに割り当てている模様。先輩はいい感じにやってくれる。&lt;/p&gt;
+
+&lt;p&gt;更に先輩は、2つ作ったサブネットの内、一つのデフォゲをInternet Gateway、もう一つのサブネットのデフォゲを自動的に作成したNATに設定してくれる。これでInternet Gatewayがデフォゲに指定されている方がパブリックサブネット、いわゆるDMZ的なものになる。一方で、NATがデフォゲに指定されている方がプライベートサブネット、というくくりになる。&lt;/p&gt;
+
+&lt;h2 id=&quot;bastion_serverec2&quot;&gt;Bastion Server(EC2)&lt;/h2&gt;
+
+&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、踏み台サーバはPublicサブネットに配置する。というか踏み台サーバの事をBastion Host/Serverという事を今日始めて知りました。ばすちょん。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.sans.org/security-resources/idfaq/bastion.php&quot;&gt;What is a bastion host?&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;作成が完了すると、pem形式のキーの名前を聞かれるので適当に命名。ダウンロードしたpem keyをローカルに配置し、以下のコマンドを実行してBastionサーバに接続できることを確認する。pem keyを何単位で分けるのが適切かは、セキュリティと運用の容易さのトレードオフで決めるのかな。今回は一つのpem keyで全てのサーバにアクセスできるようにしておく。本当は本番/ステージング別とか、プライベート/パブリックサブネット別とかに分けるのだろう。&lt;/p&gt;
+&lt;div class='highlight'&gt;&lt;pre&gt;&lt;code class='bash'&gt;    &lt;span class='nv'&gt;$ &lt;/span&gt;ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id=&quot;ap_serverec2&quot;&gt;AP Server(EC2)&lt;/h2&gt;
+
+&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、APサーバはPrivateサブネットに配置する。VPCをウィザードで作成すると、自動的に10.0.1.0/24がプライベートなサブネット（Default GawtewayがNATインスタンスになってるやつ）になっているっぽい。逆に、10.0.0.0/24がパブリックになっており、Default GatewayにはInternet Gatewayが指定されている。よって、Configuration Instance Detailsから以下の設定を実施する。それ以外はデフォルトで問題なし。プライベートなサブネットに配置するので、Public IPとかは設定しないでよし。ちなみに今回はUbuntu Server 13.10 - ami-b945ddb8を利用。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Network: 10.0.0.0/16&lt;/li&gt;
+
+&lt;li&gt;Subnet: subnet-xxxxx(10.0.1.0/24)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;load_balancerec2_elb&quot;&gt;Load Balancer(EC2, ELB)&lt;/h2&gt;
+
+&lt;p&gt;EC2ダッシュボードに行くと、左側のNETWORK&amp;amp;SECURITYタグの中にLoad Balancerという項目があるので、ここから新規作成する。&lt;/p&gt;
+
+&lt;p&gt;適当な名前をつける。 Create LB Inside:の部分は新規に作成したVPCを選択。今回の場合は、10.0.0.0/16。 LBが通すプロトコルとポートを指定する。今回はデフォルトのHTTPとポート80番のみ。 ヘルスチェックはデフォルトのまま。&lt;/p&gt;
+
+&lt;p&gt;ロードバランス「される」インスタンスが存在するサブネットを選択する。今回はAPサーバをPrivateサブネット（Internet Gatewayがついてない方のサブネット）に配置しているので、そちらを選択。デフォルトでは、10.0.1.0/24。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;You will need to select a Subnet for each Availability Zone where you wish to have load balanced instances. A Virtual Network Interface will be placed inside the Subnet and allow traffic to be routed into that Availability Zone. Only one subnet per Availability Zone may be selected.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;セキュリティグループは一旦デフォルト。&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;作成完了したら、EC2のマネジメントコンソール左ペインからLoad Balancerを選択して新規作成されたレコードを確認。Instancesに先ほど作成したAP Serverをひもづける。コレで以下の通信経路の基礎が完成。次回はSecurity Groupの設定を行い、APサーバに実際のWebアプリをデプロイする！&lt;/dt&gt;
+
+&lt;dd&gt;
+&lt;p&gt;:&lt;/p&gt;
+
+&lt;p&gt;[client] -&amp;gt; [ELB] -&amp;gt; [Web/AP Server]&lt;/p&gt;
+&lt;/dd&gt;
+&lt;/dl&gt;</description>
+				<pubDate>Mon, 04 Nov 2013 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</guid>
+			</item>
+		
+			<item>
+				<title>Github Pages開始</title>
+				<description>&lt;p&gt;心機一転、七転抜刀！&lt;/p&gt;
+
+&lt;p&gt;Github Pages + jekyll + Pureで作りました。主にPythonやデータ分析界隈の話が書ければと思います。今は過去に書いていた記事をサルベージして移行中。それにしてもこのGithub Pageを軸にした組み合わせ神すぎる。若干の根性があれば広告なし、容量制限も気にせず、なんならバックアップも取得してもらえるブログサービスが作れてしまう。。。&lt;/p&gt;
+
+&lt;p&gt;Github, jekyll, Pure本当にありがとうございます！&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pages.github.com/&quot;&gt;Github Pages&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;jekyll&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://purecss.io/&quot;&gt;Pure&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+				<pubDate>Sun, 03 Nov 2013 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2013/11/03/start-blog.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2013/11/03/start-blog.html</guid>
+			</item>
+		
+			<item>
+				<title>chcsvというツールがすごい</title>
+				<description>&lt;p&gt;このツール超便利だ。Oracle DBを標準入出力で操れる。Linux/GNU最高。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.asahi-net.or.jp/~nq7t-kwbt/&quot;&gt;ORACLEの部屋&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。&lt;/p&gt;
+&lt;div class='highlight'&gt;&lt;pre&gt;&lt;code class='basemake'&gt;&lt;span class='nv'&gt;ORAHOME&lt;/span&gt; &lt;span class='o'&gt;=&lt;/span&gt; &lt;span class='k'&gt;${&lt;/span&gt;&lt;span class='nv'&gt;ORACLE_HOME&lt;/span&gt;&lt;span class='k'&gt;}&lt;/span&gt;
+&lt;span class='nv'&gt;OBJS&lt;/span&gt; &lt;span class='o'&gt;=&lt;/span&gt; chcsv.o sqlda.o Option.o OutPut.o Signal.o
+
+&lt;span class='nf'&gt;build &lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;chcsv&lt;/span&gt;
+
+&lt;span class='nf'&gt;chcsv &lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;$(OBJS)&lt;/span&gt;
+  gcc -o chcsv &lt;span class='k'&gt;$(&lt;/span&gt;OBJS&lt;span class='k'&gt;)&lt;/span&gt; -L&lt;span class='k'&gt;$(&lt;/span&gt;ORAHOME&lt;span class='k'&gt;)&lt;/span&gt;/lib/   -lclntsh -lclntst11 &lt;span class='sb'&gt;`&lt;/span&gt;cat &lt;span class='k'&gt;$(&lt;/span&gt;ORAHOME&lt;span class='k'&gt;)&lt;/span&gt;/lib/ldflags&lt;span class='sb'&gt;`&lt;/span&gt;   &lt;span class='sb'&gt;`&lt;/span&gt;cat &lt;span class='k'&gt;$(&lt;/span&gt;ORAHOME&lt;span class='k'&gt;)&lt;/span&gt;lib/sysliblist&lt;span class='sb'&gt;`&lt;/span&gt; -ldl -lm
+
+&lt;span class='nf'&gt;chcsv.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt;  &lt;span class='m'&gt;chcsv.pc&lt;/span&gt;
+&lt;span class='nf'&gt;chcsv.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt;  &lt;span class='m'&gt;chcsv.c&lt;/span&gt;
+&lt;span class='nf'&gt;Option.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;Option.pc&lt;/span&gt;
+&lt;span class='nf'&gt;Option.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;Option.c&lt;/span&gt;
+&lt;span class='nf'&gt;OutPut.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;OutPut.pc&lt;/span&gt;
+&lt;span class='nf'&gt;OutPut.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;OutPut.c&lt;/span&gt;
+&lt;span class='nf'&gt;Signal.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;Signal.pc&lt;/span&gt;
+&lt;span class='nf'&gt;Signal.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;Signal.c&lt;/span&gt;
+&lt;span class='nf'&gt;sqlda.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt;  &lt;span class='m'&gt;sqlda.pc&lt;/span&gt;
+&lt;span class='nf'&gt;sqlda.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt;  &lt;span class='m'&gt;sqlda.c&lt;/span&gt;
+
+&lt;span class='nf'&gt;%.o&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;%.c &lt;/span&gt;
+  gcc -O -c &lt;span class='nv'&gt;$&amp;lt;&lt;/span&gt; -o &lt;span class='nv'&gt;$@&lt;/span&gt;
+
+&lt;span class='nf'&gt;%.c&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt; &lt;span class='m'&gt;%.pc&lt;/span&gt;
+  proc &lt;span class='nv'&gt;$&amp;lt;&lt;/span&gt;
+
+&lt;span class='nf'&gt;clean&lt;/span&gt;&lt;span class='o'&gt;:&lt;/span&gt;
+  /bin/rm -f *.o *.c *.lis chcsv
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+				<pubDate>Sat, 04 Sep 2010 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2010/09/04/chcsv.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2010/09/04/chcsv.html</guid>
+			</item>
+		
+			<item>
+				<title>関数的であるということ</title>
+				<description>&lt;p&gt;イマイチしっくりとこなかったんだけど、Pythonを使ってみて何となく、ほんのちょこっと関数的であるということが分かってきた気がする。今自分が実感できる「関数的」なことは大きく分けると二つ。1.抽象化する、2.手続きではなく定義を書く&lt;/p&gt;
+
+&lt;p&gt;こっから先はプログラミング歴2年の、しかも仕事でプログラミングあんましてない趣味プログラマが書くことなので、色々間違い・勘違い等含まれていると思うので注意して読まれたし。&lt;/p&gt;
+
+&lt;h3 id=&quot;&quot;&gt;抽象化する&lt;/h3&gt;
+
+&lt;p&gt;以前にもkshで関数的に書くっていうエントリを書いた。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/2009/07/08/pragmatic-functional-programming.html&quot;&gt;プラグマティック関数プログラミング&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;言いたい事はほぼ、このエントリの中にあるんだけど、もう一度まとめる。プログラムがおおきくなるにつれて、プログラムを変更、追加する必要がある場面が増える。そういった時に簡単に変更、追加を行えるようにプログラム同士はなるべく緩くつながっていて欲しいという需要がでてきた。緩くつながるってのはどういうことか。簡単に言うと「取り替えるのが簡単」ってことだ。オブジェクト指向はこの取り替えがなるべく簡単にできるように、クラス、オブジェクト、継承ってのを使ってアプローチしている。関数的なものは、言うに及ばず、関数を使ってこの「取り替えるのが簡単」っていうベネフィットにアプローチする。以下、上記エントリの引用。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;つまり、「ほげほげ」の部分を空白にしておくことで、いろんな関数を取り替え可能にしておく事ができる。この様にして関数的なプログラミング言語は「取り替えるのが簡単」っていう利点を作り出している。&lt;/p&gt;
+
+&lt;h3 id=&quot;_2&quot;&gt;手続きではなく定義を書く&lt;/h3&gt;
+
+&lt;p&gt;これは最近自分でしっくりきた感覚。感覚なので、なかなか伝えるのが難しいんだけど、トライしてみます。「手続き」っていうのは、「アレとコレを比べる。比べた結果、アレの方が大きかった場合、foo処理をする。比べた結果、コレの方が大きかった場合、bar処理をする。」っていう機械に語りかけるような、そんな感じのものだと認識している。関数的なものの場合、「foo処理とは、アレとコレを比べてアレの方が大きい場合の処理。bar処理とはアレとコレを比べてコレの方が大きい場合の処理。」ってな感じ。。。だんだん怪しくなってきた。。。たぶんどっちでやっても同じような事をするプログラムは書けるんだろうと思う。&lt;/p&gt;
+
+&lt;p&gt;書いてたらわからんくなってきた。一時中断する。またなんかふといい説明方法が思いついたら書く！&lt;/p&gt;
+
+&lt;p&gt;どなたかわかりやすげな説明できる方、よろしくお願いします！ひろくんとか！&lt;/p&gt;</description>
+				<pubDate>Sat, 30 Jan 2010 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2010/01/30/functional-programming.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2010/01/30/functional-programming.html</guid>
+			</item>
+		
+			<item>
+				<title>制限と想像力</title>
+				<description>&lt;p&gt;シェルが楽しい。強力なオブジェクト指向プログラミングも、関数型プログラミングもできない。インターフェースは標準入力、標準出力と標準エラー出力。一時データはフラットファイル。フラットファイルにどういう形式でデータを一時保存しておくと後で取り出しやすいか。なんかフラットファイルを介してオブジェクト指向プログラミングもできそうな気がする（タブ区切りのプロパティの中にメソッドのあるパスとか指定してevalとか。あ、xml形式にして保存しとくと後で取り出しやすいとか。）。&lt;/p&gt;
+
+&lt;p&gt;多分制限て楽しいんだと思う。工夫ができるから。&lt;/p&gt;
+
+&lt;p&gt;PerlもPythonもRubyも自分には扱いきれないほど高度な機能を死ぬほどもってる。俺がなんかやる余地ないよね。なんか使われてる感じがする。&lt;/p&gt;
+
+&lt;p&gt;最初は「なんでこんな原始時代の言語を学ばねばならんのだ」って思ってたけど、シェルって楽しいなー。つかLinuxのソフトウェアツールが楽しいのかな。ズビッって欲しいデータが綺麗なフォーマットで出力されるとうれしいし。&lt;/p&gt;
+
+&lt;p&gt;今、シェルを学べてよかった。&lt;/p&gt;
+
+&lt;p&gt;いい基礎になる。&lt;/p&gt;
+
+&lt;p&gt;なんてったって枯れてるからね。いいもんごちそうになります。&lt;/p&gt;</description>
+				<pubDate>Mon, 05 Oct 2009 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</guid>
+			</item>
+		
+			<item>
+				<title>Linux/GNUがカッコよすぎて勃起</title>
+				<description>&lt;p&gt;まだ全くの初学者ではあるが、すげーと思ったことがいくつかある。&lt;/p&gt;
+
+&lt;h3 id=&quot;&quot;&gt;インターフェースがシンプル且つ柔軟であること。&lt;/h3&gt;
+
+&lt;p&gt;[command][options] [arg1 arg2 ..] 引数はファイル名の時もあるし、数字の時もあるし、文字列の時もある。 情報は標準入力、標準出力、標準エラー出力と既にあるファイルから。 全てのコマンドがこの形態を持っている。&lt;/p&gt;
+
+&lt;h3 id=&quot;_2&quot;&gt;コマンド（ソフトウェア？？ツール？？）の粒度と数。&lt;/h3&gt;
+
+&lt;p&gt;ls, sed, grep, find, cut, uniqu, sort, tr, cd, awk, dd, set, print, ….. それぞれが自分の守備範囲を適切に守っている（使い方によっては代用ももちろんできるけど）。さらにその数と質は長年いろんな人たちがメンテしてきただけあって、使用頻度の高いものはいわゆる「枯れた」もので安心してプロダクトの中で使用できる。&lt;/p&gt;
+
+&lt;p&gt;コマンドを組み合わせる事が簡単。&lt;/p&gt;
+
+&lt;p&gt;パイプ、アンパサンドなどで無数にあるコマンドを簡単に組み合わすことができる。粒度が適切なので組み合わせはさらにシンプルかつ柔軟になる。&lt;/p&gt;
+
+&lt;h3 id=&quot;_3&quot;&gt;シェルスクリプトの存在。&lt;/h3&gt;
+
+&lt;p&gt;感動した言葉の一つに「シェルはLinux・Unixをプログラミングするものだ」というものがある。いろんなコマンドを糊付けして、一つの「ツール」にしてしまうって意味だと解釈している。奥に進めば進む程いろんな事ができる事がわかる。（シェルだって関数プログラミング的にかける！）もちろんLLは素晴らしいし、楽しいと思うけど、別にPerlやPython使う程でもないけど、サクッと必要、とかいった場合にシェルかけるのは便利。&lt;/p&gt;
+
+&lt;p&gt;んー。すごいわ。みんなかっこいいわ。&lt;/p&gt;</description>
+				<pubDate>Sun, 09 Aug 2009 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2009/08/09/great-linux-and-gnu.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2009/08/09/great-linux-and-gnu.html</guid>
+			</item>
+		
+			<item>
+				<title>プラグマティック関数プログラミング</title>
+				<description>&lt;p&gt;実際の作業で「あるディレクトリ配下の全てのファイルのフルパス、ファイル名、タイムスタンプ（yyyymmddhhmmss）、ファイルサイズをタブ区切りにしてファイルに書き出せ。ちなみにあるディレクトリには数百ファイルあるぴょん。」というフザケたものがあった。&lt;/p&gt;
+
+&lt;p&gt;無理。&lt;/p&gt;
+
+&lt;p&gt;面倒くさすぎて無理。「面倒くさいことをしないためにはどんな面倒くさいこともする」っちゅー格言にしたがい、自分はスクリプトで何とかしようと考えた。一応完成してちゃんとやりたいことやってくれるようになってから試しにググってみたら、こんなものが見つかった。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.shido.info/misc/misc.php?id=29&quot;&gt;関数プログラミング的シェルスクリプト&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;おおおおおお。シェルでも関数プログラミング的に書けるんだ。&lt;/p&gt;
+&lt;div class='highlight'&gt;&lt;pre&gt;&lt;code class='bash'&gt;&lt;span class='c'&gt;#! /bin/bash&lt;/span&gt;
+
+&lt;span class='k'&gt;function &lt;/span&gt;rec &lt;span class='o'&gt;{&lt;/span&gt;
+    &lt;span class='k'&gt;for &lt;/span&gt;FILE in &lt;span class='sb'&gt;`&lt;/span&gt;ls &lt;span class='k'&gt;${&lt;/span&gt;&lt;span class='nv'&gt;2&lt;/span&gt;&lt;span class='k'&gt;}&lt;/span&gt;&lt;span class='sb'&gt;`&lt;/span&gt;
+        &lt;span class='k'&gt;do&lt;/span&gt;
+&lt;span class='k'&gt;           &lt;/span&gt;&lt;span class='nb'&gt;local &lt;/span&gt;&lt;span class='nv'&gt;FULL&lt;/span&gt;&lt;span class='o'&gt;=&lt;/span&gt;&lt;span class='k'&gt;${&lt;/span&gt;&lt;span class='nv'&gt;2&lt;/span&gt;&lt;span class='k'&gt;}&lt;/span&gt;/&lt;span class='k'&gt;${&lt;/span&gt;&lt;span class='nv'&gt;FILE&lt;/span&gt;&lt;span class='k'&gt;}&lt;/span&gt;
+           &lt;span class='k'&gt;if&lt;/span&gt; &lt;span class='o'&gt;[&lt;/span&gt; -f &lt;span class='nv'&gt;$FULL&lt;/span&gt; &lt;span class='o'&gt;]&lt;/span&gt;&lt;span class='p'&gt;;&lt;/span&gt; &lt;span class='k'&gt;then&lt;/span&gt; &lt;span class='nv'&gt;$1&lt;/span&gt; &lt;span class='nv'&gt;$FULL&lt;/span&gt;
+           &lt;span class='k'&gt;elif&lt;/span&gt; &lt;span class='o'&gt;[&lt;/span&gt; -d &lt;span class='nv'&gt;$FULL&lt;/span&gt; &lt;span class='o'&gt;]&lt;/span&gt;&lt;span class='p'&gt;;&lt;/span&gt; &lt;span class='k'&gt;then &lt;/span&gt;rec &lt;span class='nv'&gt;$1&lt;/span&gt; &lt;span class='nv'&gt;$FULL&lt;/span&gt;
+           &lt;span class='k'&gt;fi&lt;/span&gt;
+&lt;span class='k'&gt;        done&lt;/span&gt;
+&lt;span class='o'&gt;}&lt;/span&gt;
+
+rec &lt;span class='nv'&gt;$1&lt;/span&gt; &lt;span class='sb'&gt;`&lt;/span&gt;&lt;span class='nb'&gt;pwd&lt;/span&gt;&lt;span class='sb'&gt;`&lt;/span&gt;/&lt;span class='k'&gt;${&lt;/span&gt;&lt;span class='nv'&gt;2&lt;/span&gt;&lt;span class='k'&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これを読んで一人感動した。関数プログラミングをもう少し深く理解した気分になった。上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。「関数プログラミングは拡張性・再利用性の高いものが書きやすい」ってのをほんの少し（たぶん自分が思っているよりもだいぶほんの少し）体感した気がする。&lt;/p&gt;
+
+&lt;p&gt;いいこと学んだ！&lt;/p&gt;</description>
+				<pubDate>Wed, 08 Jul 2009 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2009/07/08/pragmatic-functional-programming.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2009/07/08/pragmatic-functional-programming.html</guid>
+			</item>
+		
+			<item>
+				<title>役に立たないモノ論</title>
+				<description>&lt;p&gt;数論の授業では「素数は無限にあるのか」とか「フィボナッチ数列と黄金律の関係」とか「そもそも無限って何？1と0の間の無限は2と5の間の無限と同じなの？」等、まぁ、歯に布着せぬ言い方をすれば、日々生活する上でクソの役にも立たない事を真剣に考えている。その日を食うや食わずで生活する人たちがたくさん存在する事を鑑みるに、なんとも贅沢な時間の使い方だと思わずにはいられない。&lt;/p&gt;
+
+&lt;p&gt;そういう経験を通し、ビジネススクールや経営学を学ぶヒトが羨望を集める昨今、わたくし不詳ちくはそういうクソの役にも立たない事に情熱を傾ける事を良しとする心意気を広めていきたいと考えている。&lt;/p&gt;
+
+&lt;p&gt;この推進運動はあくまでもビジネススクールや経営学が流行ってるという事実を背景としており、万人が数論とかを真剣に勉強し始めたら、それはそれで「もっと他にやる事あるだろ」って言うだろうと思う。思想とはいつの時代も他の思想・教義・既得権益に対するカウンターパンチであり、殴る相手がいなければパンチは生まれないのであり、その辺は何となくこの前の冬本を読みながら思ったところである。まぁ、端的に言うと、これから話す事は結構どうでもいいことなので構えずにちょっと笑いながら読んで欲しいということだ。&lt;/p&gt;
+
+&lt;p&gt;「人間は根源的に知識を求める」とか「理性こそ最上」とかそういう偉いヒトの言葉にこの「役に立たない事推進運動」は根拠を求めない。大事なことは、まぁ、ありっちゃありだね、という多様性を暖かく包み込む懐の深さである。暖かく寛大ではあるが、裏を返せば偉いヒトの言葉に「つーか、まじでデカルトさんの言う事もありっちゃありっすよねー」と簡単には迎合しないアナーキーな側面を持つことも忘れてはならないという事だ。この一見寛大に見えるけど、ものすごくシビアに独立していこうとする基本姿勢を持つことが「日常生活をおくる上でクソの役にも立たない事」を真剣に考える上で大事になってくる。&lt;/p&gt;
+
+&lt;p&gt;その寛大さと独立の姿勢を保った上で、情熱を傾ける。岡本太郎は「無目的な情熱」という言葉を使い、これを表現していた。ありといえばありだけど、べつになくてもいいものに情熱って傾けれるのか？と思うかもしれないが、意外になんとかなってしまう。個人的には今流行の「無駄をなくして年収 1000万達成する現実的な方法！」な潮流に逆らっている感じがいいと思う。「キャデラックに乗ってハイライトを買いにいく」なら納得できるが「目指せ年収1000万」という流れ（個人の思いではなく「流れ」）には納得できない複雑な心境である。&lt;/p&gt;
+
+&lt;p&gt;話が大きく矢沢方向に流れたが、基本姿勢の上の情熱である。これはもう、たぶん無駄な事をやる上で一番大事になってくる。どうすれば情熱を傾けられるかという事になると、もうそれは好きになるしかない。多くの人が勘違いしていると思うのだけど、最初から一目惚れぞっこんラブ（死語？）なんてのはなかなか無いもんだ。普通のヒトは結構最初に知らないものにぶつかった時、それを知る為になにかしらしているのものだと思う。興味のある方向からアプローチしている本を読んだり、食わず嫌いせずに一度飛び込んでみるなど。その結果「素数を一日中愛撫していたい」とか「確立微分方程式に代入ってか挿入したい」くらい好きになったら完璧である。&lt;/p&gt;
+
+&lt;p&gt;普通無理。&lt;/p&gt;
+
+&lt;p&gt;なので高望みせずに少しずつ好きになろうとする。数論は歴史の深い学問なので教科書の「偉大な数学者」欄をとりあえず読みあさって wikipediaで調べたりしてみた。歴史が好きなのでこういう事をして自分の持っている知識と繋げながら、問題を理解した時の嬉しさを感じながら俺は少しずつ数論を好きになっていった。未だに「数学的帰納法に膝枕して欲しい」というレベルには達していないけど、毎日宿題をやるのは苦にならないレベルには到達している。もう少しすると没頭状態に到達できるはず。まだまだ未熟である。&lt;/p&gt;
+
+&lt;p&gt;ビジネススクールや経営学という流れに逆らう「役に立たない勉強推進運動」。その道は高く険しい。時には挫折し、諦めてしまう事もあるだろう。しかし、マスコミに踊らされ、そういう流れの一旦である「就職ビジネス」などに搾取されている学生は「役に立たない事」に真剣に打ち込んでみて損はないと思う。&lt;/p&gt;
+
+&lt;p&gt;「目指せ年収1000万！」&lt;/p&gt;
+
+&lt;p&gt;「栄えある未来の経営者！」&lt;/p&gt;
+
+&lt;p&gt;「アントレプレナー！イノベーション！」&lt;/p&gt;
+
+&lt;p&gt;「企業の社会的責任！」&lt;/p&gt;
+
+&lt;p&gt;「ラブ＆ピース！」&lt;/p&gt;
+
+&lt;p&gt;「友情！努力！勝利！」&lt;/p&gt;
+
+&lt;p&gt;それも、まぁ、ありっちゃありだよ。それを真剣に考えて追って行動し、なおかつ達成している人達は凄いと思う。ただなー、なんかうさんくさい人達おるやん。すごい、もう話してる事も見た目もうさんくさい感じのヒト。カタカナ語と夢と情熱と自己実現とその他そういう熱い系の単語が会話の八割を占めるヒト。そういううさんくさい人達についていくくらいなら、社会から見向きもされないような無駄な事を、見向きもされないから真剣になってがつがつやった方が楽しいと思うんだよっていう個人的な運動です。&lt;/p&gt;
+
+&lt;p&gt;地道に活動していこうと思います。&lt;/p&gt;
+
+&lt;p&gt;夏からは、&lt;/p&gt;
+
+&lt;p&gt;コンサルとしてがっつり働きますけどね！&lt;/p&gt;
+
+&lt;p&gt;はっはっは。&lt;/p&gt;
+
+&lt;p&gt;矛盾はヒトの特権です。&lt;/p&gt;
+
+&lt;p&gt;ここにもまた成績向上や能力アップに貢献しない時間投資が生まれました。&lt;/p&gt;
+
+&lt;p&gt;だからどうした、このハゲ！と声を大にして言ってやります。夢の中で。&lt;/p&gt;
+
+&lt;p&gt;おやすみなさい。&lt;/p&gt;</description>
+				<pubDate>Sun, 02 Mar 2008 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2008/03/02/happy-mery-useless-crap.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2008/03/02/happy-mery-useless-crap.html</guid>
+			</item>
+		
+	</channel>
+</rss>

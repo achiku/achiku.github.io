@@ -1,5 +1,6 @@
-# Basic
-title : 包丁一本さらしに巻いて
+title : "包丁一本さらしに巻いて"
+description: "Python + Data"
+url: http://achiku.github.io
 tagline: 
 author :
   name : Akira Chiku

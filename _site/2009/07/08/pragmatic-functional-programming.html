@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
   <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="http://achiku.github.io/feed.xml">
   <title>プラグマティック関数プログラミング</title>
 </head>
 <body>
@@ -14,6 +15,7 @@
             <ul>
                 <li class="pure-menu-selected"><a href="/">Top</a></li>
                 <li class="pure-menu-selected"><a href="/about.html">About</a></li>
+                <li class="pure-menu-selected"><a href="/feed.xml"><img src="/images/redorange016.gif"</a></li>
             </ul>
         </div>
     </nav>
@@ -78,8 +80,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <p>2009.07.08</p>
 </div>
 <div>
-    
-<p>実際の作業で「あるディレクトリ配下の全てのファイルのフルパス、ファイル名、タイムスタンプ（yyyymmddhhmmss）、ファイルサイズをタブ区切りにしてファイルに書き出せ。ちなみにあるディレクトリには数百ファイルあるぴょん。」というフザケたものがあった。</p>
+    <p>実際の作業で「あるディレクトリ配下の全てのファイルのフルパス、ファイル名、タイムスタンプ（yyyymmddhhmmss）、ファイルサイズをタブ区切りにしてファイルに書き出せ。ちなみにあるディレクトリには数百ファイルあるぴょん。」というフザケたものがあった。</p>
 
 <p>無理。</p>
 
@@ -94,8 +95,8 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class='k'>for </span>FILE in <span class='sb'>`</span>ls <span class='k'>${</span><span class='nv'>2</span><span class='k'>}</span><span class='sb'>`</span>
         <span class='k'>do</span>
 <span class='k'>           </span><span class='nb'>local </span><span class='nv'>FULL</span><span class='o'>=</span><span class='k'>${</span><span class='nv'>2</span><span class='k'>}</span>/<span class='k'>${</span><span class='nv'>FILE</span><span class='k'>}</span>
-           <span class='k'>if</span> <span class='o'>[</span> -f <span class='nv'>$FULL</span> <span class='o'>]</span>; <span class='k'>then</span> <span class='nv'>$1</span> <span class='nv'>$FULL</span>
-           <span class='k'>elif</span> <span class='o'>[</span> -d <span class='nv'>$FULL</span> <span class='o'>]</span>; <span class='k'>then </span>rec <span class='nv'>$1</span> <span class='nv'>$FULL</span>
+           <span class='k'>if</span> <span class='o'>[</span> -f <span class='nv'>$FULL</span> <span class='o'>]</span><span class='p'>;</span> <span class='k'>then</span> <span class='nv'>$1</span> <span class='nv'>$FULL</span>
+           <span class='k'>elif</span> <span class='o'>[</span> -d <span class='nv'>$FULL</span> <span class='o'>]</span><span class='p'>;</span> <span class='k'>then </span>rec <span class='nv'>$1</span> <span class='nv'>$FULL</span>
            <span class='k'>fi</span>
 <span class='k'>        done</span>
 <span class='o'>}</span>
@@ -105,7 +106,6 @@ rec <span class='nv'>$1</span> <span class='sb'>`</span><span class='nb'>pwd</sp
 <p>これを読んで一人感動した。関数プログラミングをもう少し深く理解した気分になった。上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。「関数プログラミングは拡張性・再利用性の高いものが書きやすい」ってのをほんの少し（たぶん自分が思っているよりもだいぶほんの少し）体感した気がする。</p>
 
 <p>いいこと学んだ！</p>
-
 </div>
 <div class="post-sharing">
  
@@ -142,6 +142,5 @@ rec <span class='nv'>$1</span> <span class='sb'>`</span><span class='nb'>pwd</sp
 
 </article>
 <footer>
-    akira.chiku at gmail.com
 </footer>
 </body>
