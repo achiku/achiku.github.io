@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title></title>
+		<title>包丁一本さらしに巻いて</title>
 		<description>Python + Data</description>
 		<link>http://achiku.github.io</link>
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
