@@ -68,9 +68,9 @@
 
 &lt;p&gt;主にプロジェクトのドキュメント用に利用しています。GitHubの自動レンダリングにお任せしており、Sphinxは現在利用していません。お客さん用のマニュアルの類が必要になった際は使う予定。&lt;/p&gt;
 
-&lt;h2 id=&quot;markdown&quot;&gt;markdown&lt;/h2&gt;
+&lt;h2 id=&quot;markdown&quot;&gt;Markdown&lt;/h2&gt;
 
-&lt;p&gt;GitHubとTrello使う時は大抵markdownにお世話になってます。&lt;/p&gt;
+&lt;p&gt;GitHubとTrello使う時は大抵Markdownにお世話になってます。&lt;/p&gt;
 
 &lt;h1 id=&quot;_4&quot;&gt;環境&lt;/h1&gt;
 
@@ -101,7 +101,7 @@
 &lt;h2 id=&quot;google_apps&quot;&gt;Google Apps&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;GMail&lt;/li&gt;
+&lt;li&gt;Gmail&lt;/li&gt;
 
 &lt;li&gt;Google Calendar&lt;/li&gt;
 
@@ -128,7 +128,7 @@
 &lt;li&gt;安い(今はお金があんまり無い)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;タスクの進捗だけではなく、機能追加時のディスカッションや、各リリース毎の振り返り(KPT)にも利用できて重宝してます。コードに直接関係しない部分は、後述するGitHubのIssueよりもこちらで議論する事が多いです。&lt;/p&gt;
+&lt;p&gt;タスクの進捗だけではなく、機能追加時のディスカッションや、各リリース毎の振り返り(KPT)にも利用できて重宝してます。コードに直接関係しない部分は、後述するGitHub Issueよりもこちらで議論する事が多いです。&lt;/p&gt;
 
 &lt;h2 id=&quot;scrum_for_trello&quot;&gt;Scrum for Trello&lt;/h2&gt;
 
@@ -142,7 +142,7 @@
 
 &lt;h2 id=&quot;droneio&quot;&gt;drone.io&lt;/h2&gt;
 
-&lt;p&gt;CIツールとして利用しています。非常にシンプルに設定を記述できる、且つ廉価なのでセットアップは楽なのですが、いかんせんノーティフィケーションの方法がメールだけなのが痛い。一応ビルド成功時にHipChat側に通知を送るように仕込んでいるのですが、知りたいのはむしろビルド失敗時だったりして、そうするとHipChatのAPIを叩けなかったりと色々難儀です。&lt;/p&gt;
+&lt;p&gt;CIサーバとして利用しています。非常にシンプルに設定を記述できる、且つ廉価なのでセットアップは楽なのですが、いかんせんノーティフィケーションの方法がメールだけなのが痛い。一応ビルド成功時にHipChat側に通知を送るように仕込んでいるのですが、知りたいのはむしろビルド失敗時だったりして、そうするとHipChatのAPIを叩けなかったりと色々難儀です。&lt;/p&gt;
 
 &lt;p&gt;現在乗り換えを検討中。&lt;/p&gt;
 
