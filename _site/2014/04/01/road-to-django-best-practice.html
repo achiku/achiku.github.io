@@ -392,7 +392,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <h2 id="_9">設定ファイル切り替え実装</h2>
 
-<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。<a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</p>
+<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。<a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</p>
 <div class='highlight'><pre><code class='python'><span class='c'>#!/usr/bin/env python</span>
 <span class='kn'>import</span> <span class='nn'>os</span>
 <span class='kn'>import</span> <span class='nn'>sys</span>

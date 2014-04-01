@@ -235,7 +235,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 設定ファイル切り替え実装
 ------------------------
 
-manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。[Djangoトラノマキ](https://gist.github.com/voluntas/6855579)参照
+manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。[Djangoトラノマキ](https://gist.github.com/voluntas/6855579)参照
 
 
 {% highlight python %}
