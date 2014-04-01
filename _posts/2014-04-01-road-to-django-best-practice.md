@@ -45,8 +45,8 @@ DjangoのWebアプリを開発している際、リファクタ/テスト拡充�
 Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、"Do one thing, and one thing well"って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。
 
 *DjangoCon 2008: Reusable Apps*
-- [http://www.youtube.com/watch?v=A-S0tqpPga4](http://www.youtube.com/watch?v=A-S0tqpPga4)
-- [http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf](http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf)
+- [YouTube: DjangoCon 2008: Reusable Apps](http://www.youtube.com/watch?v=A-S0tqpPga4)
+- [Developing reusable apps](http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf)
 
 上の資料を参考に設計する利点は主に2つ。
 
@@ -151,7 +151,7 @@ Djangoにはプロジェクトとアプリケーションという思想があ�
 
 参考になるライブラリ群
 
-- [https://www.djangopackages.com/grids/g/project-templates/](https://www.djangopackages.com/grids/g/project-templates/)
+- [Django Packages - Project Templates](https://www.djangopackages.com/grids/g/project-templates/)
 
 
 設定ファイル構成
@@ -182,6 +182,33 @@ Djangoにはプロジェクトとアプリケーションという思想があ�
   + local.sample.py
 - 各環境用設定ファイルの最後でlocal.pyから設定をimportする
 
+common.py以外は大体以下のような形になってます。
+
+{% highlight python %}
+# -*- coding: utf-8 -*-
+from core.settings.common import *  # NOQA
+
+DEBUG = True
+TEMPLATE_DEBUG = True
+ENVIRONMENT = 'staging'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'django2',
+        'USER': 'hoge_user',
+        'PASSWORD': 'hoge_password',
+        'HOST': 'hogehost',
+        'PORT': '',
+    }
+}
+
+try:
+    from core.settings.local import *  # NOQA
+except ImportError:
+    pass
+{% endhighlight %}
+
+
 以下若干わかりにくそうな部分を解説します。
 
 **local.sample.py**
@@ -208,7 +235,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 設定ファイル切り替え実装
 ------------------------
 
-manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。
+manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。[Djangoトラノマキ](https://gist.github.com/voluntas/6855579)参照
 
 
 {% highlight python %}
@@ -225,7 +252,7 @@ if __name__ == "__main__":
 {% endhighlight %}
 
 
-各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。
+各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。
 
 ```
 export DJANGO_SETTINGS_MODULE=core.config.staging

@@ -61,9 +61,9 @@
 &lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;http://www.youtube.com/watch?v=A-S0tqpPga4&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;YouTube: DjangoCon 2008: Reusable Apps&lt;/a&gt;&lt;/li&gt;
 
-&lt;li&gt;&lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;Developing reusable apps&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;上の資料を参考に設計する利点は主に2つ。&lt;/p&gt;
@@ -233,7 +233,7 @@
 &lt;p&gt;参考になるライブラリ群&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;https://www.djangopackages.com/grids/g/project-templates/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h1 id=&quot;_6&quot;&gt;設定ファイル構成&lt;/h1&gt;
@@ -276,6 +276,29 @@
 &lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
 &lt;/ul&gt;
 
+&lt;p&gt;common.py以外は大体以下のような形になってます。&lt;/p&gt;
+&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;core.settings.common&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;*&lt;/span&gt;  &lt;span class=&#39;c&#39;&gt;# NOQA&lt;/span&gt;
+
+&lt;span class=&#39;n&#39;&gt;DEBUG&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
+&lt;span class=&#39;n&#39;&gt;TEMPLATE_DEBUG&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
+&lt;span class=&#39;n&#39;&gt;ENVIRONMENT&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;staging&amp;#39;&lt;/span&gt;
+&lt;span class=&#39;n&#39;&gt;DATABASES&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;{&lt;/span&gt;
+    &lt;span class=&#39;s&#39;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;{&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;ENGINE&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;django.db.backends.mysql&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;NAME&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;django2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;USER&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hoge_user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;PASSWORD&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hoge_password&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;HOST&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hogehost&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+        &lt;span class=&#39;s&#39;&gt;&amp;#39;PORT&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;}&lt;/span&gt;
+&lt;span class=&#39;p&#39;&gt;}&lt;/span&gt;
+
+&lt;span class=&#39;k&#39;&gt;try&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
+    &lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;core.settings.local&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;*&lt;/span&gt;  &lt;span class=&#39;c&#39;&gt;# NOQA&lt;/span&gt;
+&lt;span class=&#39;k&#39;&gt;except&lt;/span&gt; &lt;span class=&#39;ne&#39;&gt;ImportError&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
+    &lt;span class=&#39;k&#39;&gt;pass&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;以下若干わかりにくそうな部分を解説します。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;local.sample.py&lt;/strong&gt;&lt;/p&gt;
@@ -298,7 +321,7 @@
 
 &lt;h2 id=&quot;_9&quot;&gt;設定ファイル切り替え実装&lt;/h2&gt;
 
-&lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。&lt;/p&gt;
+&lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Djangoトラノマキ&lt;/a&gt;参照&lt;/p&gt;
 &lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;#!/usr/bin/env python&lt;/span&gt;
 &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;os&lt;/span&gt;
 &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;sys&lt;/span&gt;
@@ -310,7 +333,7 @@
 
     &lt;span class=&#39;n&#39;&gt;execute_from_command_line&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;sys&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;argv&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。&lt;/p&gt;
+&lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;
 export DJANGO_SETTINGS_MODULE=core.config.staging

@@ -132,9 +132,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p><em>DjangoCon 2008: Reusable Apps</em></p>
 
 <ul>
-<li><a href="http://www.youtube.com/watch?v=A-S0tqpPga4">http://www.youtube.com/watch?v=A-S0tqpPga4</a></li>
+<li><a href="http://www.youtube.com/watch?v=A-S0tqpPga4">YouTube: DjangoCon 2008: Reusable Apps</a></li>
 
-<li><a href="http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf">http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf</a></li>
+<li><a href="http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf">Developing reusable apps</a></li>
 </ul>
 
 <p>上の資料を参考に設計する利点は主に2つ。</p>
@@ -304,7 +304,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>参考になるライブラリ群</p>
 
 <ul>
-<li><a href="https://www.djangopackages.com/grids/g/project-templates/">https://www.djangopackages.com/grids/g/project-templates/</a></li>
+<li><a href="https://www.djangopackages.com/grids/g/project-templates/">Django Packages - Project Templates</a></li>
 </ul>
 
 <h1 id="_6">設定ファイル構成</h1>
@@ -347,6 +347,29 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>各環境用設定ファイルの最後でlocal.pyから設定をimportする</li>
 </ul>
 
+<p>common.py以外は大体以下のような形になってます。</p>
+<div class='highlight'><pre><code class='python'><span class='c'># -*- coding: utf-8 -*-</span>
+<span class='kn'>from</span> <span class='nn'>core.settings.common</span> <span class='kn'>import</span> <span class='o'>*</span>  <span class='c'># NOQA</span>
+
+<span class='n'>DEBUG</span> <span class='o'>=</span> <span class='bp'>True</span>
+<span class='n'>TEMPLATE_DEBUG</span> <span class='o'>=</span> <span class='bp'>True</span>
+<span class='n'>ENVIRONMENT</span> <span class='o'>=</span> <span class='s'>&#39;staging&#39;</span>
+<span class='n'>DATABASES</span> <span class='o'>=</span> <span class='p'>{</span>
+    <span class='s'>&#39;default&#39;</span><span class='p'>:</span> <span class='p'>{</span>
+        <span class='s'>&#39;ENGINE&#39;</span><span class='p'>:</span> <span class='s'>&#39;django.db.backends.mysql&#39;</span><span class='p'>,</span>
+        <span class='s'>&#39;NAME&#39;</span><span class='p'>:</span> <span class='s'>&#39;django2&#39;</span><span class='p'>,</span>
+        <span class='s'>&#39;USER&#39;</span><span class='p'>:</span> <span class='s'>&#39;hoge_user&#39;</span><span class='p'>,</span>
+        <span class='s'>&#39;PASSWORD&#39;</span><span class='p'>:</span> <span class='s'>&#39;hoge_password&#39;</span><span class='p'>,</span>
+        <span class='s'>&#39;HOST&#39;</span><span class='p'>:</span> <span class='s'>&#39;hogehost&#39;</span><span class='p'>,</span>
+        <span class='s'>&#39;PORT&#39;</span><span class='p'>:</span> <span class='s'>&#39;&#39;</span><span class='p'>,</span>
+    <span class='p'>}</span>
+<span class='p'>}</span>
+
+<span class='k'>try</span><span class='p'>:</span>
+    <span class='kn'>from</span> <span class='nn'>core.settings.local</span> <span class='kn'>import</span> <span class='o'>*</span>  <span class='c'># NOQA</span>
+<span class='k'>except</span> <span class='ne'>ImportError</span><span class='p'>:</span>
+    <span class='k'>pass</span>
+</code></pre></div>
 <p>以下若干わかりにくそうな部分を解説します。</p>
 
 <p><strong>local.sample.py</strong></p>
@@ -369,7 +392,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <h2 id="_9">設定ファイル切り替え実装</h2>
 
-<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。</p>
+<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。<a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</p>
 <div class='highlight'><pre><code class='python'><span class='c'>#!/usr/bin/env python</span>
 <span class='kn'>import</span> <span class='nn'>os</span>
 <span class='kn'>import</span> <span class='nn'>sys</span>
@@ -381,7 +404,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
     <span class='n'>execute_from_command_line</span><span class='p'>(</span><span class='n'>sys</span><span class='o'>.</span><span class='n'>argv</span><span class='p'>)</span>
 </code></pre></div>
-<p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。</p>
+<p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。</p>
 
 <pre><code>
 export DJANGO_SETTINGS_MODULE=core.config.staging
