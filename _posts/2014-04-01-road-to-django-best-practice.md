@@ -202,10 +202,29 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 ローカルでテストを実行する時に利用する設定で、PASSWORD_HASHERSとかを変更、DBをsqliteのインメモリにしたり、テストを高速化するための工夫が施してある。この中身についてはテスト戦術で詳細に書きます。
 
 
+その他の設定ファイルは大体名前の通りの内容が入ってます。
+
+
 設定ファイル切り替え実装
 ------------------------
 
 manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。
+
+
+{% highlight python %}
+#!/usr/bin/env python
+import os
+import sys
+
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.development")
+
+    from django.core.management import execute_from_command_line
+
+    execute_from_command_line(sys.argv)
+{% endhighlight %}
+
+
 各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。
 
 ```

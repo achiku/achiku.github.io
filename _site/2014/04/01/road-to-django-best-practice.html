@@ -365,9 +365,23 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>ローカルでテストを実行する時に利用する設定で、PASSWORD_HASHERSとかを変更、DBをsqliteのインメモリにしたり、テストを高速化するための工夫が施してある。この中身についてはテスト戦術で詳細に書きます。</p>
 
+<p>その他の設定ファイルは大体名前の通りの内容が入ってます。</p>
+
 <h2 id="_9">設定ファイル切り替え実装</h2>
 
-<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。 各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。</p>
+<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。</p>
+<div class='highlight'><pre><code class='python'><span class='c'>#!/usr/bin/env python</span>
+<span class='kn'>import</span> <span class='nn'>os</span>
+<span class='kn'>import</span> <span class='nn'>sys</span>
+
+<span class='k'>if</span> <span class='n'>__name__</span> <span class='o'>==</span> <span class='s'>&quot;__main__&quot;</span><span class='p'>:</span>
+    <span class='n'>os</span><span class='o'>.</span><span class='n'>environ</span><span class='o'>.</span><span class='n'>setdefault</span><span class='p'>(</span><span class='s'>&quot;DJANGO_SETTINGS_MODULE&quot;</span><span class='p'>,</span> <span class='s'>&quot;core.settings.development&quot;</span><span class='p'>)</span>
+
+    <span class='kn'>from</span> <span class='nn'>django.core.management</span> <span class='kn'>import</span> <span class='n'>execute_from_command_line</span>
+
+    <span class='n'>execute_from_command_line</span><span class='p'>(</span><span class='n'>sys</span><span class='o'>.</span><span class='n'>argv</span><span class='p'>)</span>
+</code></pre></div>
+<p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。</p>
 
 <pre><code>
 export DJANGO_SETTINGS_MODULE=core.config.staging
