@@ -7,6 +7,318 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Django Best Practiceへの道 #1</title>
+				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
+
+&lt;p&gt;ベストプラクティスとか言っちゃってますが、まだまだ良くできるはずだし、現在前提としているものが変わればまったく別のアプローチが最適、ということもあり得るので、「ベストプラクティスへの道」って事で。エンジニア、と名乗るようになってまだ4ヶ月程なので、わからんことばかりです。是非皆様のご意見聞いてみたいです。大体以下の感じで書いていきます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/li&gt;
+
+&lt;li&gt;Djangoテスト戦術&lt;/li&gt;
+
+&lt;li&gt;Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。&lt;/p&gt;
+
+&lt;h1 id=&quot;&quot;&gt;前提&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_2&quot;&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
+
+&lt;h2 id=&quot;_3&quot;&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
+
+&lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
+
+&lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、”Do one thing, and one thing well”って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;http://www.youtube.com/watch?v=A-S0tqpPga4&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;上の資料を参考に設計する利点は主に2つ。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;メンテナンスしやすくなる&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;このアプリケーション分割をすることで、「巨大な1ファイルのコード」が存在し得ない構成となる。誰かが意識してメンテしにくい巨大な1ファイルを作らないようにする、ではなく、そもそもそんなものが発生し得ない構成にすることが肝要だと思った。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;各モジュールの再利用可能性向上&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;普通の単独自社サービスであれば、そこまで再利用性を高める為に時間をかける必要はない気がするけど、Djangoを使った自社サービスが複数ある中でのライブラリ作成や、個別のお客さんによってカスタマイズが必要なパッケージ、というシチュエーションであればある程度時間をかけて設計する価値はあると思う。実際上の資料内でJamesさんが自社パッケージを各お客さん用にカスタマイズする際に、プラガブルに設計してて助かったぜ、という話がある。&lt;/p&gt;
+
+&lt;h2 id=&quot;_4&quot;&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
+
+&lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_5&quot;&gt;実装&lt;/h2&gt;
+
+&lt;p&gt;他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+    project
+    ├── apps
+    │   ├── appA
+    │   ├── appB
+    │   └── appC
+    ├── core
+    │   └── settings
+    ├── docs
+    │   ├── files
+    │   └── styleguide
+    ├── fixtures
+    ├── libs
+    │   └── management
+    │       └── commands
+    ├── requirements
+    ├── server-config
+    ├── static
+    ├── templates
+    └── tests
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上から順に概要を説明します。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;apps&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
+
+&lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
+
+&lt;li&gt;apps内のディレクトリ構成は、”‘tests”’, ”‘migrations”’, ”‘templates”‘が基本。(South利用前提)&lt;/li&gt;
+
+&lt;li&gt;“Do one thing, and one thing well.”の原則。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;core&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
+
+&lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
+
+&lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;docs&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
+
+&lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;fixtures&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
+
+&lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;libs&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
+
+&lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;requirements&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
+
+&lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
+
+&lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;server-config&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash_profile, ssh_config)。&lt;/li&gt;
+
+&lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
+
+&lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;static&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;templates&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;
+&lt;p&gt;tests&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
+
+&lt;li&gt;具体例でいうと、”‘factories.py”’, ”‘conftest.py”‘。(factory_boy, py.test利用前提)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。 有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考になるライブラリ群&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;https://www.djangopackages.com/grids/g/project-templates/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_6&quot;&gt;設定ファイル構成&lt;/h1&gt;
+
+&lt;h2 id=&quot;_7&quot;&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
+
+&lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
+
+&lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
+
+&lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;1番目と2番めが非常に重要だと思っていて、何かの変数を追加したら他のファイルにも追加する必要がある、とか、変数は複数ファイルに追加したけど、値は各ファイル別にしなければいけないとか本当に良くない。そういった類のものを撲滅する、という指針で以下のようにしました。&lt;/p&gt;
+
+&lt;h2 id=&quot;_8&quot;&gt;設定ファイル実装&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;common.pyに各環境共通の設定を入れる (大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)&lt;/li&gt;
+
+&lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
+&lt;ul&gt;
+&lt;li&gt;development.py&lt;/li&gt;
+
+&lt;li&gt;staging.py&lt;/li&gt;
+
+&lt;li&gt;production.py&lt;/li&gt;
+
+&lt;li&gt;local_test.py&lt;/li&gt;
+
+&lt;li&gt;ci.py&lt;/li&gt;
+
+&lt;li&gt;local.sample.py&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下若干わかりにくそうな部分を解説します。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;local.sample.py&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。 local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+# -*- coding: utf-8 -*-
+# ローカル環境用設定ファイル。以下のようにコピーして利用すること。
+# cp local.sample.py local.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;core/settings/local.py&lt;/code&gt;は&lt;code&gt;.gitignore&lt;/code&gt;に記載しておき、リポジトリからは無視しておく。この&lt;code&gt;local.py&lt;/code&gt;に各開発者用の独自設定を入れていきます。&lt;a href=&quot;http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X&quot;&gt;Two Scoops of Django&lt;/a&gt;では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;local_test.py&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;ローカルでテストを実行する時に利用する設定で、PASSWORD_HASHERSとかを変更、DBをsqliteのインメモリにしたり、テストを高速化するための工夫が施してある。この中身についてはテスト戦術で詳細に書きます。&lt;/p&gt;
+
+&lt;h2 id=&quot;_9&quot;&gt;設定ファイル切り替え実装&lt;/h2&gt;
+
+&lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定デフォルトでしか動かないようにしています。 各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替え。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+export DJANGO_SETTINGS_MODULE=core.config.staging
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について –偏った言語信者の垂れ流し&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Django トラノマキ&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://surgo.jp/2010/02/django.html&quot;&gt;パーフェクトな Django の設定ファイル&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;次回はDjangoにおけるテスト戦術について書きます。&lt;/p&gt;</description>
+				<pubDate>Tue, 01 Apr 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</guid>
+			</item>
+		
+			<item>
 				<title>カンムを支える技術</title>
 				<description>&lt;p&gt;入社して4ヶ月くらいたったので一旦まとめておきます。 フォーマットはどこかで見たことがある形ですが、その通りです。 &lt;a href=&quot;https://gist.github.com/voluntas/6308998&quot;&gt;完全に参考にさせて頂いてます。&lt;/a&gt;&lt;/p&gt;
 
@@ -461,32 +773,6 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 				<pubDate>Mon, 05 Oct 2009 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</guid>
-			</item>
-		
-			<item>
-				<title>Linux/GNUがカッコよすぎて勃起</title>
-				<description>&lt;p&gt;まだ全くの初学者ではあるが、すげーと思ったことがいくつかある。&lt;/p&gt;
-
-&lt;h3 id=&quot;&quot;&gt;インターフェースがシンプル且つ柔軟であること。&lt;/h3&gt;
-
-&lt;p&gt;[command][options] [arg1 arg2 ..] 引数はファイル名の時もあるし、数字の時もあるし、文字列の時もある。 情報は標準入力、標準出力、標準エラー出力と既にあるファイルから。 全てのコマンドがこの形態を持っている。&lt;/p&gt;
-
-&lt;h3 id=&quot;_2&quot;&gt;コマンド（ソフトウェア？？ツール？？）の粒度と数。&lt;/h3&gt;
-
-&lt;p&gt;ls, sed, grep, find, cut, uniqu, sort, tr, cd, awk, dd, set, print, ….. それぞれが自分の守備範囲を適切に守っている（使い方によっては代用ももちろんできるけど）。さらにその数と質は長年いろんな人たちがメンテしてきただけあって、使用頻度の高いものはいわゆる「枯れた」もので安心してプロダクトの中で使用できる。&lt;/p&gt;
-
-&lt;p&gt;コマンドを組み合わせる事が簡単。&lt;/p&gt;
-
-&lt;p&gt;パイプ、アンパサンドなどで無数にあるコマンドを簡単に組み合わすことができる。粒度が適切なので組み合わせはさらにシンプルかつ柔軟になる。&lt;/p&gt;
-
-&lt;h3 id=&quot;_3&quot;&gt;シェルスクリプトの存在。&lt;/h3&gt;
-
-&lt;p&gt;感動した言葉の一つに「シェルはLinux・Unixをプログラミングするものだ」というものがある。いろんなコマンドを糊付けして、一つの「ツール」にしてしまうって意味だと解釈している。奥に進めば進む程いろんな事ができる事がわかる。（シェルだって関数プログラミング的にかける！）もちろんLLは素晴らしいし、楽しいと思うけど、別にPerlやPython使う程でもないけど、サクッと必要、とかいった場合にシェルかけるのは便利。&lt;/p&gt;
-
-&lt;p&gt;んー。すごいわ。みんなかっこいいわ。&lt;/p&gt;</description>
-				<pubDate>Sun, 09 Aug 2009 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2009/08/09/great-linux-and-gnu.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2009/08/09/great-linux-and-gnu.html</guid>
 			</item>
 		
 	</channel>

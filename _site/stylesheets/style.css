@@ -13,6 +13,10 @@ a:active { color: orange; }
 a { text-decoration: none; }
 
 a.post-title { color: #333333; }
+a.post-title:hover { color: orange; }
+
+h1.blog-title {text-decoration:none;}
+h1 {text-decoration: underline;}
 
 
 blockquote {
