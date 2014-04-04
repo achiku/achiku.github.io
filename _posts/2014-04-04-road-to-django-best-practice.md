@@ -3,11 +3,11 @@ layout: post
 title: 'Django Best Practice への道 #2'
 ---
 
-DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。
+DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の二つ目となります。
 
-- [Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
-- [Djangoテスト戦術]()
-- Django Model/View/From/Template戦術
+- [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
+- [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- \#3 Django Model/View/From/Template戦術
 
 
 書くこと
@@ -339,5 +339,7 @@ py.testはnoseよりも細かくエラーを出してくれます。pytest.vim�
 
 次回はDjangoテスト戦術の第二弾でもっと実装よりの話をします。てかなげーな。このポスト。。
 
-
+- [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
+- [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- \#3 Django Model/View/From/Template戦術
 

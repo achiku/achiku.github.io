@@ -5,12 +5,12 @@ title: 'Django Best Practiceへの道 #1'
 
 DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。
 
-ベストプラクティスとか言っちゃってますが、まだまだ良くできるはずだし、現在前提としているものが変わればまったく別のアプローチが最適、ということもあり得るので、「ベストプラクティスへの道」って事で。エンジニア、と名乗るようになってまだ4ヶ月程なので、わからんことばかりです。是非皆様のご意見聞いてみたいです。大体以下の感じで書いていきます。
+ベストプラクティスとか言っちゃってますが、まだまだ良くできるはずだし、現在前提としているものが変わればまったく別のアプローチが最適、ということもあり得るので、「ベストプラクティスへの道」って事で。エンジニア、と名乗るようになってまだ4ヶ月程なので、わからんことばかりです。是非皆様のご意見聞いてみたいです。大体以下の感じで三部に分けて書いていきます。
 
 
-- Djangoプロジェクト/アプリケーション/設定ファイル構成
-- Djangoテスト戦術
-- Django Model/View/From/Template戦術
+- [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
+- [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- \#3 Django Model/View/From/Template戦術
 
 
 戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。
@@ -267,4 +267,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 次回はDjangoにおけるテスト戦術について書きます。
 
+- [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
+- [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- \#3 Django Model/View/From/Template戦術
 
