@@ -7,6 +7,396 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Django Best Practice への道 #2</title>
+				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;&quot;&gt;Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;&quot;&gt;書くこと&lt;/h2&gt;
+
+&lt;p&gt;Django Best Practiceへの道の続きで、Djangoテスト戦術について書きます。Djangoでテストをする際に、どうしたら効率的に書けるか、メンテナンスしやすくなるか、ということに焦点を置いて書きます。&lt;/p&gt;
+
+&lt;h2 id=&quot;_2&quot;&gt;書かないこと&lt;/h2&gt;
+
+&lt;p&gt;テストをするべき、テストはいらない、どこまではするべき、といった類の話は書きません。する、しない、いまはしない、どこまではする、は各チームや開発者がその時置かれているコンテクストに非常に強く依存している為、閾値的なものや考え方を書くのは非常に難儀だなぁ、というのが素直なところです。それよりもテストするのが少しでも楽になり、どのようなコンテクストでも、取れる選択肢の幅が広がる方法を書きたいです。&lt;/p&gt;
+
+&lt;h1 id=&quot;_3&quot;&gt;前提&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_4&quot;&gt;何をテストすべきか&lt;/h1&gt;
+
+&lt;p&gt;作っているのはDjango前提のWebサービスという前提で、テストすべきものをいくつかのグループに分けて考えてみました。テスト対象を明確にすることで、「どこにテストを書けばいいのか」、「何をテストすればいいのか」と迷わずにテストに着手できるようになるかなと思います。テスト対象の構成が上の方ほど単純で下に行くほど複雑になります(下に行くほどテストするまでにリクエスト/レスポンスが通るレイヤーが多い)&lt;/p&gt;
+
+&lt;h2 id=&quot;python&quot;&gt;関数レベル(Python)&lt;/h2&gt;
+
+&lt;p&gt;可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;test_models.py, test_forms.py, etc&lt;/p&gt;
+
+&lt;h2 id=&quot;js&quot;&gt;関数レベル(JS)&lt;/h2&gt;
+
+&lt;p&gt;JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;未定&lt;/p&gt;
+
+&lt;h2 id=&quot;url&quot;&gt;URLルーティングレベル&lt;/h2&gt;
+
+&lt;p&gt;URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;test_urls.py&lt;/p&gt;
+
+&lt;h2 id=&quot;_5&quot;&gt;機能レベル&lt;/h2&gt;
+
+&lt;p&gt;複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;test_[app_name].py&lt;/p&gt;
+
+&lt;h2 id=&quot;_6&quot;&gt;ブラウザレベル&lt;/h2&gt;
+
+&lt;p&gt;JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;test_browser.py&lt;/p&gt;
+
+&lt;p&gt;テストの種類の分類や定義や呼び方は色々ありすぎてよくわからない部分が正直多いです。unit testとソレ以外だ！っていう人もいるし、integration testとacceptance testは分かれてるべきだ！という人もいるし。なので上で分けた分類も、そういうのもあるよね、程度で。今カンムで利用しているDjangoアプリの特性的にはしっくり来ています。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;何をテストすべきか、その際に何を使うべきか、使う時にどういう方針で使うのがいいか、がハイパーまとまってる資料。この資料に一番影響されてると思う。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/699/testing-and-django&quot;&gt;YouTube: Testing and Django&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html&quot;&gt;Testing and Django Note&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;抜粋&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+    What type of test to write?
+
+    Write system tests for your views.
+    Write Selenium tests for Ajax, other JS/server interactions.
+    Write unit tests for everything else (not strict).
+    Test each case (code branch) where it occurs.
+    One assert/action per test case method.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;下記のStackOverflowの記事も何を、どうテストしていくのかに関して実例交えながら語ってる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_7&quot;&gt;どうテストするのか&lt;/h1&gt;
+
+&lt;p&gt;「何を」テストするのか、が明確にした後、次は「どうやって」テストするのかの話をします。その為にまず、テストに求めるものを洗い出し、テストに利用するツールとテストの書き方が、それらの要件を満たすように設計していきました。&lt;/p&gt;
+
+&lt;p&gt;一旦今Djangoアプリのツールとして何を利用しているか列挙。&lt;/p&gt;
+
+&lt;h2 id=&quot;_8&quot;&gt;全レベル共通&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;py.test&lt;/li&gt;
+
+&lt;li&gt;pytest-cov&lt;/li&gt;
+
+&lt;li&gt;pytest-pep8&lt;/li&gt;
+
+&lt;li&gt;pytest-xdist(検証中)&lt;/li&gt;
+
+&lt;li&gt;pytest-django&lt;/li&gt;
+
+&lt;li&gt;factory_boy&lt;/li&gt;
+
+&lt;li&gt;PyHamcrest&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_9&quot;&gt;機能レベル&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;WebTest&lt;/li&gt;
+
+&lt;li&gt;django-webtest&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_10&quot;&gt;ブラウザレベル&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;selenium&lt;/li&gt;
+
+&lt;li&gt;django-selenium&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_11&quot;&gt;テストに求めるもの&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テスト実行スピードが速い&lt;/li&gt;
+
+&lt;li&gt;同一処理別データパターンのテストを効率良く書ける&lt;/li&gt;
+
+&lt;li&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/li&gt;
+
+&lt;li&gt;debugしやすい&lt;/li&gt;
+
+&lt;li&gt;テストカバレッジが見れる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;順に解説していきます。&lt;/p&gt;
+
+&lt;h2 id=&quot;_12&quot;&gt;テスト実行スピードが速い&lt;/h2&gt;
+
+&lt;p&gt;細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;設定的工夫&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。 &lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;詳細はコチラ&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ローカルテスト用の設定はsqliteのインメモリDBを利用する。&lt;/li&gt;
+
+&lt;li&gt;fixture(djangoのコンテクストでの)を撲滅してセットアップのスピードを上げる。&lt;/li&gt;
+
+&lt;li&gt;southのmigrationテストをオフる。&lt;/li&gt;
+
+&lt;li&gt;PASSWORD_HASHERSの変更。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://tell-k.hatenablog.com/entry/2013/10/10/202208&quot;&gt;Django で unittest を高速化する(主にDBの話し)&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/1.5/topics/testing/overview/#speeding-up-the-tests&quot;&gt;Speeding up the tests&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/yuheiomori0718/20130615/1371305730&quot;&gt;Djangoでテストを速くするためにいろいろやってみた&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;コード的工夫&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
+&lt;ul&gt;
+&lt;li&gt;django.test.TestCaseではなく、unittest.TestCaseを利用&lt;/li&gt;
+
+&lt;li&gt;pytest-djangoを利用する場合は、DBを利用する場合にのみ@pytest.mark.django_dbデコレータを利用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+
+&lt;li&gt;WAFのレイヤーを可能な限りまたがない。
+&lt;ul&gt;
+&lt;li&gt;レイヤー(view/forms/models)をまたぐ度に処理が走るしセットアップも時間がかかる。&lt;/li&gt;
+
+&lt;li&gt;ロジックはDjangoのモジュールをかませないようにして、単独でテストできるようにしておく。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/pelme/testing-django-applications-with-py-dot-test-europython-2013&quot;&gt;Testing Django applications with py.test (EuroPython 2013)&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_13&quot;&gt;同一処理別データパターンのテストを効率良く書ける&lt;/h2&gt;
+
+&lt;p&gt;以下箇条書きでなぜコレを求めているのかを列挙します。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;データだけ違って処理は同じなら同じ関数でテストしたい(同じもの書きたく無い)&lt;/li&gt;
+
+&lt;li&gt;けどテストケースとしては分けたい&lt;/li&gt;
+
+&lt;li&gt;便利なassertは使いたい&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;工夫&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;同一処理別データパターンのテストを効率良く書く為、データ別にテストケースを生成するのがデフォルトの機能として備わっているpy.testを利用することとしました。他にも幾つか選択肢がありましたが、py.testの他の機能(fixtureやxdist)も利用したかったので、もともとunittest形式だったテストを全てpy.test形式に書き換えました。py.testはunittest形式のテストもpy.test形式が混ざった状態でテスト実行できるので順次移行できて助かりました。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;以下StackOverflowから見つけたparametrized testを簡単にしてくれるライブラリ一覧。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+    Some of the tools available for doing parametrized tests in Python are:
+
+    Nose test generators (only for function tests, not TestCase classes)
+    nose-parametrized by by David Wolever (also for TestCase classes)
+    Unittest template by Boris Feld
+    Parametrized tests in py.test
+    parametrized-testcase by Austin Bingham
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20091204/1259863417&quot;&gt;TestCaseを拡張しよう&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://feldboris.alwaysdata.net/blog/unittest-template.html&quot;&gt;Unittest template&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;py.testに惚れるきっかけとなった記事&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pytest.org/latest-ja/&quot;&gt;Pytest本家&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/&quot;&gt;pytest fixtures nuts and bolts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Two Scoops of Djangoの人の記事。本の中ではテストはコピペでもオッケー！という発言があったし正直そうだとも思うけど、それを回避する策に力注ぐほうが楽しいと思う。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pydanny.com/pytest-no-boilerplate-testing.html&quot;&gt;pytest: no-boilerplate testing&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;もうunittestには戻れない。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/roothybrid7/items/9717137fbec2bedfd81d&quot;&gt;pytestを実戦投入してみた&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;サンプル&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;例えばURLのルーティングとちゃんとステータスコード200が返ってきて、所定の文字列がレスポンスに含まれている、という事をテストしたい場合、WebTestと組み合わせる事で以下のように書くことができます。&lt;/p&gt;
+&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;pytest&lt;/span&gt;
+&lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;hamcrest&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;contains_string&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;equal_to&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
+&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&#39;nd&#39;&gt;@pytest.mark.django_db&lt;/span&gt;
+&lt;span class=&#39;nd&#39;&gt;@pytest.mark.parametrize&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;login_user, url, message, status_code&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;[&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
+&lt;span class=&#39;p&#39;&gt;])&lt;/span&gt;
+&lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;test_coupon_urls&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;app&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;data&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;login_user&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;url&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;message&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;app&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;get&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;url&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;user&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;data&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;[&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;login_user&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;])&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;equal_to&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;))&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;content&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;contains_string&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;message&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;シンプル！&lt;/p&gt;
+
+&lt;p&gt;ちゃんとpy.testのfixtureやその他の機能の詳細についても書きたい。実装レベルでの工夫等も後ほど書く。&lt;/p&gt;
+
+&lt;h2 id=&quot;_14&quot;&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;データセットアップの際にfixtureではなくfactory_boyを利用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Djangoのfixture遅いしメンテナンスめんどくさいのでfactory_boyを利用して各テストケースに必要な分だけレコードを作成してテスト実行しています。この部分は正直まだまだ工夫の余地があるなぁという印象。もう少し時間がたったら書いてきたテストを見なおしてリファクタして行く際にまた工夫が生まれればいいなと思ってます。&lt;/p&gt;
+
+&lt;h2 id=&quot;debug&quot;&gt;debugしやすい&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;py.testを利用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;py.testはnoseよりも細かくエラーを出してくれます。pytest.vimを使って何度でも素早くテストできるようにしてます。テストを先に書く事のメリットひしひしと感じ始める今日このごろ。特に関数レベルのテスト。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.restartr.com/2013/04/05/my-first-pytest/&quot;&gt;pythonのテストにpytestを使ってみた&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://blog.comutt.jp/entry/2013/12/03/230000&quot;&gt;TDD Advent Calendar 2013 3日目: vim と py.test で TDD&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_15&quot;&gt;テストカバレッジが見れる&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;py.testのカバレッジプラグインを利用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;カバレッジ至上主義ではありませんが、あくまでも目安として、またちょっとしたゲーム感覚でテストを楽しめるようないい工夫だと思います。また、カバレッジレポートを見ることでまだ通っていないブランチが視覚的に分かるのも嬉しいところです。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.sakito.com/2012/09/pytest-pep8-coverage.html&quot;&gt;py.test で pep8 と coverage を同時にチェックする&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;_16&quot;&gt;まとめ&lt;/h1&gt;
+
+&lt;p&gt;今回はだいぶ概念的な話がおおくなってしまいました。。本当はもっとゴリッとしたテストセットアップ方法の工夫や、WebTestとpy.testの連携や、conftest.pyの配置と役割、とかを書きたかったのですが、今回は一旦ココまでとします。&lt;/p&gt;
+
+&lt;p&gt;次回はDjangoテスト戦術の第二弾でもっと実装よりの話をします。てかなげーな。このポスト。。&lt;/p&gt;</description>
+				<pubDate>Fri, 04 Apr 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</guid>
+			</item>
+		
+			<item>
 				<title>Django Best Practiceへの道 #1</title>
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
 
@@ -790,26 +1180,6 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 				<pubDate>Sat, 30 Jan 2010 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2010/01/30/functional-programming.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2010/01/30/functional-programming.html</guid>
-			</item>
-		
-			<item>
-				<title>制限と想像力</title>
-				<description>&lt;p&gt;シェルが楽しい。強力なオブジェクト指向プログラミングも、関数型プログラミングもできない。インターフェースは標準入力、標準出力と標準エラー出力。一時データはフラットファイル。フラットファイルにどういう形式でデータを一時保存しておくと後で取り出しやすいか。なんかフラットファイルを介してオブジェクト指向プログラミングもできそうな気がする（タブ区切りのプロパティの中にメソッドのあるパスとか指定してevalとか。あ、xml形式にして保存しとくと後で取り出しやすいとか。）。&lt;/p&gt;
-
-&lt;p&gt;多分制限て楽しいんだと思う。工夫ができるから。&lt;/p&gt;
-
-&lt;p&gt;PerlもPythonもRubyも自分には扱いきれないほど高度な機能を死ぬほどもってる。俺がなんかやる余地ないよね。なんか使われてる感じがする。&lt;/p&gt;
-
-&lt;p&gt;最初は「なんでこんな原始時代の言語を学ばねばならんのだ」って思ってたけど、シェルって楽しいなー。つかLinuxのソフトウェアツールが楽しいのかな。ズビッって欲しいデータが綺麗なフォーマットで出力されるとうれしいし。&lt;/p&gt;
-
-&lt;p&gt;今、シェルを学べてよかった。&lt;/p&gt;
-
-&lt;p&gt;いい基礎になる。&lt;/p&gt;
-
-&lt;p&gt;なんてったって枯れてるからね。いいもんごちそうになります。&lt;/p&gt;</description>
-				<pubDate>Mon, 05 Oct 2009 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2009/10/05/creativity-lives-in-restrictions.html</guid>
 			</item>
 		
 	</channel>
