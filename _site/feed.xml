@@ -7,6 +7,377 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Django Best Practice への道 #3</title>
+				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の三つ目となります。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;&quot;&gt;書くこと&lt;/h2&gt;
+
+&lt;p&gt;Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。&lt;/p&gt;
+
+&lt;p&gt;あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。&lt;/p&gt;
+
+&lt;h1 id=&quot;_2&quot;&gt;前提&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;urlspy&quot;&gt;urls.py&lt;/h1&gt;
+
+&lt;h2 id=&quot;_3&quot;&gt;役割&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;URLとViewの紐付け&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;urls.pyは本当にこれだけを担えば問題なし。逆にこの役割以外の事をやらないように現在開発をしている。urls.pyにQuerySetが書いてあったり、ロジックが書いてあったりするのは見通しが悪く、好みではない。楽に書けるからいいじゃなない！という意見もあるが、書く時楽になる(≒スピードアップ)と、その後の見通しの悪さを比べたら、あまり割のいいトレードオフではないと思う。なぜなら、この部分にロジック書くのも、views.pyにロジック書くのも労力的に大差無いから大してスピードアップしない。&lt;/p&gt;
+
+&lt;p&gt;今後上記基本姿勢を変更した方が良いか否かは、その時のコンテクストに合わせて適切に判断したい。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/http/urls/&quot;&gt;URL dispatcher&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;urls.pyを書く際に一番悩むのは前からずっとURL設計の部分。”Cool URLs don’t change.”とはよく言ったもので、ここをしっかりやろうとするとそれなりに時間が必要であった。まだイマイチしっくり来ていない部分が多く、今はテンプレみたいなものが欲しい。こういう場合はこう、みたいな。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.w3.org/Provider/Style/URI&quot;&gt;Cool URIs don’t change&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;あとはAPPEND_SLASHという仕組みに注意することと、ちゃんと名前をつけてreverseで引けるようにするってことぐらいな気がします。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/ref/settings/#append-slash&quot;&gt;APPEND_SLASH&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;なぜAPPEND_SLASHなのか。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused. &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;formspy&quot;&gt;forms.py&lt;/h1&gt;
+
+&lt;h2 id=&quot;_4&quot;&gt;役割&lt;/h2&gt;
+
+&lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る&lt;/li&gt;
+
+&lt;li&gt;ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/li&gt;
+
+&lt;li&gt;データ登録/編集のロジック(複数モデルを扱いながら)を記述する&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;_5&quot;&gt;担うべき役割&lt;/h2&gt;
+
+&lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)&lt;/li&gt;
+
+&lt;li&gt;modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
+
+&lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)&lt;/li&gt;
+
+&lt;li&gt;1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)&lt;/li&gt;
+
+&lt;li&gt;過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;もちろんmodelにもカスタムバリデーターを登録することは可能だけど、現時点ではしていない。理由は、DjangoのmodelはどちらかというとRDBMSにおけるテーブルのPython表現っぽい、という風にとらえているから。modelって名前、ややこしいね。もし本当にpersistent storageレベルで必要なバリデーションがあるのであれば、それはpersistent storageレベルで設定されるべきな気がしている(Oracleのcheck制約とか、MySQLのENUM型とか)。それはPython(Django ORM)以外からデータが扱われる事があったとしても適切にデータの整合性を守ってくれることとなる。&lt;/p&gt;
+
+&lt;p&gt;上記をそれとなく守って現在は開発している。が、まだあまり納得はいってない。この部分の方針は随時更新していきたいです。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/modelforms/&quot;&gt;Creating forms from models&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform&quot;&gt;Django forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform&quot;&gt;Django Advantage forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;2つ目の「modelと密接に結びついていないもの」はそこまで出番が無いように思える。これに関してはforms.Formを利用して素直に必要な項目と、項目に対する制約を記述すればいいと思う。大して言うことは無い。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/&quot;&gt;Working with forms&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;_6&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;上記は「担うべき役割」でも説明したように、やらない方が得する事が比較的明確だと思っている。問題は以下。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;データ登録/編集のロジック(複数モデルを扱いながら)を記述する&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;ココは賛否両論あり得ると思う。上記のような抽象的な話ではなく、forms.FormPreviewのdoneメソッドの話なのかもしれない(普通のModleFormやForm内でデータ変更を実装することはほぼ無いと思う)。上記でFormが担うべき役割をある程度明確にしたのに、いきなりここでデータの変更をされる、というすごい気持ち悪い状態になる。「データをどこで変更しているのか」を考える時に見なければいけない範囲が格段に広がるので、コードをたどるのが非常にダルくなる。が、Previewがどうしても必要なんだ！という場合もある。その場合は涙をのんでFormPreviewを使う(ちなみにデフォルトではFormPreviewではFileFieldはプレビューできない)。非常にダルい。ダルいのでそれをCBVにしようってのが以下のライブラリ。まだセキュリティー含めて検証中で実戦に投入はできていないが、CBVとしてPreview機能を実装しているので、Formの中にデータ変更処理が入る事なく、いい感じで書けそうな気がしている。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/ryankask/django-cbv-formpreview&quot;&gt;django-cbv-formpreview&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;FileFieldもプレビューできるようにする実装のサンプル。これはそのまま実戦投入はできそうだけど、実装のコンセプトとして参考になる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/razum2um/django-file-formpreview&quot;&gt;Django File FormPreview&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。&lt;/p&gt;
+
+&lt;h2 id=&quot;form&quot;&gt;Form関連のオススメライブラリ&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;form_2&quot;&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。 &lt;a href=&quot;https://github.com/dyve/django-bootstrap-toolkit/issues/103&quot;&gt;Performance issue : to many get_template&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;modelspy&quot;&gt;models.py&lt;/h1&gt;
+
+&lt;h2 id=&quot;_7&quot;&gt;役割&lt;/h2&gt;
+
+&lt;p&gt;ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;DjangoにおけるActiveRecordパターンを担う&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;デザインパターン便利。名前言うだけでなんか賢く見えるし。でも、これだとActiveRecordパターンを正確に理解できてないといけないし(自分はそこまで理解してない)、理解するまで何か書けないというのは辛いので以下、自分の言葉で表すとこうなります、というのをやってみる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;RDBMSにおけるテーブルのPython表現&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;参考&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.martinfowler.com/eaaCatalog/activeRecord.html&quot;&gt;Active Record by Martin Fowler&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;_8&quot;&gt;担うべき役割&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
+
+&lt;li&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/li&gt;
+
+&lt;li&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;順に解説していきます。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;これはDjango ORMが勝手にってくれることなので特に言う事ないです。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;これもDjango ORMが勝手にってくれることなので特に言う事ないです。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
+&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
+&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+
+    &lt;span class=&#39;nd&#39;&gt;@property&lt;/span&gt;
+    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+        &lt;span class=&#39;k&#39;&gt;return&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;ow&#39;&gt;and&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
+&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+
+    &lt;span class=&#39;nd&#39;&gt;@property&lt;/span&gt;
+    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+        &lt;span class=&#39;k&#39;&gt;return&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;ow&#39;&gt;and&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt;
+
+    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
+        &lt;span class=&#39;k&#39;&gt;if&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;published&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
+            &lt;span class=&#39;k&#39;&gt;raise&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;AlreadyPublishedException&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+        &lt;span class=&#39;k&#39;&gt;elif&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
+            &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
+            &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;datetime&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;datetime&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;now&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+        &lt;span class=&#39;k&#39;&gt;else&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
+            &lt;span class=&#39;k&#39;&gt;raise&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;NotPublishableException&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;色々いじってみて、Django ORMにおいては1モデル1テーブル、1インスタンス1レコードという概念を念頭に置いた方がいい気がしている。各レコード毎の属性はmodelに、各レコード毎に既存レコードから導出できる属性はmodelに、各レコード毎の属性の値によって処理が変わり、且つその処理がタッチするのが当該モデルに閉じる場合はmodelのメソッドに、といった感じ。&lt;/p&gt;
+
+&lt;p&gt;以下の記事は複数モデルが絡み合うロジックを完全に無視して書いているので、あと一歩な感じなのですが、記事へのコメントがかなりいい感じに補完してくれているので全体として大変参考になる。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/&quot;&gt;Fat Models - A Django Code Organization Strategy&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;_9&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
+
+&lt;li&gt;処理が対象のモデルの中核をなすものでは無いロジック&lt;/li&gt;
+
+&lt;li&gt;AWS等の外部サービスとやりとりするロジック&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;これはmodelのメソッド内で完結するのは難しいし、そもそもmodel全然関係無い場合もある。先にも述べたようにDjango ORM自体、1モデル1テーブルを基準にして作られているから。なので上記は別の部分に切り出して書くのがいい気がしている。やはりDjangoのmodelはRDBMSにおけるテーブルのPython表現、くらいのプリミティブなものだと捉えておいた方が何かといいのではないかと思う。&lt;/p&gt;
+
+&lt;p&gt;以下の記事はRuby on Railsに関する記事だけど、考え方が非常に参考になった。(ちなみにRuby on Railsは全く触ったこと無い。っていうかDjango以外にWAFを真面目に触ったことが無いという雑魚っぷりです)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/&quot;&gt;7 Patterns to Refactor Fat ActiveRecord Models&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;viewspy&quot;&gt;views.py&lt;/h1&gt;
+
+&lt;h2 id=&quot;_10&quot;&gt;役割&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;雑に書いているわけではなく、このレイヤーは抽象的な処理に徹するべきだと思う。そして、可能な限り見通しよく、薄く作るのが、最終的にメンテナンスしやすい気がする。&lt;/p&gt;
+
+&lt;p&gt;「何か処理」の部分は1インスタンスに閉じる処理であればmodelのメソッドを使うし、バリデーションに関係する部分はformを使う。複数modelが絡み合う処理が必要な場合はmodelではなくutils.pyやservices.pyに処理を委譲。最終的に何をレスポンスとして返すか、という部分だけハンドリングする、といった感じ。&lt;/p&gt;
+
+&lt;p&gt;CBVやFBVをどこでどうやって使うべきか、という話は、&lt;a href=&quot;http://pydanny.com/announcing-two-scoops-of-django-1.6.html&quot;&gt;Two Scoops of Django&lt;/a&gt;に非常に詳しく書いてあり、とても参考になった。この本は本当に素晴らしい。&lt;/p&gt;
+
+&lt;h1 id=&quot;django&quot;&gt;Django全体通して&lt;/h1&gt;
+
+&lt;p&gt;最後に、Django全体を通した思想っぽいものを紹介して、Djangoに対する感想など述べながら締めます。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/faq/general/#django-appears-to-be-a-mvc-framework-but-you-call-the-controller-the-view-and-the-view-the-template-how-come-you-don-t-use-the-standard-names&quot;&gt;MTV Framework?&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。&lt;/li&gt;
+
+&lt;li&gt;&lt;strong&gt;V&lt;/strong&gt; Django Viewの事。「どのデータを」の部分を担当。&lt;/li&gt;
+
+&lt;li&gt;&lt;strong&gt;T&lt;/strong&gt; Django templateの事。「どのように表示するか」の部分を担当。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;
+Well, the standard names are debatable.
+
+In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.
+
+So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.
+
+Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.
+
+Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.
+
+If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.
+
+At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;という、DjangoはMTVなフレームワークだ！という主張。&lt;/p&gt;
+
+&lt;p&gt;この文章、あまりmodelには触れてない。modelのMはMVCで言うところのモデル、つまりはビジネスロジックなのか、Django ORMによって定義されるmodelなのかはこの文章からだけではよくわからない。ただしばらく触ってみた感じだと、MTVのMがMVCのMと同じだとするならば、それはmodelインスタンス単体ではなく、存在するmodelインスタンスを組み合わせながら処理を行うどっか別の部分に定義される処理な気がする。デフォルトでは入ってないけどservices.pyとか作ってそこに処理を定義、みたいな。もしMTVのMがMVCのMではなく、ただのデータを永続化するだけの仕組み+ちょっとしたメソッドだとしたら、それはDjango ORM単体で事足りる。&lt;/p&gt;
+
+&lt;p&gt;Djangoはもともとニュース系のサイトを管理する目的で開発されたらしい。その出自が影響しているのかどうか不明だけど、確かにニュースサイトで複数インスタンスが複雑に絡み合い、外部サービスと連携しながら特定の処理を行う事ってあんまり想像できない。Djangoそのままのmodels.py/views.py/urls.py/forms.pyだけを使って作る事を想定しているのは、そういった、データ+ちょっとした処理くらい、に最適化されてるんじゃないかなぁという印象を持った。&lt;/p&gt;
+
+&lt;p&gt;もちろん工夫しだいで複雑にもできる作りになってる。&lt;/p&gt;
+
+&lt;h1 id=&quot;_11&quot;&gt;まとめ&lt;/h1&gt;
+
+&lt;p&gt;ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)&lt;/p&gt;
+
+&lt;p&gt;このまとめを書こうかなと思ったのは、大きなリリースが一段落ついた、という事もあるのですが、ずっと心に残っていた文章に対する自分なりの一つの答えでもあります。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nishiohirokazu/20110309/1299598527&quot;&gt;西尾さんの2011新卒準備カレンダーの記事&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;今回書いたDjango Best Practiceへの道の三本の記事には沢山のリンクが貼ってあります。これらのリンク、全てから自分は勉強させてもらっており、自分が学んでいるということはカンムという会社がクオリティー高いプロダクトをスピーディーに市場に届ける事に貢献しており、カンムが本当に市場に必要とされるプロダクトを作っている限り、世の中の便利さを向上させている事になります。そんな教材が、インターネットにアクセスするだけで死ぬほど手に入るという事に、今更ながら驚愕してます。&lt;/p&gt;
+
+&lt;p&gt;そういう記事の末席に、このまとめも加われれば幸い。加わらなくても書くだけで自分の脳みそ整理できたので元は取れてる。&lt;/p&gt;
+
+&lt;p&gt;勉強させてもらった記事を書いてくれた方々、ライブラリを公開してくれている方々に感謝。また、この記事を書くために時間ある程度使ってもいいよと言ってくれたシャチョーに感謝です。&lt;/p&gt;
+
+&lt;p&gt;わからんことだらけでヤバイので、異論大歓迎です！尖すぎるマサカリは怖いですが、良いマサカリであれば泣きながら受け止めます！&lt;/p&gt;
+
+&lt;p&gt;(追伸：Templateまで届きませんでした。)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+				<pubDate>Mon, 07 Apr 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/04/07/road-to-django-best-practice.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/04/07/road-to-django-best-practice.html</guid>
+			</item>
+		
+			<item>
 				<title>Django Best Practice への道 #2</title>
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の二つ目となります。&lt;/p&gt;
 
@@ -15,7 +386,7 @@
 
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
 
-&lt;li&gt;#3 Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2 id=&quot;&quot;&gt;書くこと&lt;/h2&gt;
@@ -397,7 +768,7 @@
 
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
 
-&lt;li&gt;#3 Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
 				<pubDate>Fri, 04 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</link>
@@ -408,14 +779,12 @@
 				<title>Django Best Practiceへの道 #1</title>
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
 
-&lt;p&gt;ベストプラクティスとか言っちゃってますが、まだまだ良くできるはずだし、現在前提としているものが変わればまったく別のアプローチが最適、ということもあり得るので、「ベストプラクティスへの道」って事で。エンジニア、と名乗るようになってまだ4ヶ月程なので、わからんことばかりです。是非皆様のご意見聞いてみたいです。大体以下の感じで三部に分けて書いていきます。&lt;/p&gt;
-
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
 
-&lt;li&gt;#3 Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。&lt;/p&gt;
@@ -628,6 +997,12 @@
 &lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
+&lt;p&gt;Two Scoops of Djangoで紹介されていた構成。これも非常に参考になる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
 &lt;p&gt;参考になるライブラリ群&lt;/p&gt;
 
 &lt;ul&gt;
@@ -754,7 +1129,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
 
-&lt;li&gt;#3 Django Model/View/From/Template戦術&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</description>
 				<pubDate>Tue, 01 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</link>
@@ -1164,38 +1539,6 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 				<pubDate>Sat, 04 Sep 2010 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2010/09/04/chcsv.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2010/09/04/chcsv.html</guid>
-			</item>
-		
-			<item>
-				<title>関数的であるということ</title>
-				<description>&lt;p&gt;イマイチしっくりとこなかったんだけど、Pythonを使ってみて何となく、ほんのちょこっと関数的であるということが分かってきた気がする。今自分が実感できる「関数的」なことは大きく分けると二つ。1.抽象化する、2.手続きではなく定義を書く&lt;/p&gt;
-
-&lt;p&gt;こっから先はプログラミング歴2年の、しかも仕事でプログラミングあんましてない趣味プログラマが書くことなので、色々間違い・勘違い等含まれていると思うので注意して読まれたし。&lt;/p&gt;
-
-&lt;h3 id=&quot;&quot;&gt;抽象化する&lt;/h3&gt;
-
-&lt;p&gt;以前にもkshで関数的に書くっていうエントリを書いた。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;/2009/07/08/pragmatic-functional-programming.html&quot;&gt;プラグマティック関数プログラミング&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;言いたい事はほぼ、このエントリの中にあるんだけど、もう一度まとめる。プログラムがおおきくなるにつれて、プログラムを変更、追加する必要がある場面が増える。そういった時に簡単に変更、追加を行えるようにプログラム同士はなるべく緩くつながっていて欲しいという需要がでてきた。緩くつながるってのはどういうことか。簡単に言うと「取り替えるのが簡単」ってことだ。オブジェクト指向はこの取り替えがなるべく簡単にできるように、クラス、オブジェクト、継承ってのを使ってアプローチしている。関数的なものは、言うに及ばず、関数を使ってこの「取り替えるのが簡単」っていうベネフィットにアプローチする。以下、上記エントリの引用。&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;つまり、「ほげほげ」の部分を空白にしておくことで、いろんな関数を取り替え可能にしておく事ができる。この様にして関数的なプログラミング言語は「取り替えるのが簡単」っていう利点を作り出している。&lt;/p&gt;
-
-&lt;h3 id=&quot;_2&quot;&gt;手続きではなく定義を書く&lt;/h3&gt;
-
-&lt;p&gt;これは最近自分でしっくりきた感覚。感覚なので、なかなか伝えるのが難しいんだけど、トライしてみます。「手続き」っていうのは、「アレとコレを比べる。比べた結果、アレの方が大きかった場合、foo処理をする。比べた結果、コレの方が大きかった場合、bar処理をする。」っていう機械に語りかけるような、そんな感じのものだと認識している。関数的なものの場合、「foo処理とは、アレとコレを比べてアレの方が大きい場合の処理。bar処理とはアレとコレを比べてコレの方が大きい場合の処理。」ってな感じ。。。だんだん怪しくなってきた。。。たぶんどっちでやっても同じような事をするプログラムは書けるんだろうと思う。&lt;/p&gt;
-
-&lt;p&gt;書いてたらわからんくなってきた。一時中断する。またなんかふといい説明方法が思いついたら書く！&lt;/p&gt;
-
-&lt;p&gt;どなたかわかりやすげな説明できる方、よろしくお願いします！ひろくんとか！&lt;/p&gt;</description>
-				<pubDate>Sat, 30 Jan 2010 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2010/01/30/functional-programming.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2010/01/30/functional-programming.html</guid>
 			</item>
 		
 	</channel>

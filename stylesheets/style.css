@@ -41,3 +41,36 @@ footer {
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
     background-color: #eeeeee;
  }
+
+.text, .text-loose, .control-label, .controls .textinput, .controls .datetimeinput, .controls .dateinput, .controls .checkboxinput, .controls .textarea, .controls .select, .change-src, .change-dest {
+  font-size: 15px;
+  color: black;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.text-sm, .nav > li > a, .nav > li > p, #hierarchial-nav, .section a.content p, .tab-nav-group li a, .preview-table p, .list-table td, .list-table th, .alert-block, .controls .help-block {
+  font-size: 13px;
+  color: #333333;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.text-xs, .list-table thead tr th, .list-table tbody td .status-label {
+  font-size: 11px;
+  color: #666666;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.text-loose {
+  line-height: 1.7em;
+}
+
+a.text, a.text-loose, a.control-label, .controls a.textinput, .controls a.datetimeinput, .controls a.dateinput, .controls a.checkboxinput, .controls a.textarea, .controls a.select, a.change-src, a.change-dest {
+  color: #3366ff;
+}
+
+a.text-lg {
+  color: #3366ff;
+}
