@@ -315,21 +315,22 @@ Django全体通して
 - **V** Django Viewの事。「どのデータを」の部分を担当。
 - **T** Django templateの事。「どのように表示するか」の部分を担当。
 
-```
-Well, the standard names are debatable.
 
-In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.
 
-So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.
+    Well, the standard names are debatable.
 
-Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.
+    In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.
 
-Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.
+    So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.
 
-If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.
+    Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.
 
-At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.
-```
+    Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.
+
+    If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.
+
+    At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.
+
 
 という、DjangoはMTVなフレームワークだ！という主張。
 

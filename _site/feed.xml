@@ -7,51 +7,186 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Django + py.test + WebTest</title>
+				<description>&lt;p&gt;以前書いた&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;Django Best Practice への道 #2&lt;/a&gt;の補足を書きます。&lt;/p&gt;
+
+&lt;p&gt;以下の課題を解決するために実施したこととなります。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Django Webアプリの機能テストはpy.testとWebTestを同時に使いたいけどunittest形式は嫌&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;分解していきます。&lt;/p&gt;
+
+&lt;h2 id=&quot;djangopytest&quot;&gt;Djangoのテストにpy.testを使う&lt;/h2&gt;
+
+&lt;p&gt;以下のライブラリを利用する。
+(なぜpy.testを選択したかは&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;コチラ&lt;/a&gt;)&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/pelme/pytest_django&quot;&gt;pelme/pytest_django&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。&lt;/p&gt;
+
+&lt;h2 id=&quot;djangowebtest&quot;&gt;DjangoのテストにWebTestを使う&lt;/h2&gt;
+
+&lt;p&gt;以下のライブラリを利用する。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest&quot;&gt;kmike/django-webtest&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;これを利用する目的は前回のポストで書いた「機能テスト」で利用するためです。機能テストはレンダリングされたHTMLも含む形でテストをしたい。一般的に利用されるDjangoのテストクライアントは、どのテンプレートが使われたか、テンプレートに渡るcontext variablesが正しいか、をチェックするものなので、カンムで想定している機能テストに関してはそもそも出番じゃない。よって、機能テストを実施するにはWebTestを利用することとしています。&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/&quot;&gt;Prefer WebTest to Djangos test client for functional tests&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;unittest&quot;&gt;unittest形式が嫌&lt;/h2&gt;
+
+&lt;p&gt;そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。&lt;/p&gt;
+
+&lt;p&gt;そこでWebTestも含めて全てpy.test形式でつくろうと思ったのですが、django_webtestパッケージ内のWebTestは既にdjango.test.TestCaseを継承しており、unittest.TestCaseを継承しているので、そのままではpy.test形式で使えない。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django_webtest/__init__.py&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
+
+&lt;p&gt;ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;django_webtest&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WebTestMixin&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WebTestMixin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_patch_settings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;renew_app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;前回掲載したURLに対するGETのスモークテストのサンプルでいくと、&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;apps/appA/tests/conftest.py&lt;/em&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;django_webtest&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WebTestMixin&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tests.factories&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;AdminUserFactory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NormalUserFactory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WebTestMixin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_patch_settings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;renew_app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;admin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AdminUserFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NormalUserFactory&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;admin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;apps/appA/tests/test_url.py&lt;/em&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pytest&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;hamcrest&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;contains_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;equal_to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+
+&lt;span class=&quot;nd&quot;&gt;@pytest.mark.django_db&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@pytest.mark.parametrize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;login_user, url, message, status_code&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_coupon_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;login_user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;login_user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;equal_to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;contains_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;シンプル！&lt;/p&gt;
+
+&lt;p&gt;これを発見した時はライブラリのソースコードに潜り込んで何かを自分の思い通りに動かせた！しかもまだ誰も見つけてない！と非常にうれしかったのですが、より洗練されたやり方が以下に紹介されていました(フランス語読めないけどコードは読める)。世の中甘くないっす。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://mathieu.agopian.info/presentations/2013_09_djangocong/&quot;&gt;PyTest et WebTest&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;おまけ&lt;/h2&gt;
+
+&lt;p&gt;django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。&lt;/p&gt;
+
+&lt;p&gt;弊社ではPyHamcrestを利用することでなんとなく回避していますが、以下にDjangoデフォルトのassertionをpy.testの名前空間にぶっこむ事で回避するという実装があり、これはこれですごい便利だなぁと思ってます。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest&quot;&gt;Funcargs &amp;amp; other fun with pytest&lt;/a&gt;
+P12に記載あり&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;まとめ&lt;/h2&gt;
+
+&lt;p&gt;py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。&lt;/p&gt;
+
+</description>
+				<pubDate>Mon, 14 Apr 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/04/14/django-pytest-webtest.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/04/14/django-pytest-webtest.html</guid>
+			</item>
+		
+			<item>
 				<title>Django Best Practice への道 #3</title>
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の三つ目となります。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;&quot;&gt;書くこと&lt;/h2&gt;
+&lt;h2 id=&quot;section&quot;&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。&lt;/p&gt;
 
 &lt;p&gt;あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。&lt;/p&gt;
 
-&lt;h1 id=&quot;_2&quot;&gt;前提&lt;/h1&gt;
+&lt;h1 id=&quot;section-1&quot;&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-
-&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-
-&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-
-&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-
-&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-
-&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-
-&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-
-&lt;li&gt;トラフィックは少ない&lt;/li&gt;
-
-&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
+  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h1 id=&quot;urlspy&quot;&gt;urls.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;_3&quot;&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-2&quot;&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;URLとViewの紐付け&lt;/li&gt;
+  &lt;li&gt;URLとViewの紐付け&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;urls.pyは本当にこれだけを担えば問題なし。逆にこの役割以外の事をやらないように現在開発をしている。urls.pyにQuerySetが書いてあったり、ロジックが書いてあったりするのは見通しが悪く、好みではない。楽に書けるからいいじゃなない！という意見もあるが、書く時楽になる(≒スピードアップ)と、その後の見通しの悪さを比べたら、あまり割のいいトレードオフではないと思う。なぜなら、この部分にロジック書くのも、views.pyにロジック書くのも労力的に大差無いから大してスピードアップしない。&lt;/p&gt;
@@ -61,9 +196,8 @@
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/http/urls/&quot;&gt;URL dispatcher&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/http/urls/&quot;&gt;URL dispatcher&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;urls.pyを書く際に一番悩むのは前からずっとURL設計の部分。”Cool URLs don’t change.”とはよく言ったもので、ここをしっかりやろうとするとそれなりに時間が必要であった。まだイマイチしっくり来ていない部分が多く、今はテンプレみたいなものが欲しい。こういう場合はこう、みたいな。&lt;/p&gt;
@@ -79,50 +213,33 @@
 &lt;p&gt;なぜAPPEND_SLASHなのか。&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused. &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h1 id=&quot;formspy&quot;&gt;forms.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;_4&quot;&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-3&quot;&gt;役割&lt;/h2&gt;
 
-&lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。&lt;/p&gt;
+&lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。
+- HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る
+- ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る&lt;/li&gt;
+&lt;p&gt;以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。
+- models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)
+- データ登録/編集のロジック(複数モデルを扱いながら)を記述する &lt;/p&gt;
 
-&lt;li&gt;ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)&lt;/li&gt;
-&lt;/ul&gt;
+&lt;h2 id=&quot;section-4&quot;&gt;担うべき役割&lt;/h2&gt;
 
-&lt;p&gt;以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/li&gt;
-
-&lt;li&gt;データ登録/編集のロジック(複数モデルを扱いながら)を記述する&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;_5&quot;&gt;担うべき役割&lt;/h2&gt;
-
-&lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)&lt;/li&gt;
-
-&lt;li&gt;modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/li&gt;
-&lt;/ol&gt;
+&lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。
+1. modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)
+2. modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/p&gt;
 
 &lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
 
-&lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)&lt;/li&gt;
-
-&lt;li&gt;1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)&lt;/li&gt;
-
-&lt;li&gt;過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。
+- modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)
+- 1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)
+- 過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)&lt;/p&gt;
 
 &lt;p&gt;もちろんmodelにもカスタムバリデーターを登録することは可能だけど、現時点ではしていない。理由は、DjangoのmodelはどちらかというとRDBMSにおけるテーブルのPython表現っぽい、という風にとらえているから。modelって名前、ややこしいね。もし本当にpersistent storageレベルで必要なバリデーションがあるのであれば、それはpersistent storageレベルで設定されるべきな気がしている(Oracleのcheck制約とか、MySQLのENUM型とか)。それはPython(Django ORM)以外からデータが扱われる事があったとしても適切にデータの整合性を守ってくれることとなる。&lt;/p&gt;
 
@@ -131,11 +248,9 @@
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/modelforms/&quot;&gt;Creating forms from models&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform&quot;&gt;Django forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform&quot;&gt;Django Advantage forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/modelforms/&quot;&gt;Creating forms from models&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform&quot;&gt;Django forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform&quot;&gt;Django Advantage forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;2つ目の「modelと密接に結びついていないもの」はそこまで出番が無いように思える。これに関してはforms.Formを利用して素直に必要な項目と、項目に対する制約を記述すればいいと思う。大して言うことは無い。&lt;/p&gt;
@@ -144,7 +259,7 @@
 
 &lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/&quot;&gt;Working with forms&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;_6&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-5&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;p&gt;&lt;strong&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/strong&gt;&lt;/p&gt;
 
@@ -155,13 +270,13 @@
 &lt;p&gt;ココは賛否両論あり得ると思う。上記のような抽象的な話ではなく、forms.FormPreviewのdoneメソッドの話なのかもしれない(普通のModleFormやForm内でデータ変更を実装することはほぼ無いと思う)。上記でFormが担うべき役割をある程度明確にしたのに、いきなりここでデータの変更をされる、というすごい気持ち悪い状態になる。「データをどこで変更しているのか」を考える時に見なければいけない範囲が格段に広がるので、コードをたどるのが非常にダルくなる。が、Previewがどうしても必要なんだ！という場合もある。その場合は涙をのんでFormPreviewを使う(ちなみにデフォルトではFormPreviewではFileFieldはプレビューできない)。非常にダルい。ダルいのでそれをCBVにしようってのが以下のライブラリ。まだセキュリティー含めて検証中で実戦に投入はできていないが、CBVとしてPreview機能を実装しているので、Formの中にデータ変更処理が入る事なく、いい感じで書けそうな気がしている。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/ryankask/django-cbv-formpreview&quot;&gt;django-cbv-formpreview&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/ryankask/django-cbv-formpreview&quot;&gt;django-cbv-formpreview&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;FileFieldもプレビューできるようにする実装のサンプル。これはそのまま実戦投入はできそうだけど、実装のコンセプトとして参考になる。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/razum2um/django-file-formpreview&quot;&gt;Django File FormPreview&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/razum2um/django-file-formpreview&quot;&gt;Django File FormPreview&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。&lt;/p&gt;
@@ -169,45 +284,44 @@
 &lt;h2 id=&quot;form&quot;&gt;Form関連のオススメライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;form_2&quot;&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
+&lt;h2 id=&quot;form-1&quot;&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。 &lt;a href=&quot;https://github.com/dyve/django-bootstrap-toolkit/issues/103&quot;&gt;Performance issue : to many get_template&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。
+&lt;a href=&quot;https://github.com/dyve/django-bootstrap-toolkit/issues/103&quot;&gt;Performance issue : to many get_template&lt;/a&gt;&lt;/p&gt;
 
 &lt;h1 id=&quot;modelspy&quot;&gt;models.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;_7&quot;&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-6&quot;&gt;役割&lt;/h2&gt;
 
 &lt;p&gt;ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;DjangoにおけるActiveRecordパターンを担う&lt;/li&gt;
+  &lt;li&gt;DjangoにおけるActiveRecordパターンを担う&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;デザインパターン便利。名前言うだけでなんか賢く見えるし。でも、これだとActiveRecordパターンを正確に理解できてないといけないし(自分はそこまで理解してない)、理解するまで何か書けないというのは辛いので以下、自分の言葉で表すとこうなります、というのをやってみる。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;RDBMSにおけるテーブルのPython表現&lt;/li&gt;
+  &lt;li&gt;RDBMSにおけるテーブルのPython表現&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.martinfowler.com/eaaCatalog/activeRecord.html&quot;&gt;Active Record by Martin Fowler&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;_8&quot;&gt;担うべき役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-7&quot;&gt;担うべき役割&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
-
-&lt;li&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/li&gt;
-
-&lt;li&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/li&gt;
+  &lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
+  &lt;li&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/li&gt;
+  &lt;li&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;順に解説していきます。&lt;/p&gt;
@@ -223,66 +337,70 @@
 &lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CharField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_lenght&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_created&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
 
-    &lt;span class=&#39;nd&#39;&gt;@property&lt;/span&gt;
-    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-        &lt;span class=&#39;k&#39;&gt;return&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;ow&#39;&gt;and&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CharField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_lenght&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_created&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;nd&quot;&gt;@property&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;k&#39;&gt;class&lt;/span&gt; &lt;span class=&#39;nc&#39;&gt;Article&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;models&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;Model&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;body&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;TextField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;CharField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;max_lenght&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;mi&#39;&gt;100&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;BooleanField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_created&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;DateTimeField&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;null&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;blank&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
 
-    &lt;span class=&#39;nd&#39;&gt;@property&lt;/span&gt;
-    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-        &lt;span class=&#39;k&#39;&gt;return&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;author_check&lt;/span&gt; &lt;span class=&#39;ow&#39;&gt;and&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;approver_check&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CharField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_lenght&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BooleanField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_created&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-    &lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-        &lt;span class=&#39;k&#39;&gt;if&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;published&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-            &lt;span class=&#39;k&#39;&gt;raise&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;AlreadyPublishedException&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-        &lt;span class=&#39;k&#39;&gt;elif&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-            &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
-            &lt;span class=&#39;bp&#39;&gt;self&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;date_published&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;datetime&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;datetime&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;now&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
-        &lt;span class=&#39;k&#39;&gt;else&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-            &lt;span class=&#39;k&#39;&gt;raise&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;NotPublishableException&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;@property&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;published&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AlreadyPublishedException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datetime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;datetime&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotPublishableException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;色々いじってみて、Django ORMにおいては1モデル1テーブル、1インスタンス1レコードという概念を念頭に置いた方がいい気がしている。各レコード毎の属性はmodelに、各レコード毎に既存レコードから導出できる属性はmodelに、各レコード毎の属性の値によって処理が変わり、且つその処理がタッチするのが当該モデルに閉じる場合はmodelのメソッドに、といった感じ。&lt;/p&gt;
 
 &lt;p&gt;以下の記事は複数モデルが絡み合うロジックを完全に無視して書いているので、あと一歩な感じなのですが、記事へのコメントがかなりいい感じに補完してくれているので全体として大変参考になる。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/&quot;&gt;Fat Models - A Django Code Organization Strategy&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;_9&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-8&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
-
-&lt;li&gt;処理が対象のモデルの中核をなすものでは無いロジック&lt;/li&gt;
-
-&lt;li&gt;AWS等の外部サービスとやりとりするロジック&lt;/li&gt;
+  &lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
+  &lt;li&gt;処理が対象のモデルの中核をなすものでは無いロジック&lt;/li&gt;
+  &lt;li&gt;AWS等の外部サービスとやりとりするロジック&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;これはmodelのメソッド内で完結するのは難しいし、そもそもmodel全然関係無い場合もある。先にも述べたようにDjango ORM自体、1モデル1テーブルを基準にして作られているから。なので上記は別の部分に切り出して書くのがいい気がしている。やはりDjangoのmodelはRDBMSにおけるテーブルのPython表現、くらいのプリミティブなものだと捉えておいた方が何かといいのではないかと思う。&lt;/p&gt;
@@ -290,17 +408,16 @@
 &lt;p&gt;以下の記事はRuby on Railsに関する記事だけど、考え方が非常に参考になった。(ちなみにRuby on Railsは全く触ったこと無い。っていうかDjango以外にWAFを真面目に触ったことが無いという雑魚っぷりです)&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/&quot;&gt;7 Patterns to Refactor Fat ActiveRecord Models&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/&quot;&gt;7 Patterns to Refactor Fat ActiveRecord Models&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h1 id=&quot;viewspy&quot;&gt;views.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;_10&quot;&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;section-9&quot;&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
+  &lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;雑に書いているわけではなく、このレイヤーは抽象的な処理に徹するべきだと思う。そして、可能な限り見通しよく、薄く作るのが、最終的にメンテナンスしやすい気がする。&lt;/p&gt;
@@ -316,28 +433,26 @@
 &lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/faq/general/#django-appears-to-be-a-mvc-framework-but-you-call-the-controller-the-view-and-the-view-the-template-how-come-you-don-t-use-the-standard-names&quot;&gt;MTV Framework?&lt;/a&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;V&lt;/strong&gt; Django Viewの事。「どのデータを」の部分を担当。&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;T&lt;/strong&gt; Django templateの事。「どのように表示するか」の部分を担当。&lt;/p&gt;
 
-&lt;li&gt;&lt;strong&gt;V&lt;/strong&gt; Django Viewの事。「どのデータを」の部分を担当。&lt;/li&gt;
+    &lt;p&gt;Well, the standard names are debatable.&lt;/p&gt;
 
-&lt;li&gt;&lt;strong&gt;T&lt;/strong&gt; Django templateの事。「どのように表示するか」の部分を担当。&lt;/li&gt;
+    &lt;p&gt;In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.&lt;/p&gt;
+
+    &lt;p&gt;So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.&lt;/p&gt;
+
+    &lt;p&gt;Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.&lt;/p&gt;
+
+    &lt;p&gt;Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.&lt;/p&gt;
+
+    &lt;p&gt;If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.&lt;/p&gt;
+
+    &lt;p&gt;At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.&lt;/p&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
-
-&lt;pre&gt;&lt;code&gt;
-Well, the standard names are debatable.
-
-In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.
-
-So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.
-
-Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.
-
-Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.
-
-If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.
-
-At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.
-&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;という、DjangoはMTVなフレームワークだ！という主張。&lt;/p&gt;
 
@@ -347,7 +462,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;もちろん工夫しだいで複雑にもできる作りになってる。&lt;/p&gt;
 
-&lt;h1 id=&quot;_11&quot;&gt;まとめ&lt;/h1&gt;
+&lt;h1 id=&quot;section-10&quot;&gt;まとめ&lt;/h1&gt;
 
 &lt;p&gt;ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)&lt;/p&gt;
 
@@ -366,12 +481,12 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;(追伸：Templateまで届きませんでした。)&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
+</description>
 				<pubDate>Mon, 07 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/07/road-to-django-best-practice.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/04/07/road-to-django-best-practice.html</guid>
@@ -382,44 +497,34 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の二つ目となります。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;&quot;&gt;書くこと&lt;/h2&gt;
+&lt;h2 id=&quot;section&quot;&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;Django Best Practiceへの道の続きで、Djangoテスト戦術について書きます。Djangoでテストをする際に、どうしたら効率的に書けるか、メンテナンスしやすくなるか、ということに焦点を置いて書きます。&lt;/p&gt;
 
-&lt;h2 id=&quot;_2&quot;&gt;書かないこと&lt;/h2&gt;
+&lt;h2 id=&quot;section-1&quot;&gt;書かないこと&lt;/h2&gt;
 
 &lt;p&gt;テストをするべき、テストはいらない、どこまではするべき、といった類の話は書きません。する、しない、いまはしない、どこまではする、は各チームや開発者がその時置かれているコンテクストに非常に強く依存している為、閾値的なものや考え方を書くのは非常に難儀だなぁ、というのが素直なところです。それよりもテストするのが少しでも楽になり、どのようなコンテクストでも、取れる選択肢の幅が広がる方法を書きたいです。&lt;/p&gt;
 
-&lt;h1 id=&quot;_3&quot;&gt;前提&lt;/h1&gt;
+&lt;h1 id=&quot;section-2&quot;&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-
-&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-
-&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-
-&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-
-&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-
-&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-
-&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-
-&lt;li&gt;トラフィックは少ない&lt;/li&gt;
-
-&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
+  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;_4&quot;&gt;何をテストすべきか&lt;/h1&gt;
+&lt;h1 id=&quot;section-3&quot;&gt;何をテストすべきか&lt;/h1&gt;
 
 &lt;p&gt;作っているのはDjango前提のWebサービスという前提で、テストすべきものをいくつかのグループに分けて考えてみました。テスト対象を明確にすることで、「どこにテストを書けばいいのか」、「何をテストすればいいのか」と迷わずにテストに着手できるようになるかなと思います。テスト対象の構成が上の方ほど単純で下に行くほど複雑になります(下に行くほどテストするまでにリクエスト/レスポンスが通るレイヤーが多い)&lt;/p&gt;
 
@@ -447,7 +552,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;test_urls.py&lt;/p&gt;
 
-&lt;h2 id=&quot;_5&quot;&gt;機能レベル&lt;/h2&gt;
+&lt;h2 id=&quot;section-4&quot;&gt;機能レベル&lt;/h2&gt;
 
 &lt;p&gt;複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。&lt;/p&gt;
 
@@ -455,7 +560,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;test_[app_name].py&lt;/p&gt;
 
-&lt;h2 id=&quot;_6&quot;&gt;ブラウザレベル&lt;/h2&gt;
+&lt;h2 id=&quot;section-5&quot;&gt;ブラウザレベル&lt;/h2&gt;
 
 &lt;p&gt;JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。&lt;/p&gt;
 
@@ -470,163 +575,133 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;何をテストすべきか、その際に何を使うべきか、使う時にどういう方針で使うのがいいか、がハイパーまとまってる資料。この資料に一番影響されてると思う。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/699/testing-and-django&quot;&gt;YouTube: Testing and Django&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html&quot;&gt;Testing and Django Note&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/699/testing-and-django&quot;&gt;YouTube: Testing and Django&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html&quot;&gt;Testing and Django Note&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;抜粋&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-    What type of test to write?
+&lt;pre&gt;&lt;code&gt;What type of test to write?
 
-    Write system tests for your views.
-    Write Selenium tests for Ajax, other JS/server interactions.
-    Write unit tests for everything else (not strict).
-    Test each case (code branch) where it occurs.
-    One assert/action per test case method.
+Write system tests for your views.
+Write Selenium tests for Ajax, other JS/server interactions.
+Write unit tests for everything else (not strict).
+Test each case (code branch) where it occurs.
+One assert/action per test case method.
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;下記のStackOverflowの記事も何を、どうテストしていくのかに関して実例交えながら語ってる。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。&lt;/p&gt;
+&lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。
+- &lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;
+- &lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1 id=&quot;_7&quot;&gt;どうテストするのか&lt;/h1&gt;
+&lt;h1 id=&quot;section-6&quot;&gt;どうテストするのか&lt;/h1&gt;
 
 &lt;p&gt;「何を」テストするのか、が明確にした後、次は「どうやって」テストするのかの話をします。その為にまず、テストに求めるものを洗い出し、テストに利用するツールとテストの書き方が、それらの要件を満たすように設計していきました。&lt;/p&gt;
 
 &lt;p&gt;一旦今Djangoアプリのツールとして何を利用しているか列挙。&lt;/p&gt;
 
-&lt;h2 id=&quot;_8&quot;&gt;全レベル共通&lt;/h2&gt;
+&lt;h2 id=&quot;section-7&quot;&gt;全レベル共通&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;py.test&lt;/li&gt;
-
-&lt;li&gt;pytest-cov&lt;/li&gt;
-
-&lt;li&gt;pytest-pep8&lt;/li&gt;
-
-&lt;li&gt;pytest-xdist(検証中)&lt;/li&gt;
-
-&lt;li&gt;pytest-django&lt;/li&gt;
-
-&lt;li&gt;factory_boy&lt;/li&gt;
-
-&lt;li&gt;PyHamcrest&lt;/li&gt;
+  &lt;li&gt;py.test&lt;/li&gt;
+  &lt;li&gt;pytest-cov&lt;/li&gt;
+  &lt;li&gt;pytest-pep8&lt;/li&gt;
+  &lt;li&gt;pytest-xdist(検証中)&lt;/li&gt;
+  &lt;li&gt;pytest-django&lt;/li&gt;
+  &lt;li&gt;factory_boy&lt;/li&gt;
+  &lt;li&gt;PyHamcrest&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;_9&quot;&gt;機能レベル&lt;/h2&gt;
+&lt;h2 id=&quot;section-8&quot;&gt;機能レベル&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;WebTest&lt;/li&gt;
-
-&lt;li&gt;django-webtest&lt;/li&gt;
+  &lt;li&gt;WebTest&lt;/li&gt;
+  &lt;li&gt;django-webtest&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;_10&quot;&gt;ブラウザレベル&lt;/h2&gt;
+&lt;h2 id=&quot;section-9&quot;&gt;ブラウザレベル&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;selenium&lt;/li&gt;
-
-&lt;li&gt;django-selenium&lt;/li&gt;
+  &lt;li&gt;selenium&lt;/li&gt;
+  &lt;li&gt;django-selenium&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;_11&quot;&gt;テストに求めるもの&lt;/h1&gt;
+&lt;h1 id=&quot;section-10&quot;&gt;テストに求めるもの&lt;/h1&gt;
 
 &lt;ul&gt;
-&lt;li&gt;テスト実行スピードが速い&lt;/li&gt;
-
-&lt;li&gt;同一処理別データパターンのテストを効率良く書ける&lt;/li&gt;
-
-&lt;li&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/li&gt;
-
-&lt;li&gt;debugしやすい&lt;/li&gt;
-
-&lt;li&gt;テストカバレッジが見れる&lt;/li&gt;
+  &lt;li&gt;テスト実行スピードが速い&lt;/li&gt;
+  &lt;li&gt;同一処理別データパターンのテストを効率良く書ける&lt;/li&gt;
+  &lt;li&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/li&gt;
+  &lt;li&gt;debugしやすい&lt;/li&gt;
+  &lt;li&gt;テストカバレッジが見れる&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;順に解説していきます。&lt;/p&gt;
 
-&lt;h2 id=&quot;_12&quot;&gt;テスト実行スピードが速い&lt;/h2&gt;
+&lt;h2 id=&quot;section-11&quot;&gt;テスト実行スピードが速い&lt;/h2&gt;
 
 &lt;p&gt;細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;設定的工夫&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。 &lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;詳細はコチラ&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。
+&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;詳細はコチラ&lt;/a&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;ローカルテスト用の設定はsqliteのインメモリDBを利用する。&lt;/li&gt;
-
-&lt;li&gt;fixture(djangoのコンテクストでの)を撲滅してセットアップのスピードを上げる。&lt;/li&gt;
-
-&lt;li&gt;southのmigrationテストをオフる。&lt;/li&gt;
-
-&lt;li&gt;PASSWORD_HASHERSの変更。&lt;/li&gt;
+  &lt;li&gt;ローカルテスト用の設定はsqliteのインメモリDBを利用する。&lt;/li&gt;
+  &lt;li&gt;fixture(djangoのコンテクストでの)を撲滅してセットアップのスピードを上げる。&lt;/li&gt;
+  &lt;li&gt;southのmigrationテストをオフる。&lt;/li&gt;
+  &lt;li&gt;PASSWORD_HASHERSの変更。&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://tell-k.hatenablog.com/entry/2013/10/10/202208&quot;&gt;Django で unittest を高速化する(主にDBの話し)&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/1.5/topics/testing/overview/#speeding-up-the-tests&quot;&gt;Speeding up the tests&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/yuheiomori0718/20130615/1371305730&quot;&gt;Djangoでテストを速くするためにいろいろやってみた&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://tell-k.hatenablog.com/entry/2013/10/10/202208&quot;&gt;Django で unittest を高速化する(主にDBの話し)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/1.5/topics/testing/overview/#speeding-up-the-tests&quot;&gt;Speeding up the tests&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/yuheiomori0718/20130615/1371305730&quot;&gt;Djangoでテストを速くするためにいろいろやってみた&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;strong&gt;コード的工夫&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
-&lt;ul&gt;
-&lt;li&gt;django.test.TestCaseではなく、unittest.TestCaseを利用&lt;/li&gt;
-
-&lt;li&gt;pytest-djangoを利用する場合は、DBを利用する場合にのみ@pytest.mark.django_dbデコレータを利用&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;WAFのレイヤーを可能な限りまたがない。
-&lt;ul&gt;
-&lt;li&gt;レイヤー(view/forms/models)をまたぐ度に処理が走るしセットアップも時間がかかる。&lt;/li&gt;
-
-&lt;li&gt;ロジックはDjangoのモジュールをかませないようにして、単独でテストできるようにしておく。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
+  &lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
+    &lt;ul&gt;
+      &lt;li&gt;django.test.TestCaseではなく、unittest.TestCaseを利用&lt;/li&gt;
+      &lt;li&gt;pytest-djangoを利用する場合は、DBを利用する場合にのみ@pytest.mark.django_dbデコレータを利用&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;WAFのレイヤーを可能な限りまたがない。
+    &lt;ul&gt;
+      &lt;li&gt;レイヤー(view/forms/models)をまたぐ度に処理が走るしセットアップも時間がかかる。&lt;/li&gt;
+      &lt;li&gt;ロジックはDjangoのモジュールをかませないようにして、単独でテストできるようにしておく。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/pelme/testing-django-applications-with-py-dot-test-europython-2013&quot;&gt;Testing Django applications with py.test (EuroPython 2013)&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/pelme/testing-django-applications-with-py-dot-test-europython-2013&quot;&gt;Testing Django applications with py.test (EuroPython 2013)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;_13&quot;&gt;同一処理別データパターンのテストを効率良く書ける&lt;/h2&gt;
+&lt;h2 id=&quot;section-12&quot;&gt;同一処理別データパターンのテストを効率良く書ける&lt;/h2&gt;
 
 &lt;p&gt;以下箇条書きでなぜコレを求めているのかを列挙します。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;データだけ違って処理は同じなら同じ関数でテストしたい(同じもの書きたく無い)&lt;/li&gt;
-
-&lt;li&gt;けどテストケースとしては分けたい&lt;/li&gt;
-
-&lt;li&gt;便利なassertは使いたい&lt;/li&gt;
+  &lt;li&gt;データだけ違って処理は同じなら同じ関数でテストしたい(同じもの書きたく無い)&lt;/li&gt;
+  &lt;li&gt;けどテストケースとしては分けたい&lt;/li&gt;
+  &lt;li&gt;便利なassertは使いたい&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。&lt;/p&gt;
@@ -634,7 +709,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;&lt;strong&gt;工夫&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
+  &lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;同一処理別データパターンのテストを効率良く書く為、データ別にテストケースを生成するのがデフォルトの機能として備わっているpy.testを利用することとしました。他にも幾つか選択肢がありましたが、py.testの他の機能(fixtureやxdist)も利用したかったので、もともとunittest形式だったテストを全てpy.test形式に書き換えました。py.testはunittest形式のテストもpy.test形式が混ざった状態でテスト実行できるので順次移行できて助かりました。&lt;/p&gt;
@@ -643,88 +718,81 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;以下StackOverflowから見つけたparametrized testを簡単にしてくれるライブラリ一覧。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-    Some of the tools available for doing parametrized tests in Python are:
+&lt;pre&gt;&lt;code&gt;Some of the tools available for doing parametrized tests in Python are:
 
-    Nose test generators (only for function tests, not TestCase classes)
-    nose-parametrized by by David Wolever (also for TestCase classes)
-    Unittest template by Boris Feld
-    Parametrized tests in py.test
-    parametrized-testcase by Austin Bingham
+Nose test generators (only for function tests, not TestCase classes)
+nose-parametrized by by David Wolever (also for TestCase classes)
+Unittest template by Boris Feld
+Parametrized tests in py.test
+parametrized-testcase by Austin Bingham
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically? &lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。&lt;/p&gt;
+&lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。
+- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20091204/1259863417&quot;&gt;TestCaseを拡張しよう&lt;/a&gt;
+- &lt;a href=&quot;http://feldboris.alwaysdata.net/blog/unittest-template.html&quot;&gt;Unittest template&lt;/a&gt;&lt;/p&gt;
 
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20091204/1259863417&quot;&gt;TestCaseを拡張しよう&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://feldboris.alwaysdata.net/blog/unittest-template.html&quot;&gt;Unittest template&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;py.testに惚れるきっかけとなった記事&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pytest.org/latest-ja/&quot;&gt;Pytest本家&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/&quot;&gt;pytest fixtures nuts and bolts&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;py.testに惚れるきっかけとなった記事
+- &lt;a href=&quot;http://pytest.org/latest-ja/&quot;&gt;Pytest本家&lt;/a&gt;
+- &lt;a href=&quot;http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/&quot;&gt;pytest fixtures nuts and bolts&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Two Scoops of Djangoの人の記事。本の中ではテストはコピペでもオッケー！という発言があったし正直そうだとも思うけど、それを回避する策に力注ぐほうが楽しいと思う。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pydanny.com/pytest-no-boilerplate-testing.html&quot;&gt;pytest: no-boilerplate testing&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://pydanny.com/pytest-no-boilerplate-testing.html&quot;&gt;pytest: no-boilerplate testing&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;もうunittestには戻れない。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://qiita.com/roothybrid7/items/9717137fbec2bedfd81d&quot;&gt;pytestを実戦投入してみた&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://qiita.com/roothybrid7/items/9717137fbec2bedfd81d&quot;&gt;pytestを実戦投入してみた&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;サンプル&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;例えばURLのルーティングとちゃんとステータスコード200が返ってきて、所定の文字列がレスポンスに含まれている、という事をテストしたい場合、WebTestと組み合わせる事で以下のように書くことができます。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
-&lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;pytest&lt;/span&gt;
-&lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;hamcrest&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;contains_string&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;equal_to&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pytest&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;hamcrest&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;contains_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;equal_to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
 
-&lt;span class=&#39;nd&#39;&gt;@pytest.mark.django_db&lt;/span&gt;
-&lt;span class=&#39;nd&#39;&gt;@pytest.mark.parametrize&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;login_user, url, message, status_code&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;[&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;mi&#39;&gt;200&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;),&lt;/span&gt;
-&lt;span class=&#39;p&#39;&gt;])&lt;/span&gt;
-&lt;span class=&#39;k&#39;&gt;def&lt;/span&gt; &lt;span class=&#39;nf&#39;&gt;test_coupon_urls&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;app&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;data&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;login_user&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;url&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;message&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;):&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;app&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;get&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;url&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;user&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;=&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;data&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;[&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;login_user&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;])&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;equal_to&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;status_code&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;))&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;assert_that&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;resp&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;content&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;contains_string&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;message&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;))&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@pytest.mark.django_db&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@pytest.mark.parametrize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;login_user, url, message, status_code&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;admin&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=0&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/?status=3&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン一覧&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupons/1&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポン詳細&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;#39;user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;/coupon/add&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;クーポンの登録&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_coupon_urls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;login_user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;login_user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;equal_to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status_code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_that&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;contains_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;シンプル！&lt;/p&gt;
 
 &lt;p&gt;ちゃんとpy.testのfixtureやその他の機能の詳細についても書きたい。実装レベルでの工夫等も後ほど書く。&lt;/p&gt;
 
-&lt;h2 id=&quot;_14&quot;&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/h2&gt;
+&lt;h2 id=&quot;section-13&quot;&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;データセットアップの際にfixtureではなくfactory_boyを利用&lt;/li&gt;
+  &lt;li&gt;データセットアップの際にfixtureではなくfactory_boyを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Djangoのfixture遅いしメンテナンスめんどくさいのでfactory_boyを利用して各テストケースに必要な分だけレコードを作成してテスト実行しています。この部分は正直まだまだ工夫の余地があるなぁという印象。もう少し時間がたったら書いてきたテストを見なおしてリファクタして行く際にまた工夫が生まれればいいなと思ってます。&lt;/p&gt;
@@ -732,7 +800,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;h2 id=&quot;debug&quot;&gt;debugしやすい&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;py.testを利用&lt;/li&gt;
+  &lt;li&gt;py.testを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;py.testはnoseよりも細かくエラーを出してくれます。pytest.vimを使って何度でも素早くテストできるようにしてます。テストを先に書く事のメリットひしひしと感じ始める今日このごろ。特に関数レベルのテスト。&lt;/p&gt;
@@ -740,36 +808,35 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://blog.restartr.com/2013/04/05/my-first-pytest/&quot;&gt;pythonのテストにpytestを使ってみた&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://blog.comutt.jp/entry/2013/12/03/230000&quot;&gt;TDD Advent Calendar 2013 3日目: vim と py.test で TDD&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://blog.restartr.com/2013/04/05/my-first-pytest/&quot;&gt;pythonのテストにpytestを使ってみた&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://blog.comutt.jp/entry/2013/12/03/230000&quot;&gt;TDD Advent Calendar 2013 3日目: vim と py.test で TDD&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;_15&quot;&gt;テストカバレッジが見れる&lt;/h2&gt;
+&lt;h2 id=&quot;section-14&quot;&gt;テストカバレッジが見れる&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;py.testのカバレッジプラグインを利用&lt;/li&gt;
+  &lt;li&gt;py.testのカバレッジプラグインを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;カバレッジ至上主義ではありませんが、あくまでも目安として、またちょっとしたゲーム感覚でテストを楽しめるようないい工夫だと思います。また、カバレッジレポートを見ることでまだ通っていないブランチが視覚的に分かるのも嬉しいところです。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.sakito.com/2012/09/pytest-pep8-coverage.html&quot;&gt;py.test で pep8 と coverage を同時にチェックする&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.sakito.com/2012/09/pytest-pep8-coverage.html&quot;&gt;py.test で pep8 と coverage を同時にチェックする&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;_16&quot;&gt;まとめ&lt;/h1&gt;
+&lt;h1 id=&quot;section-15&quot;&gt;まとめ&lt;/h1&gt;
 
 &lt;p&gt;今回はだいぶ概念的な話がおおくなってしまいました。。本当はもっとゴリッとしたテストセットアップ方法の工夫や、WebTestとpy.testの連携や、conftest.pyの配置と役割、とかを書きたかったのですが、今回は一旦ココまでとします。&lt;/p&gt;
 
 &lt;p&gt;次回はDjangoテスト戦術の第二弾でもっと実装よりの話をします。てかなげーな。このポスト。。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
+</description>
 				<pubDate>Fri, 04 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</guid>
@@ -780,58 +847,42 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。&lt;/p&gt;
 
-&lt;h1 id=&quot;&quot;&gt;前提&lt;/h1&gt;
+&lt;h1 id=&quot;section&quot;&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-
-&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-
-&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-
-&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-
-&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-
-&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-
-&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-
-&lt;li&gt;トラフィックは少ない&lt;/li&gt;
-
-&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
+  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;_2&quot;&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
+&lt;h1 id=&quot;section-1&quot;&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
 
-&lt;h2 id=&quot;_3&quot;&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
+&lt;h2 id=&quot;section-2&quot;&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
-
-&lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
-
-&lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
+  &lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
+  &lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
+  &lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、”Do one thing, and one thing well”って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;YouTube: DjangoCon 2008: Reusable Apps&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;Developing reusable apps&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;
+- &lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;YouTube: DjangoCon 2008: Reusable Apps&lt;/a&gt;
+- &lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;Developing reusable apps&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;上の資料を参考に設計する利点は主に2つ。&lt;/p&gt;
 
@@ -843,246 +894,195 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;普通の単独自社サービスであれば、そこまで再利用性を高める為に時間をかける必要はない気がするけど、Djangoを使った自社サービスが複数ある中でのライブラリ作成や、個別のお客さんによってカスタマイズが必要なパッケージ、というシチュエーションであればある程度時間をかけて設計する価値はあると思う。実際上の資料内でJamesさんが自社パッケージを各お客さん用にカスタマイズする際に、プラガブルに設計してて助かったぜ、という話がある。&lt;/p&gt;
 
-&lt;h2 id=&quot;_4&quot;&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
+&lt;h2 id=&quot;section-3&quot;&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
-
-&lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
+  &lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
+  &lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;_5&quot;&gt;実装&lt;/h2&gt;
+&lt;h2 id=&quot;section-4&quot;&gt;実装&lt;/h2&gt;
 
 &lt;p&gt;他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-    project
-    ├── apps
-    │   ├── appA
-    │   ├── appB
-    │   └── appC
-    ├── core
-    │   └── settings
-    ├── docs
-    │   ├── files
-    │   └── styleguide
-    ├── fixtures
-    ├── libs
-    │   └── management
-    │       └── commands
-    ├── requirements
-    ├── server-config
-    ├── static
-    ├── templates
-    └── tests
+&lt;pre&gt;&lt;code&gt;project
+├── apps
+│   ├── appA
+│   ├── appB
+│   └── appC
+├── core
+│   └── settings
+├── docs
+│   ├── files
+│   └── styleguide
+├── fixtures
+├── libs
+│   └── management
+│       └── commands
+├── requirements
+├── server-config
+├── static
+├── templates
+└── tests
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;上から順に概要を説明します。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;apps&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
-
-&lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
-
-&lt;li&gt;apps内のディレクトリ構成は、”‘tests”’, ”‘migrations”’, ”‘templates”‘が基本。(South利用前提)&lt;/li&gt;
-
-&lt;li&gt;“Do one thing, and one thing well.”の原則。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;core&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
-
-&lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
-
-&lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;docs&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
-
-&lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;fixtures&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
-
-&lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;libs&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
-
-&lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;requirements&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
-
-&lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
-
-&lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;server-config&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash_profile, ssh_config)。&lt;/li&gt;
-
-&lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
-
-&lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;static&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;templates&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;
-&lt;p&gt;tests&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
-
-&lt;li&gt;具体例でいうと、”‘factories.py”’, ”‘conftest.py”‘。(factory_boy, py.test利用前提)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
+  &lt;li&gt;apps
+    &lt;ul&gt;
+      &lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
+      &lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
+      &lt;li&gt;apps内のディレクトリ構成は、’&#39;’tests’’’, ‘&#39;’migrations’’’, ‘&#39;’templates’&#39;’が基本。(South利用前提)&lt;/li&gt;
+      &lt;li&gt;“Do one thing, and one thing well.”の原則。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;core
+    &lt;ul&gt;
+      &lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
+      &lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
+      &lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;docs
+    &lt;ul&gt;
+      &lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
+      &lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;fixtures
+    &lt;ul&gt;
+      &lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
+      &lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;libs
+    &lt;ul&gt;
+      &lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
+      &lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;requirements
+    &lt;ul&gt;
+      &lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
+      &lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
+      &lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;server-config
+    &lt;ul&gt;
+      &lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash_profile, ssh_config)。&lt;/li&gt;
+      &lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
+      &lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;static
+    &lt;ul&gt;
+      &lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;templates
+    &lt;ul&gt;
+      &lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;tests
+    &lt;ul&gt;
+      &lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
+      &lt;li&gt;具体例でいうと、’&#39;’factories.py’’’, ‘&#39;’conftest.py’’‘。(factory_boy, py.test利用前提)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。 有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。&lt;/p&gt;
+&lt;p&gt;この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。
+有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Two Scoops of Djangoで紹介されていた構成。これも非常に参考になる。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;参考になるライブラリ群&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;_6&quot;&gt;設定ファイル構成&lt;/h1&gt;
+&lt;h1 id=&quot;section-5&quot;&gt;設定ファイル構成&lt;/h1&gt;
 
-&lt;h2 id=&quot;_7&quot;&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
+&lt;h2 id=&quot;section-6&quot;&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
-
-&lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
-
-&lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
-
-&lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
+  &lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
+  &lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
+  &lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
+  &lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;1番目と2番めが非常に重要だと思ってます。可能な限り1番目と2番めの目標が達成できるようにする、という指針で以下のようにしました。&lt;/p&gt;
 
-&lt;h2 id=&quot;_8&quot;&gt;設定ファイル実装&lt;/h2&gt;
+&lt;h2 id=&quot;section-7&quot;&gt;設定ファイル実装&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;common.pyに各環境共通の設定を入れる (大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)&lt;/li&gt;
-
-&lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
-&lt;ul&gt;
-&lt;li&gt;development.py&lt;/li&gt;
-
-&lt;li&gt;staging.py&lt;/li&gt;
-
-&lt;li&gt;production.py&lt;/li&gt;
-
-&lt;li&gt;local_test.py&lt;/li&gt;
-
-&lt;li&gt;ci.py&lt;/li&gt;
-
-&lt;li&gt;local.sample.py&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-
-&lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
+  &lt;li&gt;common.pyに各環境共通の設定を入れる
+(大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)&lt;/li&gt;
+  &lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
+    &lt;ul&gt;
+      &lt;li&gt;development.py&lt;/li&gt;
+      &lt;li&gt;staging.py&lt;/li&gt;
+      &lt;li&gt;production.py&lt;/li&gt;
+      &lt;li&gt;local_test.py&lt;/li&gt;
+      &lt;li&gt;ci.py&lt;/li&gt;
+      &lt;li&gt;local.sample.py&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;common.py以外は大体以下のような形になってます。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
-&lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;core.settings.common&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;*&lt;/span&gt;  &lt;span class=&#39;c&#39;&gt;# NOQA&lt;/span&gt;
 
-&lt;span class=&#39;n&#39;&gt;DEBUG&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
-&lt;span class=&#39;n&#39;&gt;TEMPLATE_DEBUG&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;bp&#39;&gt;True&lt;/span&gt;
-&lt;span class=&#39;n&#39;&gt;ENVIRONMENT&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;staging&amp;#39;&lt;/span&gt;
-&lt;span class=&#39;n&#39;&gt;DATABASES&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;{&lt;/span&gt;
-    &lt;span class=&#39;s&#39;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;p&#39;&gt;{&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;ENGINE&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;django.db.backends.mysql&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;NAME&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;django2&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;USER&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hoge_user&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;PASSWORD&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hoge_password&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;HOST&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;hogehost&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-        &lt;span class=&#39;s&#39;&gt;&amp;#39;PORT&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt;
-    &lt;span class=&#39;p&#39;&gt;}&lt;/span&gt;
-&lt;span class=&#39;p&#39;&gt;}&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;core.settings.common&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# NOQA&lt;/span&gt;
 
-&lt;span class=&#39;k&#39;&gt;try&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-    &lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;core.settings.local&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;*&lt;/span&gt;  &lt;span class=&#39;c&#39;&gt;# NOQA&lt;/span&gt;
-&lt;span class=&#39;k&#39;&gt;except&lt;/span&gt; &lt;span class=&#39;ne&#39;&gt;ImportError&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-    &lt;span class=&#39;k&#39;&gt;pass&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DEBUG&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;TEMPLATE_DEBUG&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ENVIRONMENT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;staging&amp;#39;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;DATABASES&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;ENGINE&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;django.db.backends.mysql&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;NAME&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;django2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;USER&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hoge_user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;PASSWORD&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hoge_password&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;HOST&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hogehost&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;#39;PORT&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;core.settings.local&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# NOQA&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;ImportError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;以下若干わかりにくそうな部分を解説します。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;local.sample.py&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。 local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。&lt;/p&gt;
+&lt;p&gt;各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。
+local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
+&lt;p&gt;&lt;code&gt;
 # -*- coding: utf-8 -*-
 # ローカル環境用設定ファイル。以下のようにコピーして利用すること。
 # cp local.sample.py local.py
-&lt;/code&gt;&lt;/pre&gt;
+&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;code&gt;core/settings/local.py&lt;/code&gt;は&lt;code&gt;.gitignore&lt;/code&gt;に記載しておき、リポジトリからは無視しておく。この&lt;code&gt;local.py&lt;/code&gt;に各開発者用の独自設定を入れていきます。&lt;a href=&quot;http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X&quot;&gt;Two Scoops of Django&lt;/a&gt;では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。&lt;/p&gt;
 
@@ -1092,45 +1092,42 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;その他の設定ファイルは大体名前の通りの内容が入ってます。&lt;/p&gt;
 
-&lt;h2 id=&quot;_9&quot;&gt;設定ファイル切り替え実装&lt;/h2&gt;
+&lt;h2 id=&quot;section-8&quot;&gt;設定ファイル切り替え実装&lt;/h2&gt;
 
 &lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Djangoトラノマキ&lt;/a&gt;参照&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;python&#39;&gt;&lt;span class=&#39;c&#39;&gt;#!/usr/bin/env python&lt;/span&gt;
-&lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;os&lt;/span&gt;
-&lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;sys&lt;/span&gt;
 
-&lt;span class=&#39;k&#39;&gt;if&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;__name__&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;==&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;:&lt;/span&gt;
-    &lt;span class=&#39;n&#39;&gt;os&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;environ&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;setdefault&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;s&#39;&gt;&amp;quot;DJANGO_SETTINGS_MODULE&amp;quot;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;,&lt;/span&gt; &lt;span class=&#39;s&#39;&gt;&amp;quot;core.settings.development&amp;quot;&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env python&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
 
-    &lt;span class=&#39;kn&#39;&gt;from&lt;/span&gt; &lt;span class=&#39;nn&#39;&gt;django.core.management&lt;/span&gt; &lt;span class=&#39;kn&#39;&gt;import&lt;/span&gt; &lt;span class=&#39;n&#39;&gt;execute_from_command_line&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;environ&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setdefault&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;DJANGO_SETTINGS_MODULE&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;core.settings.development&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-    &lt;span class=&#39;n&#39;&gt;execute_from_command_line&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;(&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;sys&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;.&lt;/span&gt;&lt;span class=&#39;n&#39;&gt;argv&lt;/span&gt;&lt;span class=&#39;p&#39;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;django.core.management&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;execute_from_command_line&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;execute_from_command_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
+&lt;p&gt;&lt;code&gt;
 export DJANGO_SETTINGS_MODULE=core.config.staging
-&lt;/code&gt;&lt;/pre&gt;
+&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について –偏った言語信者の垂れ流し&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Django トラノマキ&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://surgo.jp/2010/02/django.html&quot;&gt;パーフェクトな Django の設定ファイル&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;
+- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について –偏った言語信者の垂れ流し&lt;/a&gt;
+- &lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Django トラノマキ&lt;/a&gt;
+- &lt;a href=&quot;http://surgo.jp/2010/02/django.html&quot;&gt;パーフェクトな Django の設定ファイル&lt;/a&gt; &lt;/p&gt;
 
 &lt;p&gt;次回はDjangoにおけるテスト戦術について書きます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
+</description>
 				<pubDate>Tue, 01 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</guid>
@@ -1138,9 +1135,11 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 		
 			<item>
 				<title>カンムを支える技術</title>
-				<description>&lt;p&gt;入社して4ヶ月くらいたったので一旦まとめておきます。 フォーマットはどこかで見たことがある形ですが、その通りです。 &lt;a href=&quot;https://gist.github.com/voluntas/6308998&quot;&gt;完全に参考にさせて頂いてます。&lt;/a&gt;&lt;/p&gt;
+				<description>&lt;p&gt;入社して4ヶ月くらいたったので一旦まとめておきます。
+フォーマットはどこかで見たことがある形ですが、その通りです。
+&lt;a href=&quot;https://gist.github.com/voluntas/6308998&quot;&gt;完全に参考にさせて頂いてます。&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;&quot;&gt;仕事&lt;/h1&gt;
+&lt;h1 id=&quot;section&quot;&gt;仕事&lt;/h1&gt;
 
 &lt;p&gt;クレジットカード会社様と協力し、オンラインカード明細にクーポンを出してます。&lt;/p&gt;
 
@@ -1148,20 +1147,15 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;&lt;a href=&quot;https://kanmu.co.jp/advertisers&quot;&gt;Kanmu Card Linked Offer&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;_2&quot;&gt;組織&lt;/h1&gt;
+&lt;h1 id=&quot;section-1&quot;&gt;組織&lt;/h1&gt;
 
 &lt;ul&gt;
-&lt;li&gt;社長&lt;/li&gt;
-
-&lt;li&gt;デザイナー&lt;/li&gt;
-
-&lt;li&gt;営業&lt;/li&gt;
-
-&lt;li&gt;総務&lt;/li&gt;
-
-&lt;li&gt;エンジニアA&lt;/li&gt;
-
-&lt;li&gt;エンジニアB&lt;/li&gt;
+  &lt;li&gt;社長&lt;/li&gt;
+  &lt;li&gt;デザイナー&lt;/li&gt;
+  &lt;li&gt;営業&lt;/li&gt;
+  &lt;li&gt;総務&lt;/li&gt;
+  &lt;li&gt;エンジニアA&lt;/li&gt;
+  &lt;li&gt;エンジニアB&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;計6名&lt;/p&gt;
@@ -1170,7 +1164,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;&lt;a href=&quot;https://kanmu.co.jp/jobs/engineer&quot;&gt;https://kanmu.co.jp/jobs/engineer&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;_3&quot;&gt;言語&lt;/h1&gt;
+&lt;h1 id=&quot;section-2&quot;&gt;言語&lt;/h1&gt;
 
 &lt;h2 id=&quot;python&quot;&gt;Python&lt;/h2&gt;
 
@@ -1202,7 +1196,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;GitHubとTrello使う時は大抵Markdownにお世話になってます。&lt;/p&gt;
 
-&lt;h1 id=&quot;_4&quot;&gt;環境&lt;/h1&gt;
+&lt;h1 id=&quot;section-3&quot;&gt;環境&lt;/h1&gt;
 
 &lt;h2 id=&quot;os&quot;&gt;OS&lt;/h2&gt;
 
@@ -1210,7 +1204,8 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;h2 id=&quot;packer&quot;&gt;Packer&lt;/h2&gt;
 
-&lt;p&gt;ローカルで使うBoxファイル生成に利用しています。時雨堂さんのPacker Templateを利用中。 &lt;a href=&quot;https://github.com/shiguredo/packer-templates&quot;&gt;shiguredo/packer-templates&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;ローカルで使うBoxファイル生成に利用しています。時雨堂さんのPacker Templateを利用中。
+&lt;a href=&quot;https://github.com/shiguredo/packer-templates&quot;&gt;shiguredo/packer-templates&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;vagrant&quot;&gt;Vagrant&lt;/h2&gt;
 
@@ -1226,16 +1221,14 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;ただし、今後サービスが拡大し、管理するサーバの種類と台数が増えた際には、インストールするパッケージの種類やサーバの役割等を細かくモジュール化して管理していく為の別の選択肢作っておきたいため、Ansibleを少しずつ触り始めています。&lt;/p&gt;
 
-&lt;h1 id=&quot;_5&quot;&gt;サービス&lt;/h1&gt;
+&lt;h1 id=&quot;section-4&quot;&gt;サービス&lt;/h1&gt;
 
-&lt;h2 id=&quot;google_apps&quot;&gt;Google Apps&lt;/h2&gt;
+&lt;h2 id=&quot;google-apps&quot;&gt;Google Apps&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Gmail&lt;/li&gt;
-
-&lt;li&gt;Google Calendar&lt;/li&gt;
-
-&lt;li&gt;Google Drive&lt;/li&gt;
+  &lt;li&gt;Gmail&lt;/li&gt;
+  &lt;li&gt;Google Calendar&lt;/li&gt;
+  &lt;li&gt;Google Drive&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2 id=&quot;trello&quot;&gt;Trello&lt;/h2&gt;
@@ -1247,20 +1240,16 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 &lt;p&gt;&lt;strong&gt;Trelloを採用した際の要件抜粋&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)&lt;/li&gt;
-
-&lt;li&gt;次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)&lt;/li&gt;
-
-&lt;li&gt;今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)&lt;/li&gt;
-
-&lt;li&gt;バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)&lt;/li&gt;
-
-&lt;li&gt;安い(今はお金があんまり無い)&lt;/li&gt;
+  &lt;li&gt;人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)&lt;/li&gt;
+  &lt;li&gt;次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)&lt;/li&gt;
+  &lt;li&gt;今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)&lt;/li&gt;
+  &lt;li&gt;バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)&lt;/li&gt;
+  &lt;li&gt;安い(今はお金があんまり無い)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;タスクの進捗だけではなく、機能追加時のディスカッションや、各リリース毎の振り返り(KPT)にも利用できて重宝してます。コードに直接関係しない部分は、後述するGitHub Issueよりもこちらで議論する事が多いです。&lt;/p&gt;
 
-&lt;h2 id=&quot;scrum_for_trello&quot;&gt;Scrum for Trello&lt;/h2&gt;
+&lt;h2 id=&quot;scrum-for-trello&quot;&gt;Scrum for Trello&lt;/h2&gt;
 
 &lt;p&gt;ChromeのエクステンションとしてScrum for Trelloを入れています。これを入れるとTrelloの各カードに対して予定と実績が入力できるようになります。予実の差分を毎週チェックし、クオリティーとスピードのバランスがとれたリリースができるようにチーム内で話し合ってます。&lt;/p&gt;
 
@@ -1282,29 +1271,28 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;GitHub Issueはアサインされている人軸で絞り込めず、誰が何をやっているのかの把握とタスク分配がやりにくいので、バグ、機能追加の仕様等は全てTrelloに集約しています。&lt;/p&gt;
 
-&lt;h2 id=&quot;amazon_web_services&quot;&gt;Amazon Web Services&lt;/h2&gt;
+&lt;h2 id=&quot;amazon-web-services&quot;&gt;Amazon Web Services&lt;/h2&gt;
 
 &lt;p&gt;大変お世話になってます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;VPC&lt;/li&gt;
-
-&lt;li&gt;EC2&lt;/li&gt;
-
-&lt;li&gt;S3&lt;/li&gt;
-
-&lt;li&gt;Elastic Beanstalk&lt;/li&gt;
-
-&lt;li&gt;Elastic MapReduce&lt;/li&gt;
+  &lt;li&gt;VPC&lt;/li&gt;
+  &lt;li&gt;EC2&lt;/li&gt;
+  &lt;li&gt;S3&lt;/li&gt;
+  &lt;li&gt;Elastic Beanstalk&lt;/li&gt;
+  &lt;li&gt;Elastic MapReduce&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2 id=&quot;sentry&quot;&gt;Sentry&lt;/h2&gt;
 
 &lt;p&gt;現在試験的に利用中。&lt;/p&gt;
 
-&lt;h2 id=&quot;new_relic&quot;&gt;New Relic&lt;/h2&gt;
+&lt;h2 id=&quot;new-relic&quot;&gt;New Relic&lt;/h2&gt;
 
-&lt;p&gt;現在試験的に利用中。 すごいいいんですけどお高いんですよね。ちなみにこの前アメリカのNew Relicから電話かかってきてmoquada氏がテンパッてました。&lt;/p&gt;</description>
+&lt;p&gt;現在試験的に利用中。
+すごいいいんですけどお高いんですよね。ちなみにこの前アメリカのNew Relicから電話かかってきてmoquada氏がテンパッてました。&lt;/p&gt;
+
+</description>
 				<pubDate>Mon, 31 Mar 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/03/31/kanmu-tech.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/03/31/kanmu-tech.html</guid>
@@ -1312,17 +1300,18 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 		
 			<item>
 				<title>Mac 10.9 Mervericsでpip install PILが失敗する</title>
-				<description>&lt;p&gt;Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。 OSアップグレード前はうまくいっていた。&lt;/p&gt;
+				<description>&lt;p&gt;Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
+OSアップグレード前はうまくいっていた。&lt;/p&gt;
 
-&lt;h2 id=&quot;&quot;&gt;エラー詳細&lt;/h2&gt;
+&lt;h2 id=&quot;section&quot;&gt;エラー詳細&lt;/h2&gt;
 
 &lt;p&gt;どうやらヘッダファイルが無いらしい。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;building &amp;#39;_imagingft&amp;#39; extension
+&lt;pre&gt;&lt;code&gt;building &#39;_imagingft&#39; extension
 
 cc -fno-strict-aliasing -fno-common -dynamic -I/usr/local/include -I/usr/local/opt/sqlite/include -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -I/System/Library/Frameworks/Tcl.framework/Headers -I/System/Library/Frameworks/Tk.framework/Headers -I/usr/local/include/freetype2 -IlibImaging -I/Users/achiku/.virtualenvs/pil/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _imagingft.c -o build/temp.macosx-10.7-x86_64-2.7/_imagingft.o
 
-_imagingft.c:73:10: fatal error: &amp;#39;freetype/fterrors.h&amp;#39; file not found
+_imagingft.c:73:10: fatal error: &#39;freetype/fterrors.h&#39; file not found
 
 #include &amp;lt;freetype/fterrors.h&amp;gt;
 
@@ -1330,18 +1319,25 @@ _imagingft.c:73:10: fatal error: &amp;#39;freetype/fterrors.h&amp;#39; file not 
 
 1 error generated.
 
-error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/pre&gt;
-&lt;hr /&gt;
-&lt;h2 id=&quot;_2&quot;&gt;対応&lt;/h2&gt;
+error: command &#39;cc&#39; failed with exit status 1
+
+----------------------------------------
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;対応&lt;/h2&gt;
 
 &lt;p&gt;結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;bash&#39;&gt;&lt;span class=&#39;nv&#39;&gt;$ &lt;/span&gt;brew install freetype
-&lt;span class=&#39;nv&#39;&gt;$ &lt;/span&gt;ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
-&lt;span class=&#39;nv&#39;&gt;$ &lt;/span&gt;pip install PIL
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id=&quot;_3&quot;&gt;参考/こんなになった経緯等&lt;/h2&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9&quot;&gt;Error installing Python Image Library using pip on Mac OS X 10.9&lt;/a&gt;&lt;/p&gt;</description>
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;brew install freetype
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip install PIL
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;参考/こんなになった経緯等&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9&quot;&gt;Error installing Python Image Library using pip on Mac OS X 10.9&lt;/a&gt;&lt;/p&gt;
+
+</description>
 				<pubDate>Mon, 27 Jan 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/01/27/mac-109-mervericpippil.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/01/27/mac-109-mervericpippil.html</guid>
@@ -1349,10 +1345,14 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 		
 			<item>
 				<title>今日のVimキーマップ</title>
-				<description>&lt;p&gt;MacVimで長い文章を書く際に劇的に役立つキーマップ。これを入れておく事で1行なのにGUI上改行されている改行も、通常のj,kで移動できる！ @seizans の.vimrcから拝借しました。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;vim&#39;&gt;&lt;span class=&#39;nb&#39;&gt;nnoremap&lt;/span&gt; &lt;span class=&#39;k&#39;&gt;j&lt;/span&gt; gj
-&lt;span class=&#39;nb&#39;&gt;nnoremap&lt;/span&gt; &lt;span class=&#39;k&#39;&gt;k&lt;/span&gt; gk 
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+				<description>&lt;p&gt;MacVimで長い文章を書く際に劇的に役立つキーマップ。これを入れておく事で1行なのにGUI上改行されている改行も、通常のj,kで移動できる！
+@seizans の.vimrcから拝借しました。&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;vim&quot;&gt;&lt;span class=&quot;nb&quot;&gt;nnoremap&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;j&lt;/span&gt; gj
+&lt;span class=&quot;nb&quot;&gt;nnoremap&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;k&lt;/span&gt; gk 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+</description>
 				<pubDate>Tue, 19 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/19/todays-vim-keymap.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/19/todays-vim-keymap.html</guid>
@@ -1384,7 +1384,8 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 
 &lt;p&gt;5年間、本当にありがとうございました！！&lt;/p&gt;
 
-&lt;p&gt;今後ともよろしくお願いします！！&lt;/p&gt;</description>
+&lt;p&gt;今後ともよろしくお願いします！！&lt;/p&gt;
+</description>
 				<pubDate>Mon, 18 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/18/job.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/18/job.html</guid>
@@ -1396,37 +1397,28 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 
 &lt;p&gt;キャプチャは取らない方式でまとめます。&lt;/p&gt;
 
-&lt;h2 id=&quot;&quot;&gt;アカウント作成&lt;/h2&gt;
-
+&lt;h2 id=&quot;section&quot;&gt;アカウント作成&lt;/h2&gt;
 &lt;p&gt;まずはAWS用のアカウントを作成する。既にAmazonのアカウント持っている人はそのアカウントにAWSアカウントをひもづける事が可能。アカウント作成時に必要なものは住所、電話（アカウント作成時に電話で認証をとっている）、クレジットカード情報。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://aws.amazon.com/jp/&quot;&gt;Amazon Web Service&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;vpc&quot;&gt;VPC&lt;/h2&gt;
-
 &lt;p&gt;Amazon Virtual Private Cloudの略。要はいつもオンプレミスでやっているようなNWレイヤでのセキュリティコントロールや、ルーティングやサブネットの分割がAWS上でもできるということ。設定したVPC上にEC2等のAWSオブジェクトを作成していく。また、今回はやらないけど、既存のデータセンターとの間にHardware VPN(IPsec VPN)を使って接続することもできる。うーむ。便利。以下VPCのサイトから引用。&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;Amazon VPC のネットワーク設定は容易にカスタマイズすることができます。例えば、インターネットとのアクセスが可能なウェブサーバーのパブリック サブネットを作成し、データベースやアプリケーションサーバーなどのバックエンドシステムをインターネットとのアクセスを許可していないプライベート サブネットに配置できます。セキュリティグループやネットワークアクセスコントロールリストなどの複数のセキュリティレイヤーを活用し、各サブネットの Amazon EC2 インスタンスへのアクセスをコントロールすることができます。&lt;a href=&quot;http://aws.amazon.com/jp/vpc/&quot;&gt;Amazon VPC公式サイトから引用&lt;/a&gt;&lt;/p&gt;
+  &lt;p&gt;Amazon VPC のネットワーク設定は容易にカスタマイズすることができます。例えば、インターネットとのアクセスが可能なウェブサーバーのパブリック サブネットを作成し、データベースやアプリケーションサーバーなどのバックエンドシステムをインターネットとのアクセスを許可していないプライベート サブネットに配置できます。セキュリティグループやネットワークアクセスコントロールリストなどの複数のセキュリティレイヤーを活用し、各サブネットの Amazon EC2 インスタンスへのアクセスをコントロールすることができます。&lt;a href=&quot;http://aws.amazon.com/jp/vpc/&quot;&gt;Amazon VPC公式サイトから引用&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;VPCのコントロールパネルを開く。Start VPC Wizardをクリックしてウィザード開始。 VPC with Public and Private Subnetsを選択。デフォルトの選択のまま、Create VPCを実行。&lt;/p&gt;
+&lt;p&gt;VPCのコントロールパネルを開く。Start VPC Wizardをクリックしてウィザード開始。
+VPC with Public and Private Subnetsを選択。デフォルトの選択のまま、Create VPCを実行。&lt;/p&gt;
 
-&lt;p&gt;そうすると作成されるものが以下。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;VPC x 1&lt;/li&gt;
-
-&lt;li&gt;Subnet x 2&lt;/li&gt;
-
-&lt;li&gt;Route Table x 2&lt;/li&gt;
-
-&lt;li&gt;Internet Gate Way x 1&lt;/li&gt;
-
-&lt;li&gt;Elastic IP x 1&lt;/li&gt;
-
-&lt;li&gt;EC2 NAT Instance x 1&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;そうすると作成されるものが以下。
+- VPC x 1
+- Subnet x 2
+- Route Table x 2
+- Internet Gate Way x 1
+- Elastic IP x 1
+- EC2 NAT Instance x 1&lt;/p&gt;
 
 &lt;p&gt;NAT Instanceは普通にEC2のインスタンス作成時にNATインスタンス用にAMIを選択したやつっぽい。最初NATのサービスを探してた。AMI IDは、amzn-ami-vpc-nat-pv-2013.03.1.x86_64-ebs。&lt;/p&gt;
 
@@ -1434,48 +1426,47 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 
 &lt;p&gt;更に先輩は、2つ作ったサブネットの内、一つのデフォゲをInternet Gateway、もう一つのサブネットのデフォゲを自動的に作成したNATに設定してくれる。これでInternet Gatewayがデフォゲに指定されている方がパブリックサブネット、いわゆるDMZ的なものになる。一方で、NATがデフォゲに指定されている方がプライベートサブネット、というくくりになる。&lt;/p&gt;
 
-&lt;h2 id=&quot;bastion_serverec2&quot;&gt;Bastion Server(EC2)&lt;/h2&gt;
-
-&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、踏み台サーバはPublicサブネットに配置する。というか踏み台サーバの事をBastion Host/Serverという事を今日始めて知りました。ばすちょん。&lt;/p&gt;
+&lt;h2 id=&quot;bastion-serverec2&quot;&gt;Bastion Server(EC2)&lt;/h2&gt;
+&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。
+この際、踏み台サーバはPublicサブネットに配置する。というか踏み台サーバの事をBastion Host/Serverという事を今日始めて知りました。ばすちょん。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.sans.org/security-resources/idfaq/bastion.php&quot;&gt;What is a bastion host?&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;作成が完了すると、pem形式のキーの名前を聞かれるので適当に命名。ダウンロードしたpem keyをローカルに配置し、以下のコマンドを実行してBastionサーバに接続できることを確認する。pem keyを何単位で分けるのが適切かは、セキュリティと運用の容易さのトレードオフで決めるのかな。今回は一つのpem keyで全てのサーバにアクセスできるようにしておく。本当は本番/ステージング別とか、プライベート/パブリックサブネット別とかに分けるのだろう。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;bash&#39;&gt;    &lt;span class=&#39;nv&#39;&gt;$ &lt;/span&gt;ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id=&quot;ap_serverec2&quot;&gt;AP Server(EC2)&lt;/h2&gt;
 
-&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。 この際、APサーバはPrivateサブネットに配置する。VPCをウィザードで作成すると、自動的に10.0.1.0/24がプライベートなサブネット（Default GawtewayがNATインスタンスになってるやつ）になっているっぽい。逆に、10.0.0.0/24がパブリックになっており、Default GatewayにはInternet Gatewayが指定されている。よって、Configuration Instance Detailsから以下の設定を実施する。それ以外はデフォルトで問題なし。プライベートなサブネットに配置するので、Public IPとかは設定しないでよし。ちなみに今回はUbuntu Server 13.10 - ami-b945ddb8を利用。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;bash&quot;&gt;    &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;ap-serverec2&quot;&gt;AP Server(EC2)&lt;/h2&gt;
+&lt;p&gt;EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。
+この際、APサーバはPrivateサブネットに配置する。VPCをウィザードで作成すると、自動的に10.0.1.0/24がプライベートなサブネット（Default GawtewayがNATインスタンスになってるやつ）になっているっぽい。逆に、10.0.0.0/24がパブリックになっており、Default GatewayにはInternet Gatewayが指定されている。よって、Configuration Instance Detailsから以下の設定を実施する。それ以外はデフォルトで問題なし。プライベートなサブネットに配置するので、Public IPとかは設定しないでよし。ちなみに今回はUbuntu Server 13.10 - ami-b945ddb8を利用。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Network: 10.0.0.0/16&lt;/li&gt;
-
-&lt;li&gt;Subnet: subnet-xxxxx(10.0.1.0/24)&lt;/li&gt;
+  &lt;li&gt;Network: 10.0.0.0/16&lt;/li&gt;
+  &lt;li&gt;Subnet: subnet-xxxxx(10.0.1.0/24)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;load_balancerec2_elb&quot;&gt;Load Balancer(EC2, ELB)&lt;/h2&gt;
-
+&lt;h2 id=&quot;load-balancerec2-elb&quot;&gt;Load Balancer(EC2, ELB)&lt;/h2&gt;
 &lt;p&gt;EC2ダッシュボードに行くと、左側のNETWORK&amp;amp;SECURITYタグの中にLoad Balancerという項目があるので、ここから新規作成する。&lt;/p&gt;
 
-&lt;p&gt;適当な名前をつける。 Create LB Inside:の部分は新規に作成したVPCを選択。今回の場合は、10.0.0.0/16。 LBが通すプロトコルとポートを指定する。今回はデフォルトのHTTPとポート80番のみ。 ヘルスチェックはデフォルトのまま。&lt;/p&gt;
+&lt;p&gt;適当な名前をつける。
+Create LB Inside:の部分は新規に作成したVPCを選択。今回の場合は、10.0.0.0/16。
+LBが通すプロトコルとポートを指定する。今回はデフォルトのHTTPとポート80番のみ。
+ヘルスチェックはデフォルトのまま。&lt;/p&gt;
 
-&lt;p&gt;ロードバランス「される」インスタンスが存在するサブネットを選択する。今回はAPサーバをPrivateサブネット（Internet Gatewayがついてない方のサブネット）に配置しているので、そちらを選択。デフォルトでは、10.0.1.0/24。&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;You will need to select a Subnet for each Availability Zone where you wish to have load balanced instances. A Virtual Network Interface will be placed inside the Subnet and allow traffic to be routed into that Availability Zone. Only one subnet per Availability Zone may be selected.&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;ロードバランス「される」インスタンスが存在するサブネットを選択する。今回はAPサーバをPrivateサブネット（Internet Gatewayがついてない方のサブネット）に配置しているので、そちらを選択。デフォルトでは、10.0.1.0/24。
+&amp;gt;You will need to select a Subnet for each Availability Zone where you wish to have load balanced instances. A Virtual Network Interface will be placed inside the Subnet and allow traffic to be routed into that Availability Zone. Only one subnet per Availability Zone may be selected.&lt;/p&gt;
 
 &lt;p&gt;セキュリティグループは一旦デフォルト。&lt;/p&gt;
 
-&lt;dl&gt;
-&lt;dt&gt;作成完了したら、EC2のマネジメントコンソール左ペインからLoad Balancerを選択して新規作成されたレコードを確認。Instancesに先ほど作成したAP Serverをひもづける。コレで以下の通信経路の基礎が完成。次回はSecurity Groupの設定を行い、APサーバに実際のWebアプリをデプロイする！&lt;/dt&gt;
+&lt;p&gt;作成完了したら、EC2のマネジメントコンソール左ペインからLoad Balancerを選択して新規作成されたレコードを確認。Instancesに先ほど作成したAP Serverをひもづける。コレで以下の通信経路の基礎が完成。次回はSecurity Groupの設定を行い、APサーバに実際のWebアプリをデプロイする！&lt;/p&gt;
 
-&lt;dd&gt;
-&lt;p&gt;:&lt;/p&gt;
+&lt;p&gt;::&lt;/p&gt;
 
-&lt;p&gt;[client] -&amp;gt; [ELB] -&amp;gt; [Web/AP Server]&lt;/p&gt;
-&lt;/dd&gt;
-&lt;/dl&gt;</description>
+&lt;pre&gt;&lt;code&gt;[client] -&amp;gt; [ELB] -&amp;gt; [Web/AP Server]
+&lt;/code&gt;&lt;/pre&gt;
+
+</description>
 				<pubDate>Mon, 04 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</guid>
@@ -1490,55 +1481,15 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 &lt;p&gt;Github, jekyll, Pure本当にありがとうございます！&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pages.github.com/&quot;&gt;Github Pages&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://pages.github.com/&quot;&gt;Github Pages&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;jekyll&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://purecss.io/&quot;&gt;Pure&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;jekyll&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://purecss.io/&quot;&gt;Pure&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
+</description>
 				<pubDate>Sun, 03 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/03/start-blog.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/03/start-blog.html</guid>
-			</item>
-		
-			<item>
-				<title>chcsvというツールがすごい</title>
-				<description>&lt;p&gt;このツール超便利だ。Oracle DBを標準入出力で操れる。Linux/GNU最高。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.asahi-net.or.jp/~nq7t-kwbt/&quot;&gt;ORACLEの部屋&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。&lt;/p&gt;
-&lt;div class=&#39;highlight&#39;&gt;&lt;pre&gt;&lt;code class=&#39;basemake&#39;&gt;&lt;span class=&#39;nv&#39;&gt;ORAHOME&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; &lt;span class=&#39;k&#39;&gt;${&lt;/span&gt;&lt;span class=&#39;nv&#39;&gt;ORACLE_HOME&lt;/span&gt;&lt;span class=&#39;k&#39;&gt;}&lt;/span&gt;
-&lt;span class=&#39;nv&#39;&gt;OBJS&lt;/span&gt; &lt;span class=&#39;o&#39;&gt;=&lt;/span&gt; chcsv.o sqlda.o Option.o OutPut.o Signal.o
-
-&lt;span class=&#39;nf&#39;&gt;build &lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;chcsv&lt;/span&gt;
-
-&lt;span class=&#39;nf&#39;&gt;chcsv &lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;$(OBJS)&lt;/span&gt;
-  gcc -o chcsv &lt;span class=&#39;k&#39;&gt;$(&lt;/span&gt;OBJS&lt;span class=&#39;k&#39;&gt;)&lt;/span&gt; -L&lt;span class=&#39;k&#39;&gt;$(&lt;/span&gt;ORAHOME&lt;span class=&#39;k&#39;&gt;)&lt;/span&gt;/lib/   -lclntsh -lclntst11 &lt;span class=&#39;sb&#39;&gt;`&lt;/span&gt;cat &lt;span class=&#39;k&#39;&gt;$(&lt;/span&gt;ORAHOME&lt;span class=&#39;k&#39;&gt;)&lt;/span&gt;/lib/ldflags&lt;span class=&#39;sb&#39;&gt;`&lt;/span&gt;   &lt;span class=&#39;sb&#39;&gt;`&lt;/span&gt;cat &lt;span class=&#39;k&#39;&gt;$(&lt;/span&gt;ORAHOME&lt;span class=&#39;k&#39;&gt;)&lt;/span&gt;lib/sysliblist&lt;span class=&#39;sb&#39;&gt;`&lt;/span&gt; -ldl -lm
-
-&lt;span class=&#39;nf&#39;&gt;chcsv.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt;  &lt;span class=&#39;m&#39;&gt;chcsv.pc&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;chcsv.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt;  &lt;span class=&#39;m&#39;&gt;chcsv.c&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;Option.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;Option.pc&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;Option.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;Option.c&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;OutPut.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;OutPut.pc&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;OutPut.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;OutPut.c&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;Signal.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;Signal.pc&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;Signal.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;Signal.c&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;sqlda.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt;  &lt;span class=&#39;m&#39;&gt;sqlda.pc&lt;/span&gt;
-&lt;span class=&#39;nf&#39;&gt;sqlda.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt;  &lt;span class=&#39;m&#39;&gt;sqlda.c&lt;/span&gt;
-
-&lt;span class=&#39;nf&#39;&gt;%.o&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;%.c &lt;/span&gt;
-  gcc -O -c &lt;span class=&#39;nv&#39;&gt;$&amp;lt;&lt;/span&gt; -o &lt;span class=&#39;nv&#39;&gt;$@&lt;/span&gt;
-
-&lt;span class=&#39;nf&#39;&gt;%.c&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt; &lt;span class=&#39;m&#39;&gt;%.pc&lt;/span&gt;
-  proc &lt;span class=&#39;nv&#39;&gt;$&amp;lt;&lt;/span&gt;
-
-&lt;span class=&#39;nf&#39;&gt;clean&lt;/span&gt;&lt;span class=&#39;o&#39;&gt;:&lt;/span&gt;
-  /bin/rm -f *.o *.c *.lis chcsv
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
-				<pubDate>Sat, 04 Sep 2010 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2010/09/04/chcsv.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2010/09/04/chcsv.html</guid>
 			</item>
 		
 	</channel>

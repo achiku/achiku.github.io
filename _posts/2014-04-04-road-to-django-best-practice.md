@@ -99,12 +99,13 @@ test_browser.py
 *参考文献*
 
 何をテストすべきか、その際に何を使うべきか、使う時にどういう方針で使うのがいいか、がハイパーまとまってる資料。この資料に一番影響されてると思う。
+
 - [YouTube: Testing and Django](http://pyvideo.org/video/699/testing-and-django)
 - [Testing and Django](http://carljm.github.io/django-testing-slides/#1)
 - [Testing and Django Note](https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html)
 
 抜粋
-```
+
     What type of test to write?
 
     Write system tests for your views.
@@ -112,7 +113,7 @@ test_browser.py
     Write unit tests for everything else (not strict).
     Test each case (code branch) where it occurs.
     One assert/action per test case method.
-```
+
 
 下記のStackOverflowの記事も何を、どうテストしていくのかに関して実例交えながら語ってる。
 
@@ -230,7 +231,7 @@ test_browser.py
 *参考文献*
 
 以下StackOverflowから見つけたparametrized testを簡単にしてくれるライブラリ一覧。
-```
+
     Some of the tools available for doing parametrized tests in Python are:
 
     Nose test generators (only for function tests, not TestCase classes)
@@ -238,7 +239,8 @@ test_browser.py
     Unittest template by Boris Feld
     Parametrized tests in py.test
     parametrized-testcase by Austin Bingham
-```
+
+
 - [Python unittest: Generate multiple tests programmatically? ](http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically)
 
 unittest形式でテストを生成する際に非常に参考になった記事。
