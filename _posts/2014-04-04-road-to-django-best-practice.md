@@ -7,6 +7,7 @@ DjangoのWebアプリを開発している際、リファクタ/テスト拡充�
 
 - [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
 - [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- [#2 補足編](http://achiku.github.io/2014/04/14/django-pytest-webtest.html)
 - [#3 Django Model/View/From/Template戦術](http://achiku.github.io/2014/04/07/road-to-django-best-practice.html)
 
 
@@ -301,6 +302,8 @@ def test_coupon_urls(app, data, login_user, url, message, status_code):
 
 ちゃんとpy.testのfixtureやその他の機能の詳細についても書きたい。実装レベルでの工夫等も後ほど書く。
 
+[補足編書きました](http://achiku.github.io/2014/04/14/django-pytest-webtest.html)
+
 
 プログラム本体のコードが変更された際にも追従しやすい
 ----------------------------------------------------
@@ -344,6 +347,7 @@ py.testはnoseよりも細かくエラーを出してくれます。pytest.vim�
 
 - [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
 - [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- [#2 補足編](http://achiku.github.io/2014/04/14/django-pytest-webtest.html)
 - [#3 Django Model/View/From/Template戦術](http://achiku.github.io/2014/04/07/road-to-django-best-practice.html)
 
 

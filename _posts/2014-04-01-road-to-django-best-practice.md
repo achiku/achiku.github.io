@@ -8,6 +8,7 @@ DjangoのWebアプリを開発している際、リファクタ/テスト拡充�
 
 - [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
 - [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- [#2 補足編](http://achiku.github.io/2014/04/14/django-pytest-webtest.html)
 - [#3 Django Model/View/From/Template戦術](http://achiku.github.io/2014/04/07/road-to-django-best-practice.html)
 
 
@@ -271,5 +272,6 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 - [#1 Djangoプロジェクト/アプリケーション/設定ファイル構成](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
 - [#2 Djangoテスト戦術](http://achiku.github.io/2014/04/04/road-to-django-best-practice.html)
+- [#2 補足編](http://achiku.github.io/2014/04/14/django-pytest-webtest.html)
 - [#3 Django Model/View/From/Template戦術](http://achiku.github.io/2014/04/07/road-to-django-best-practice.html)
 
