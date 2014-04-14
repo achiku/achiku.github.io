@@ -7,6 +7,40 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>PyCon US 2014 後で見るもの一覧</title>
+				<description>&lt;p&gt;個人的に興味を持ったセッションを抜粋。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://pyvideo.org/category/50/pycon-us-2014&quot;&gt;セッション一覧&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2660/advanced-techniques-for-web-functional-testing&quot;&gt;Advanced techniques for Web functional testing&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2630/designing-djangos-migrations&quot;&gt;Designing Django’s Migrations&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2657/diving-into-open-data-with-ipython-notebook-pan-0&quot;&gt;Diving into Open Data with IPython Notebook &amp;amp; Pandas&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2652/django-the-good-parts&quot;&gt;Django: The good parts&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2674/getting-started-testing&quot;&gt;Getting Started Testing&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2564/mrjob-snakes-on-a-hadoop&quot;&gt;mrjob: Snakes on a Hadoop&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2580/tdd-for-web-applications-from-scratch&quot;&gt;TDD for web applications, from scratch&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2584/straightening-out-angularjs-with-python&quot;&gt;Straightening Out AngularJS with Python&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2593/python-scraping-showdown-a-performance-and-accur&quot;&gt;Python Scraping Showdown: A performance and accuracy review&lt;/a&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2615/python-32-web-development-with-pyramid&quot;&gt;Python 3/2 Web Development with Pyramid&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;カンファレンス行かなくても全然知識は得れる。カンファレンス行くのはやっぱ人に直接会ってお礼とか言う為なんだろうなぁ。 とにかくPyCon USはセッション沢山あって楽しげ。今週末は引きこもってビデオみよっと。USでも台北でもいいから行きたい(遊びに)。&lt;/p&gt;</description>
+				<pubDate>Tue, 15 Apr 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/04/15/pycon-us-2014.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/04/15/pycon-us-2014.html</guid>
+			</item>
+		
+			<item>
 				<title>Django + py.test + WebTest</title>
 				<description>&lt;p&gt;以前書いた&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;Django Best Practice への道 #2&lt;/a&gt;の補足を書きます。&lt;/p&gt;
 
@@ -1620,26 +1654,6 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1&lt;/code&gt;&lt;/p
 				<pubDate>Mon, 04 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/04/aws-vpc-nat-elb-ec2.html</guid>
-			</item>
-		
-			<item>
-				<title>Github Pages開始</title>
-				<description>&lt;p&gt;心機一転、七転抜刀！&lt;/p&gt;
-
-&lt;p&gt;Github Pages + jekyll + Pureで作りました。主にPythonやデータ分析界隈の話が書ければと思います。今は過去に書いていた記事をサルベージして移行中。それにしてもこのGithub Pageを軸にした組み合わせ神すぎる。若干の根性があれば広告なし、容量制限も気にせず、なんならバックアップも取得してもらえるブログサービスが作れてしまう。。。&lt;/p&gt;
-
-&lt;p&gt;Github, jekyll, Pure本当にありがとうございます！&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pages.github.com/&quot;&gt;Github Pages&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://jekyllrb.com/&quot;&gt;jekyll&lt;/a&gt;&lt;/li&gt;
-
-&lt;li&gt;&lt;a href=&quot;http://purecss.io/&quot;&gt;Pure&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</description>
-				<pubDate>Sun, 03 Nov 2013 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2013/11/03/start-blog.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2013/11/03/start-blog.html</guid>
 			</item>
 		
 	</channel>
