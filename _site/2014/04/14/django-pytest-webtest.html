@@ -90,10 +90,11 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <h2 id="djangopytest">Djangoのテストにpy.testを使う</h2>
 
-<p>以下のライブラリを利用する。 (なぜpy.testを選択したかは<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">コチラ</a>)</p>
+<p>以下のライブラリを利用する。
+(なぜpy.testを選択したかは<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">コチラ</a>)</p>
 
 <ul>
-<li><a href="https://github.com/pelme/pytest_django">pelme/pytest_django</a></li>
+  <li><a href="https://github.com/pelme/pytest_django">pelme/pytest_django</a></li>
 </ul>
 
 <p>とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。</p>
@@ -103,7 +104,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>以下のライブラリを利用する。</p>
 
 <ul>
-<li><a href="https://github.com/kmike/django-webtest">kmike/django-webtest</a></li>
+  <li><a href="https://github.com/kmike/django-webtest">kmike/django-webtest</a></li>
 </ul>
 
 <p>これを利用する目的は前回のポストで書いた「機能テスト」で利用するためです。機能テストはレンダリングされたHTMLも含む形でテストをしたい。一般的に利用されるDjangoのテストクライアントは、どのテンプレートが使われたか、テンプレートに渡るcontext variablesが正しいか、をチェックするものなので、カンムで想定している機能テストに関してはそもそも出番じゃない。よって、機能テストを実施するにはWebTestを利用することとしています。</p>
@@ -111,7 +112,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p><em>参考文献</em></p>
 
 <ul>
-<li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
+  <li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
 </ul>
 
 <h2 id="unittest">unittest形式が嫌</h2>
@@ -125,89 +126,95 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
 
 <p>ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。</p>
-<div class='highlight'><pre><code class='python'><span class='c'># -*- coding: utf-8 -*-</span>
-<span class='kn'>from</span> <span class='nn'>django_webtest</span> <span class='kn'>import</span> <span class='n'>WebTestMixin</span>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">django_webtest</span> <span class="kn">import</span> <span class="n">WebTestMixin</span>
 
 
-<span class='k'>def</span> <span class='nf'>app</span><span class='p'>():</span>
-    <span class='n'>wt</span> <span class='o'>=</span> <span class='n'>WebTestMixin</span><span class='p'>()</span>
-    <span class='n'>wt</span><span class='o'>.</span><span class='n'>_patch_settings</span><span class='p'>()</span>
-    <span class='n'>wt</span><span class='o'>.</span><span class='n'>renew_app</span><span class='p'>()</span>
-    <span class='k'>return</span> <span class='n'>wt</span><span class='o'>.</span><span class='n'>app</span>
-</code></pre></div>
+<span class="k">def</span> <span class="nf">app</span><span class="p">():</span>
+    <span class="n">wt</span> <span class="o">=</span> <span class="n">WebTestMixin</span><span class="p">()</span>
+    <span class="n">wt</span><span class="o">.</span><span class="n">_patch_settings</span><span class="p">()</span>
+    <span class="n">wt</span><span class="o">.</span><span class="n">renew_app</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">wt</span><span class="o">.</span><span class="n">app</span></code></pre></div>
+
 <p>前回掲載したURLに対するGETのスモークテストのサンプルでいくと、</p>
 
 <p><em>apps/appA/tests/conftest.py</em></p>
-<div class='highlight'><pre><code class='python'><span class='c'># -*- coding: utf-8 -*-</span>
-<span class='kn'>from</span> <span class='nn'>django_webtest</span> <span class='kn'>import</span> <span class='n'>WebTestMixin</span>
-<span class='kn'>from</span> <span class='nn'>tests.factories</span> <span class='kn'>import</span> <span class='p'>(</span>
-    <span class='n'>AdminUserFactory</span><span class='p'>,</span> <span class='n'>NormalUserFactory</span><span class='p'>,</span>
-<span class='p'>)</span>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">django_webtest</span> <span class="kn">import</span> <span class="n">WebTestMixin</span>
+<span class="kn">from</span> <span class="nn">tests.factories</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AdminUserFactory</span><span class="p">,</span> <span class="n">NormalUserFactory</span><span class="p">,</span>
+<span class="p">)</span>
 
 
-<span class='k'>def</span> <span class='nf'>app</span><span class='p'>():</span>
-    <span class='n'>wt</span> <span class='o'>=</span> <span class='n'>WebTestMixin</span><span class='p'>()</span>
-    <span class='n'>wt</span><span class='o'>.</span><span class='n'>_patch_settings</span><span class='p'>()</span>
-    <span class='n'>wt</span><span class='o'>.</span><span class='n'>renew_app</span><span class='p'>()</span>
-    <span class='k'>return</span> <span class='n'>wt</span><span class='o'>.</span><span class='n'>app</span>
+<span class="k">def</span> <span class="nf">app</span><span class="p">():</span>
+    <span class="n">wt</span> <span class="o">=</span> <span class="n">WebTestMixin</span><span class="p">()</span>
+    <span class="n">wt</span><span class="o">.</span><span class="n">_patch_settings</span><span class="p">()</span>
+    <span class="n">wt</span><span class="o">.</span><span class="n">renew_app</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">wt</span><span class="o">.</span><span class="n">app</span>
 
-<span class='k'>def</span> <span class='nf'>users</span><span class='p'>():</span>
-    <span class='n'>admin</span> <span class='o'>=</span> <span class='n'>AdminUserFactory</span><span class='o'>.</span><span class='n'>create</span><span class='p'>()</span>
-    <span class='n'>user</span> <span class='o'>=</span> <span class='n'>NormalUserFactory</span><span class='o'>.</span><span class='n'>create</span><span class='p'>()</span>
-    <span class='k'>return</span> <span class='p'>{</span>
-        <span class='s'>&#39;admin&#39;</span><span class='p'>:</span> <span class='n'>admin</span><span class='p'>,</span>
-        <span class='s'>&#39;user&#39;</span><span class='p'>:</span> <span class='n'>user</span>
-    <span class='p'>}</span>
-</code></pre></div>
+<span class="k">def</span> <span class="nf">users</span><span class="p">():</span>
+    <span class="n">admin</span> <span class="o">=</span> <span class="n">AdminUserFactory</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">NormalUserFactory</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s">&#39;admin&#39;</span><span class="p">:</span> <span class="n">admin</span><span class="p">,</span>
+        <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span>
+    <span class="p">}</span></code></pre></div>
+
 <p><em>apps/appA/tests/test_url.py</em></p>
-<div class='highlight'><pre><code class='python'><span class='c'># -*- coding: utf-8 -*-</span>
-<span class='kn'>import</span> <span class='nn'>pytest</span>
-<span class='kn'>from</span> <span class='nn'>hamcrest</span> <span class='kn'>import</span> <span class='p'>(</span>
-    <span class='n'>assert_that</span><span class='p'>,</span> <span class='n'>contains_string</span><span class='p'>,</span> <span class='n'>equal_to</span><span class='p'>,</span>
-<span class='p'>)</span>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+<span class="kn">from</span> <span class="nn">hamcrest</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">assert_that</span><span class="p">,</span> <span class="n">contains_string</span><span class="p">,</span> <span class="n">equal_to</span><span class="p">,</span>
+<span class="p">)</span>
 
 
-<span class='nd'>@pytest.mark.django_db</span>
-<span class='nd'>@pytest.mark.parametrize</span><span class='p'>(</span><span class='s'>&#39;login_user, url, message, status_code&#39;</span><span class='p'>,</span> <span class='p'>[</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=0&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=1&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=2&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=3&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/1&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン詳細&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;admin&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupon/add&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポンの登録&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=0&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=1&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=2&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/?status=3&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン一覧&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupons/1&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポン詳細&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-    <span class='p'>(</span><span class='s'>&#39;user&#39;</span><span class='p'>,</span> <span class='s'>&#39;/coupon/add&#39;</span><span class='p'>,</span> <span class='s'>&#39;クーポンの登録&#39;</span><span class='p'>,</span> <span class='mi'>200</span><span class='p'>),</span>
-<span class='p'>])</span>
-<span class='k'>def</span> <span class='nf'>test_coupon_urls</span><span class='p'>(</span><span class='n'>app</span><span class='p'>,</span> <span class='n'>users</span><span class='p'>,</span> <span class='n'>login_user</span><span class='p'>,</span> <span class='n'>url</span><span class='p'>,</span> <span class='n'>message</span><span class='p'>,</span> <span class='n'>status_code</span><span class='p'>):</span>
-    <span class='n'>resp</span> <span class='o'>=</span> <span class='n'>app</span><span class='o'>.</span><span class='n'>get</span><span class='p'>(</span><span class='n'>url</span><span class='p'>,</span> <span class='n'>user</span><span class='o'>=</span><span class='n'>users</span><span class='p'>[</span><span class='n'>login_user</span><span class='p'>])</span>
-    <span class='n'>assert_that</span><span class='p'>(</span><span class='n'>resp</span><span class='o'>.</span><span class='n'>status_code</span><span class='p'>,</span> <span class='n'>equal_to</span><span class='p'>(</span><span class='n'>status_code</span><span class='p'>))</span>
-    <span class='n'>assert_that</span><span class='p'>(</span><span class='n'>resp</span><span class='o'>.</span><span class='n'>content</span><span class='p'>,</span> <span class='n'>contains_string</span><span class='p'>(</span><span class='n'>message</span><span class='p'>))</span>
-</code></pre></div>
+<span class="nd">@pytest.mark.django_db</span>
+<span class="nd">@pytest.mark.parametrize</span><span class="p">(</span><span class="s">&#39;login_user, url, message, status_code&#39;</span><span class="p">,</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=0&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=1&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=2&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=3&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/1&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン詳細&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;/coupon/add&#39;</span><span class="p">,</span> <span class="s">&#39;クーポンの登録&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=0&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=1&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=2&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/?status=3&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン一覧&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupons/1&#39;</span><span class="p">,</span> <span class="s">&#39;クーポン詳細&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;/coupon/add&#39;</span><span class="p">,</span> <span class="s">&#39;クーポンの登録&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+<span class="p">])</span>
+<span class="k">def</span> <span class="nf">test_coupon_urls</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">users</span><span class="p">,</span> <span class="n">login_user</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="p">):</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">users</span><span class="p">[</span><span class="n">login_user</span><span class="p">])</span>
+    <span class="n">assert_that</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">equal_to</span><span class="p">(</span><span class="n">status_code</span><span class="p">))</span>
+    <span class="n">assert_that</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">contains_string</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></code></pre></div>
+
 <p>シンプル！</p>
 
 <p>これを発見した時はライブラリのソースコードに潜り込んで何かを自分の思い通りに動かせた！しかもまだ誰も見つけてない！と非常にうれしかったのですが、より洗練されたやり方が以下に紹介されていました(フランス語読めないけどコードは読める)。世の中甘くないっす。</p>
 
 <ul>
-<li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
+  <li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
 </ul>
 
-<h2 id="">おまけ</h2>
+<h2 id="section">おまけ</h2>
 
 <p>django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。</p>
 
 <p>弊社ではPyHamcrestを利用することでなんとなく回避していますが、以下にDjangoデフォルトのassertionをpy.testの名前空間にぶっこむ事で回避するという実装があり、これはこれですごい便利だなぁと思ってます。</p>
 
 <ul>
-<li><a href="http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest">Funcargs &amp; other fun with pytest</a> P12に記載あり</li>
+  <li><a href="http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest">Funcargs &amp; other fun with pytest</a>
+P12に記載あり</li>
 </ul>
 
-<h2 id="_2">まとめ</h2>
+<h2 id="section-1">まとめ</h2>
 
 <p>py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。</p>
+
+
 </div>
 <div class="post-sharing">
  

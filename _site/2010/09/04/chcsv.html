@@ -85,34 +85,36 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p><a href="http://www.asahi-net.or.jp/~nq7t-kwbt/">ORACLEの部屋</a></p>
 
 <p>tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。</p>
-<div class='highlight'><pre><code class='basemake'><span class='nv'>ORAHOME</span> <span class='o'>=</span> <span class='k'>${</span><span class='nv'>ORACLE_HOME</span><span class='k'>}</span>
-<span class='nv'>OBJS</span> <span class='o'>=</span> chcsv.o sqlda.o Option.o OutPut.o Signal.o
 
-<span class='nf'>build </span><span class='o'>:</span> <span class='m'>chcsv</span>
+<div class="highlight"><pre><code class="language-basemake" data-lang="basemake"><span class="nv">ORAHOME</span> <span class="o">=</span> <span class="k">${</span><span class="nv">ORACLE_HOME</span><span class="k">}</span>
+<span class="nv">OBJS</span> <span class="o">=</span> chcsv.o sqlda.o Option.o OutPut.o Signal.o
 
-<span class='nf'>chcsv </span><span class='o'>:</span> <span class='m'>$(OBJS)</span>
-  gcc -o chcsv <span class='k'>$(</span>OBJS<span class='k'>)</span> -L<span class='k'>$(</span>ORAHOME<span class='k'>)</span>/lib/   -lclntsh -lclntst11 <span class='sb'>`</span>cat <span class='k'>$(</span>ORAHOME<span class='k'>)</span>/lib/ldflags<span class='sb'>`</span>   <span class='sb'>`</span>cat <span class='k'>$(</span>ORAHOME<span class='k'>)</span>lib/sysliblist<span class='sb'>`</span> -ldl -lm
+<span class="nf">build </span><span class="o">:</span> <span class="n">chcsv</span>
 
-<span class='nf'>chcsv.c</span><span class='o'>:</span>  <span class='m'>chcsv.pc</span>
-<span class='nf'>chcsv.o</span><span class='o'>:</span>  <span class='m'>chcsv.c</span>
-<span class='nf'>Option.c</span><span class='o'>:</span> <span class='m'>Option.pc</span>
-<span class='nf'>Option.o</span><span class='o'>:</span> <span class='m'>Option.c</span>
-<span class='nf'>OutPut.c</span><span class='o'>:</span> <span class='m'>OutPut.pc</span>
-<span class='nf'>OutPut.o</span><span class='o'>:</span> <span class='m'>OutPut.c</span>
-<span class='nf'>Signal.c</span><span class='o'>:</span> <span class='m'>Signal.pc</span>
-<span class='nf'>Signal.o</span><span class='o'>:</span> <span class='m'>Signal.c</span>
-<span class='nf'>sqlda.c</span><span class='o'>:</span>  <span class='m'>sqlda.pc</span>
-<span class='nf'>sqlda.o</span><span class='o'>:</span>  <span class='m'>sqlda.c</span>
+<span class="nf">chcsv </span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span>
+  gcc -o chcsv <span class="k">$(</span>OBJS<span class="k">)</span> -L<span class="k">$(</span>ORAHOME<span class="k">)</span>/lib/   -lclntsh -lclntst11 <span class="sb">`</span>cat <span class="k">$(</span>ORAHOME<span class="k">)</span>/lib/ldflags<span class="sb">`</span>   <span class="sb">`</span>cat <span class="k">$(</span>ORAHOME<span class="k">)</span>lib/sysliblist<span class="sb">`</span> -ldl -lm
 
-<span class='nf'>%.o</span><span class='o'>:</span> <span class='m'>%.c </span>
-  gcc -O -c <span class='nv'>$&lt;</span> -o <span class='nv'>$@</span>
+<span class="nf">chcsv.c</span><span class="o">:</span>  <span class="n">chcsv</span>.<span class="n">pc</span>
+<span class="nf">chcsv.o</span><span class="o">:</span>  <span class="n">chcsv</span>.<span class="n">c</span>
+<span class="nf">Option.c</span><span class="o">:</span> <span class="n">Option</span>.<span class="n">pc</span>
+<span class="nf">Option.o</span><span class="o">:</span> <span class="n">Option</span>.<span class="n">c</span>
+<span class="nf">OutPut.c</span><span class="o">:</span> <span class="n">OutPut</span>.<span class="n">pc</span>
+<span class="nf">OutPut.o</span><span class="o">:</span> <span class="n">OutPut</span>.<span class="n">c</span>
+<span class="nf">Signal.c</span><span class="o">:</span> <span class="n">Signal</span>.<span class="n">pc</span>
+<span class="nf">Signal.o</span><span class="o">:</span> <span class="n">Signal</span>.<span class="n">c</span>
+<span class="nf">sqlda.c</span><span class="o">:</span>  <span class="n">sqlda</span>.<span class="n">pc</span>
+<span class="nf">sqlda.o</span><span class="o">:</span>  <span class="n">sqlda</span>.<span class="n">c</span>
 
-<span class='nf'>%.c</span><span class='o'>:</span> <span class='m'>%.pc</span>
-  proc <span class='nv'>$&lt;</span>
+<span class="nf">%.o</span><span class="o">:</span> %.<span class="n">c</span> 
+  gcc -O -c <span class="nv">$&lt;</span> -o <span class="nv">$@</span>
 
-<span class='nf'>clean</span><span class='o'>:</span>
-  /bin/rm -f *.o *.c *.lis chcsv
-</code></pre></div>
+<span class="nf">%.c</span><span class="o">:</span> %.<span class="n">pc</span>
+  proc <span class="nv">$&lt;</span>
+
+<span class="nf">clean</span><span class="o">:</span>
+  /bin/rm -f *.o *.c *.lis chcsv</code></pre></div>
+
+
 </div>
 <div class="post-sharing">
  
