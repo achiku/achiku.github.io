@@ -10,6 +10,7 @@ author :
 
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
 highlighter: pygments
+markdown: redcarpet
 
 production_url : http://achiku.github.io
 comments : True

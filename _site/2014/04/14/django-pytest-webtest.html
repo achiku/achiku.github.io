@@ -4,7 +4,7 @@
   <meta name="google-site-verification" content="H6k1xpusWugwaQgJsWDpiTw4J_AGFZHR4shRsOvPI78" />
   <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
-  <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="/stylesheets/pygment_github.css">
   <title>Django + py.test + WebTest</title>
 </head>
 <body>
@@ -88,23 +88,23 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>分解していきます。</p>
 
-<h2 id="djangopytest">Djangoのテストにpy.testを使う</h2>
+<h2>Djangoのテストにpy.testを使う</h2>
 
 <p>以下のライブラリを利用する。
 (なぜpy.testを選択したかは<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">コチラ</a>)</p>
 
 <ul>
-  <li><a href="https://github.com/pelme/pytest_django">pelme/pytest_django</a></li>
+<li><a href="https://github.com/pelme/pytest_django">pelme/pytest_django</a></li>
 </ul>
 
 <p>とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。</p>
 
-<h2 id="djangowebtest">DjangoのテストにWebTestを使う</h2>
+<h2>DjangoのテストにWebTestを使う</h2>
 
 <p>以下のライブラリを利用する。</p>
 
 <ul>
-  <li><a href="https://github.com/kmike/django-webtest">kmike/django-webtest</a></li>
+<li><a href="https://github.com/kmike/django-webtest">kmike/django-webtest</a></li>
 </ul>
 
 <p>これを利用する目的は前回のポストで書いた「機能テスト」で利用するためです。機能テストはレンダリングされたHTMLも含む形でテストをしたい。一般的に利用されるDjangoのテストクライアントは、どのテンプレートが使われたか、テンプレートに渡るcontext variablesが正しいか、をチェックするものなので、カンムで想定している機能テストに関してはそもそも出番じゃない。よって、機能テストを実施するにはWebTestを利用することとしています。</p>
@@ -112,18 +112,18 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p><em>参考文献</em></p>
 
 <ul>
-  <li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
+<li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
 </ul>
 
-<h2 id="unittest">unittest形式が嫌</h2>
+<h2>unittest形式が嫌</h2>
 
 <p>そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。</p>
 
 <p>そこでWebTestも含めて全てpy.test形式でつくろうと思ったのですが、django_webtestパッケージ内のWebTestは既にdjango.test.TestCaseを継承しており、unittest.TestCaseを継承しているので、そのままではpy.test形式で使えない。</p>
 
-<p><a href="https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py">django-webtest/django_webtest/__init__.py</a></p>
+<p><a href="https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py">django-webtest/django<em>webtest/\</em>_init__.py</a></p>
 
-<p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
+<p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango<em>webtest.WebTestMixinというクラスに切りだされ、django</em>webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
 
 <p>ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。</p>
 
@@ -196,24 +196,23 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>これを発見した時はライブラリのソースコードに潜り込んで何かを自分の思い通りに動かせた！しかもまだ誰も見つけてない！と非常にうれしかったのですが、より洗練されたやり方が以下に紹介されていました(フランス語読めないけどコードは読める)。世の中甘くないっす。</p>
 
 <ul>
-  <li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
+<li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
 </ul>
 
-<h2 id="section">おまけ</h2>
+<h2>おまけ</h2>
 
 <p>django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。</p>
 
 <p>弊社ではPyHamcrestを利用することでなんとなく回避していますが、以下にDjangoデフォルトのassertionをpy.testの名前空間にぶっこむ事で回避するという実装があり、これはこれですごい便利だなぁと思ってます。</p>
 
 <ul>
-  <li><a href="http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest">Funcargs &amp; other fun with pytest</a>
+<li><a href="http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest">Funcargs &amp; other fun with pytest</a>
 P12に記載あり</li>
 </ul>
 
-<h2 id="section-1">まとめ</h2>
+<h2>まとめ</h2>
 
 <p>py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。</p>
-
 
 </div>
 <div class="post-sharing">

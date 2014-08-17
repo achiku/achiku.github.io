@@ -8,46 +8,45 @@
 		
 			<item>
 				<title>Hadoop Conference Japan 2014 に行ってきて感じた事まとめ</title>
-				<description>&lt;p&gt;&lt;img src=&quot;/images/hadoop-conference-japan.png&quot; alt=&quot;hcj2014&quot; /&gt;&lt;/p&gt;
+				<description>&lt;p&gt;&lt;img src=&quot;/images/hadoop-conference-japan.png&quot; alt=&quot;hcj2014&quot;&gt;&lt;/p&gt;
 
 &lt;p&gt;さる2014/07/08、Hadoop Conference Japan 2014が開催されました。1ヶ月以上もアウトプットできなかった理由はおいといて、基調講演には出れていないのだけれど、いくつか回ったセッションを総合して、感じた事をまとめておきたいと思います。前提として、自分はHadoopの素人且つエンジニア1年目なので、鋭いマサカリ投げられると失禁したまま気絶する事が予想されますが、事実と異なる事書いてしまっていたり、それちがうんじゃねーのか、的な指摘は是非コメントください！間違ってる事書いておくの嫌ですし、他の人達がどう考えているのか知りたいです。&lt;/p&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;見て回ったセッション&lt;/h2&gt;
+&lt;h2&gt;見て回ったセッション&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;SQLによるバッチ処理とストリーム処理 &lt;a href=&quot;http://www.slideshare.net/tagomoris/hcj2014-sql&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;A Deeper Understanding of Spark Internals &lt;a href=&quot;http://www.slideshare.net/hadoopconf/japanese-spark-internalssummit20143&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Spark1.0での動作検証 - Hadoopユーザ・デベロッパから見たSparkへの期待 &lt;a href=&quot;http://www.slideshare.net/hadoopxnttdata/apache-spark-nttdatahcj2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;Evolution of Impala - Hadoop 上の高速SQLエンジン、最新情報 &lt;a href=&quot;http://www.slideshare.net/Cloudera_jp/evolution-of-impala-hcj2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;並列SQLエンジンPresto - 大規模データセットを高速にグラフ化する方法 &lt;a href=&quot;http://www.slideshare.net/frsyuki/presto-hadoop-conference-japan-2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;SQLによるバッチ処理とストリーム処理 &lt;a href=&quot;http://www.slideshare.net/tagomoris/hcj2014-sql&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;A Deeper Understanding of Spark Internals &lt;a href=&quot;http://www.slideshare.net/hadoopconf/japanese-spark-internalssummit20143&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Spark1.0での動作検証 - Hadoopユーザ・デベロッパから見たSparkへの期待 &lt;a href=&quot;http://www.slideshare.net/hadoopxnttdata/apache-spark-nttdatahcj2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Evolution of Impala - Hadoop 上の高速SQLエンジン、最新情報 &lt;a href=&quot;http://www.slideshare.net/Cloudera_jp/evolution-of-impala-hcj2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;並列SQLエンジンPresto - 大規模データセットを高速にグラフ化する方法 &lt;a href=&quot;http://www.slideshare.net/frsyuki/presto-hadoop-conference-japan-2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-1&quot;&gt;思ったこと&lt;/h2&gt;
+&lt;h2&gt;思ったこと&lt;/h2&gt;
 
 &lt;p&gt;このカンファレンスに出て思ったことが3つある。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;「大規模データ処理」という言葉の細分化&lt;/li&gt;
-  &lt;li&gt;SQL系のDSLが支配的になってきてる背景&lt;/li&gt;
-  &lt;li&gt;リアルタイムデータ処理の先にあるもの&lt;/li&gt;
+&lt;li&gt;「大規模データ処理」という言葉の細分化&lt;/li&gt;
+&lt;li&gt;SQL系のDSLが支配的になってきてる背景&lt;/li&gt;
+&lt;li&gt;リアルタイムデータ処理の先にあるもの&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;これら思ったことについて順にまとめていく。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-2&quot;&gt;「大規模データ処理」という言葉の細分化&lt;/h2&gt;
+&lt;h2&gt;「大規模データ処理」という言葉の細分化&lt;/h2&gt;
 
 &lt;p&gt;今回一連のセッションを聞いていて一番深く感じ入ったのは、タゴモリさんの公演「SQLによるバッチ処理とストリーム処理」に出てきた分類表。&lt;/p&gt;
 
-&lt;iframe src=&quot;//www.slideshare.net/slideshow/embed_code/36733256?startSlide=29&quot; width=&quot;427&quot; height=&quot;356&quot; frameborder=&quot;0&quot; marginwidth=&quot;0&quot; marginheight=&quot;0&quot; scrolling=&quot;no&quot; style=&quot;border:1px solid #CCC; border-width:1px 1px 0; margin-bottom:5px; max-width: 100%;&quot; allowfullscreen=&quot;&quot;&gt; &lt;/iframe&gt;
-&lt;div style=&quot;margin-bottom:5px&quot;&gt; &lt;strong&gt; &lt;a href=&quot;https://www.slideshare.net/tagomoris/hcj2014-sql&quot; title=&quot;Batch processing and Stream processing by SQL&quot; target=&quot;_blank&quot;&gt;Batch processing and Stream processing by SQL&lt;/a&gt; &lt;/strong&gt; from &lt;strong&gt;&lt;a href=&quot;http://www.slideshare.net/tagomoris&quot; target=&quot;_blank&quot;&gt;SATOSHI TAGOMORI&lt;/a&gt;&lt;/strong&gt; &lt;/div&gt;
+&lt;p&gt;&lt;iframe src=&quot;//www.slideshare.net/slideshow/embed_code/36733256?startSlide=29&quot; width=&quot;427&quot; height=&quot;356&quot; frameborder=&quot;0&quot; marginwidth=&quot;0&quot; marginheight=&quot;0&quot; scrolling=&quot;no&quot; style=&quot;border:1px solid #CCC; border-width:1px 1px 0; margin-bottom:5px; max-width: 100%;&quot; allowfullscreen&gt; &lt;/iframe&gt; &lt;div style=&quot;margin-bottom:5px&quot;&gt; &lt;strong&gt; &lt;a href=&quot;https://www.slideshare.net/tagomoris/hcj2014-sql&quot; title=&quot;Batch processing and Stream processing by SQL&quot; target=&quot;_blank&quot;&gt;Batch processing and Stream processing by SQL&lt;/a&gt; &lt;/strong&gt; from &lt;strong&gt;&lt;a href=&quot;http://www.slideshare.net/tagomoris&quot; target=&quot;_blank&quot;&gt;SATOSHI TAGOMORI&lt;/a&gt;&lt;/strong&gt; &lt;/div&gt;&lt;/p&gt;
 
 &lt;p&gt;大規模なデータを処理している人たちにとってみたらもはやあたりまえの事なのかもしれないですが、自分の中でこのような分類がなされていなかったため、今後何をどこで使っていくのか、ということを考える際に凄い参考になりました。&lt;/p&gt;
 
-&lt;h4 id=&quot;batch&quot;&gt;Batch&lt;/h4&gt;
+&lt;h4&gt;Batch&lt;/h4&gt;
 
 &lt;p&gt;少し前の時代、大量のデータに対して実行される高いレイテンシを持つ処理(週単位、月単位とか)を、安全確実/自動リカバリ付きでコモディティHW上でも実行できるYARNベースの夜間バッチが「所謂大規模データ処理」のメインストリームだったように思えます。(YARNベース、ちょっと言葉おかしいかもしれないけど、リソース管理、スケジューリング、投機的実行を管理しているのがYARNなのでHiveもJavaやその他言語で書いたMapReduceも含む)。そこで集計されたサマリ値をRDBMSに投入し、日別の実績推移を確認できる。これで今までRDBMSで処理していたバッチ処理というものを、より速く確実にスケールする構成で実行できるようになっていった。これが表のBatch部分。&lt;/p&gt;
 
-&lt;h4 id=&quot;short-batch-interactive-query&quot;&gt;Short Batch (Interactive Query)&lt;/h4&gt;
+&lt;h4&gt;Short Batch (Interactive Query)&lt;/h4&gt;
 
 &lt;p&gt;次はShort Batch部分。時代は移り変わり「既存RDBMSで捌ききれなかったような大量データを安全確実に集計処理できる」から一歩進んで「既存RDBMSで捌ききれなかったような大量データを、軽快に、エンジニア以外の人が分析したい」という要望が発生してきている。至極当然な流れで、結局大量のデータを処理するのは、膨大なファクトから商売に対する示唆を得て実際の施策成功精度向上/仮説検証プロセスの高速化であり、事実から示唆を絞り出すのはエンジニアよりも現場で商売を回している人達の方がその商売独自の勘所もある。こういった要望に対して、Hadoopで集計してRDBMSに入れて、というプロセスで対応出来ないことも無い。対応出来ないことも無いけど、ちょっと想定と異なる軸で見ようとすると新規集計バッチを作らなければいけなくなったり、例えばささっと作ったHiveQLを作って流さないといけなかったりする(流石にアドホックにMapReduceを書く事はあまり無いような気がする)。そうなると、Hiveはもともと高いレイテンシ向けの処理用に作られており、JVMの起動、リソース確保、スケジューリング、MapReduceアルゴリズムへの変換、等の処理で起動/実行のオーバーヘッド大きいため、インタラクティブに示唆を！という要望にはあんまりマッチしなかったりするように思う。shibとかがこの領域で頑張っていた雰囲気。&lt;/p&gt;
 
@@ -59,7 +58,7 @@
 
 &lt;p&gt;&lt;a href=&quot;http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/&quot;&gt;MPP on Hadoop, Redshift, BigQuery&lt;/a&gt;&lt;/p&gt;
 
-&lt;h4 id=&quot;stream-processing&quot;&gt;Stream Processing&lt;/h4&gt;
+&lt;h4&gt;Stream Processing&lt;/h4&gt;
 
 &lt;p&gt;最後に表のStream部分。これはInteractive Queryより更に踏み込んでおり、自分もまだ手元に環境作って試せていないのですが、Streamとして送られてくるデータをストレージに書き込む前に集計してしまう代物らしい。ニアリアルタイムとか、5分毎のバッチ、そういう甘い話ではなく、流れてくるデータがストレージに書き込まれる前に集計されて記録される。そしてタゴモリさんが作っているNorikraは、集計の記述にSQLライクな言語を利用できるという。&lt;/p&gt;
 
@@ -73,21 +72,21 @@
 
 &lt;p&gt;次。&lt;/p&gt;
 
-&lt;h2 id=&quot;sqldsl&quot;&gt;SQL系のDSLが支配的になってきてる背景&lt;/h2&gt;
+&lt;h2&gt;SQL系のDSLが支配的になってきてる背景&lt;/h2&gt;
 
 &lt;p&gt;コレはやっぱり感じた。Norikraもそうだけど、ImpalaもPrestoもSQL。Sparkも今までのプログラミングモデル(メソッドチェーン的なヤツ)からSQL系のDSLに乗り換えていく、という話をされていた。&lt;a href=&quot;http://www.infoq.com/jp/news/2014/04/databricks-spark-sql&quot;&gt;DataBricks，Sparkで構造化データを操作するSpark SQLを発表&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;これはなんとなく、納得がいく気がしている。たぶん以下三点。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;既存知識流用できる(次々出てくるDSLに脳味噌を対応させていくより、既に有る脳内のモデルを再利用できる方が客はつく気がする。客とはこの場合ソフトウェアのユーザを意味する。)&lt;/li&gt;
-  &lt;li&gt;宣言的記述のできる言語はとりあえず楽(データを取得する為の手続き/集計の最適化やEventual Consistentとか考えながらよりも、宣言的に欲しいデータの形だけ描いて、あとはオプティマイザに任せる、っていうのが楽。そこまで甘くはないけど、でも無いより全然楽。)&lt;/li&gt;
-  &lt;li&gt;ビジネスサイドももっとデータ弄りたい(なにげにコレが一番でかいのではないかという気がする。仮説を立てるのも、検証するのもビジネスサイドで実施することが多いし、彼らが自分たちで集計できれば、エンジニアサイドとのコミュニケーションコストも下がる。)&lt;/li&gt;
+&lt;li&gt;既存知識流用できる(次々出てくるDSLに脳味噌を対応させていくより、既に有る脳内のモデルを再利用できる方が客はつく気がする。客とはこの場合ソフトウェアのユーザを意味する。)&lt;/li&gt;
+&lt;li&gt;宣言的記述のできる言語はとりあえず楽(データを取得する為の手続き/集計の最適化やEventual Consistentとか考えながらよりも、宣言的に欲しいデータの形だけ描いて、あとはオプティマイザに任せる、っていうのが楽。そこまで甘くはないけど、でも無いより全然楽。)&lt;/li&gt;
+&lt;li&gt;ビジネスサイドももっとデータ弄りたい(なにげにコレが一番でかいのではないかという気がする。仮説を立てるのも、検証するのもビジネスサイドで実施することが多いし、彼らが自分たちで集計できれば、エンジニアサイドとのコミュニケーションコストも下がる。)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;自分はSQLかなり好きなのでこの流れは個人的に嬉しいです。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-3&quot;&gt;リアルタイムデータ処理の先にあるもの&lt;/h2&gt;
+&lt;h2&gt;リアルタイムデータ処理の先にあるもの&lt;/h2&gt;
 
 &lt;p&gt;ココは本当に未来な感じだし、自分もまだよく考えが練れていない。&lt;/p&gt;
 
@@ -103,7 +102,7 @@
 
 &lt;p&gt;「人間の意思決定」を挟まないところには非常に有効だが、リアルタイムに集計されるグラフを見て人がその場で値千金の意思決定を秒速でする、というのは、どうもあまりしっくり来てない。しっくりきてないんだけど、この領域はまだ見ぬ応用方法が色々ありそうでとっても面白そうだなーー、と思いながら新橋から帰りました。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-4&quot;&gt;まとめ&lt;/h2&gt;
+&lt;h2&gt;まとめ&lt;/h2&gt;
 
 &lt;p&gt;最後になりますが、一ヶ月も経ってなんだよ、という感じではありますが、会場の準備をしてくださった方々、公演してくださった方々、本当にありがとうございました！あの大規模なカンファレンスが無料という奇跡、本当に凄いです。&lt;/p&gt;
 </description>
@@ -119,21 +118,20 @@
 &lt;p&gt;&lt;a href=&quot;http://pyvideo.org/category/50/pycon-us-2014&quot;&gt;セッション一覧&lt;/a&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2660/advanced-techniques-for-web-functional-testing&quot;&gt;Advanced techniques for Web functional testing&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2630/designing-djangos-migrations&quot;&gt;Designing Django’s Migrations&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2657/diving-into-open-data-with-ipython-notebook-pan-0&quot;&gt;Diving into Open Data with IPython Notebook &amp;amp; Pandas&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2652/django-the-good-parts&quot;&gt;Django: The good parts&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2674/getting-started-testing&quot;&gt;Getting Started Testing&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2564/mrjob-snakes-on-a-hadoop&quot;&gt;mrjob: Snakes on a Hadoop&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2580/tdd-for-web-applications-from-scratch&quot;&gt;TDD for web applications, from scratch&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2584/straightening-out-angularjs-with-python&quot;&gt;Straightening Out AngularJS with Python&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2593/python-scraping-showdown-a-performance-and-accur&quot;&gt;Python Scraping Showdown: A performance and accuracy review&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2615/python-32-web-development-with-pyramid&quot;&gt;Python 3/2 Web Development with Pyramid&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2660/advanced-techniques-for-web-functional-testing&quot;&gt;Advanced techniques for Web functional testing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2630/designing-djangos-migrations&quot;&gt;Designing Django&amp;#39;s Migrations&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2657/diving-into-open-data-with-ipython-notebook-pan-0&quot;&gt;Diving into Open Data with IPython Notebook &amp;amp; Pandas&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2652/django-the-good-parts&quot;&gt;Django: The good parts&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2674/getting-started-testing&quot;&gt;Getting Started Testing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2564/mrjob-snakes-on-a-hadoop&quot;&gt;mrjob: Snakes on a Hadoop&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2580/tdd-for-web-applications-from-scratch&quot;&gt;TDD for web applications, from scratch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2584/straightening-out-angularjs-with-python&quot;&gt;Straightening Out AngularJS with Python&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2593/python-scraping-showdown-a-performance-and-accur&quot;&gt;Python Scraping Showdown: A performance and accuracy review&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2615/python-32-web-development-with-pyramid&quot;&gt;Python 3/2 Web Development with Pyramid&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;カンファレンス行かなくても全然知識は得れる。カンファレンス行くのはやっぱ人に直接会ってお礼とか言う為なんだろうなぁ。
 とにかくPyCon USはセッション沢山あって楽しげ。今週末は引きこもってビデオみよっと。USでも台北でもいいから行きたい(遊びに)。&lt;/p&gt;
-
 </description>
 				<pubDate>Tue, 15 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/15/pycon-us-2014.html</link>
@@ -150,23 +148,23 @@
 
 &lt;p&gt;分解していきます。&lt;/p&gt;
 
-&lt;h2 id=&quot;djangopytest&quot;&gt;Djangoのテストにpy.testを使う&lt;/h2&gt;
+&lt;h2&gt;Djangoのテストにpy.testを使う&lt;/h2&gt;
 
 &lt;p&gt;以下のライブラリを利用する。
 (なぜpy.testを選択したかは&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;コチラ&lt;/a&gt;)&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/pelme/pytest_django&quot;&gt;pelme/pytest_django&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/pelme/pytest_django&quot;&gt;pelme/pytest_django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。&lt;/p&gt;
 
-&lt;h2 id=&quot;djangowebtest&quot;&gt;DjangoのテストにWebTestを使う&lt;/h2&gt;
+&lt;h2&gt;DjangoのテストにWebTestを使う&lt;/h2&gt;
 
 &lt;p&gt;以下のライブラリを利用する。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest&quot;&gt;kmike/django-webtest&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest&quot;&gt;kmike/django-webtest&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;これを利用する目的は前回のポストで書いた「機能テスト」で利用するためです。機能テストはレンダリングされたHTMLも含む形でテストをしたい。一般的に利用されるDjangoのテストクライアントは、どのテンプレートが使われたか、テンプレートに渡るcontext variablesが正しいか、をチェックするものなので、カンムで想定している機能テストに関してはそもそも出番じゃない。よって、機能テストを実施するにはWebTestを利用することとしています。&lt;/p&gt;
@@ -174,18 +172,18 @@
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/&quot;&gt;Prefer WebTest to Djangos test client for functional tests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/&quot;&gt;Prefer WebTest to Djangos test client for functional tests&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;unittest&quot;&gt;unittest形式が嫌&lt;/h2&gt;
+&lt;h2&gt;unittest形式が嫌&lt;/h2&gt;
 
 &lt;p&gt;そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。&lt;/p&gt;
 
 &lt;p&gt;そこでWebTestも含めて全てpy.test形式でつくろうと思ったのですが、django_webtestパッケージ内のWebTestは既にdjango.test.TestCaseを継承しており、unittest.TestCaseを継承しているので、そのままではpy.test形式で使えない。&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django_webtest/__init__.py&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django&lt;em&gt;webtest/\&lt;/em&gt;_init__.py&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
+&lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango&lt;em&gt;webtest.WebTestMixinというクラスに切りだされ、django&lt;/em&gt;webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
 
 &lt;p&gt;ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。&lt;/p&gt;
 
@@ -258,24 +256,23 @@
 &lt;p&gt;これを発見した時はライブラリのソースコードに潜り込んで何かを自分の思い通りに動かせた！しかもまだ誰も見つけてない！と非常にうれしかったのですが、より洗練されたやり方が以下に紹介されていました(フランス語読めないけどコードは読める)。世の中甘くないっす。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://mathieu.agopian.info/presentations/2013_09_djangocong/&quot;&gt;PyTest et WebTest&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://mathieu.agopian.info/presentations/2013_09_djangocong/&quot;&gt;PyTest et WebTest&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;おまけ&lt;/h2&gt;
+&lt;h2&gt;おまけ&lt;/h2&gt;
 
 &lt;p&gt;django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。&lt;/p&gt;
 
 &lt;p&gt;弊社ではPyHamcrestを利用することでなんとなく回避していますが、以下にDjangoデフォルトのassertionをpy.testの名前空間にぶっこむ事で回避するという実装があり、これはこれですごい便利だなぁと思ってます。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest&quot;&gt;Funcargs &amp;amp; other fun with pytest&lt;/a&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest&quot;&gt;Funcargs &amp;amp; other fun with pytest&lt;/a&gt;
 P12に記載あり&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-1&quot;&gt;まとめ&lt;/h2&gt;
+&lt;h2&gt;まとめ&lt;/h2&gt;
 
 &lt;p&gt;py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。&lt;/p&gt;
-
 </description>
 				<pubDate>Mon, 14 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/14/django-pytest-webtest.html</link>
@@ -287,38 +284,38 @@ P12に記載あり&lt;/li&gt;
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の三つ目となります。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;書くこと&lt;/h2&gt;
+&lt;h2&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。&lt;/p&gt;
 
 &lt;p&gt;あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。&lt;/p&gt;
 
-&lt;h1 id=&quot;section-1&quot;&gt;前提&lt;/h1&gt;
+&lt;h1&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
-  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;urlspy&quot;&gt;urls.py&lt;/h1&gt;
+&lt;h1&gt;urls.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-2&quot;&gt;役割&lt;/h2&gt;
+&lt;h2&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;URLとViewの紐付け&lt;/li&gt;
+&lt;li&gt;URLとViewの紐付け&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;urls.pyは本当にこれだけを担えば問題なし。逆にこの役割以外の事をやらないように現在開発をしている。urls.pyにQuerySetが書いてあったり、ロジックが書いてあったりするのは見通しが悪く、好みではない。楽に書けるからいいじゃなない！という意見もあるが、書く時楽になる(≒スピードアップ)と、その後の見通しの悪さを比べたら、あまり割のいいトレードオフではないと思う。なぜなら、この部分にロジック書くのも、views.pyにロジック書くのも労力的に大差無いから大してスピードアップしない。&lt;/p&gt;
@@ -328,15 +325,15 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/http/urls/&quot;&gt;URL dispatcher&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/http/urls/&quot;&gt;URL dispatcher&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;urls.pyを書く際に一番悩むのは前からずっとURL設計の部分。”Cool URLs don’t change.”とはよく言ったもので、ここをしっかりやろうとするとそれなりに時間が必要であった。まだイマイチしっくり来ていない部分が多く、今はテンプレみたいなものが欲しい。こういう場合はこう、みたいな。&lt;/p&gt;
+&lt;p&gt;urls.pyを書く際に一番悩むのは前からずっとURL設計の部分。&amp;quot;Cool URLs don&amp;#39;t change.&amp;quot;とはよく言ったもので、ここをしっかりやろうとするとそれなりに時間が必要であった。まだイマイチしっくり来ていない部分が多く、今はテンプレみたいなものが欲しい。こういう場合はこう、みたいな。&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://www.w3.org/Provider/Style/URI&quot;&gt;Cool URIs don’t change&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.w3.org/Provider/Style/URI&quot;&gt;Cool URIs don&amp;#39;t change&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;あとはAPPEND_SLASHという仕組みに注意することと、ちゃんと名前をつけてreverseで引けるようにするってことぐらいな気がします。&lt;/p&gt;
 
@@ -345,12 +342,12 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;なぜAPPEND_SLASHなのか。&lt;/p&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h1 id=&quot;formspy&quot;&gt;forms.py&lt;/h1&gt;
+&lt;h1&gt;forms.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-3&quot;&gt;役割&lt;/h2&gt;
+&lt;h2&gt;役割&lt;/h2&gt;
 
 &lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。
 - HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る
@@ -360,13 +357,13 @@ P12に記載あり&lt;/li&gt;
 - models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)
 - データ登録/編集のロジック(複数モデルを扱いながら)を記述する &lt;/p&gt;
 
-&lt;h2 id=&quot;section-4&quot;&gt;担うべき役割&lt;/h2&gt;
+&lt;h2&gt;担うべき役割&lt;/h2&gt;
 
 &lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。
 1. modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)
 2. modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/p&gt;
 
-&lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
+&lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose&lt;em&gt;name, help&lt;/em&gt;textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
 
 &lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。
 - modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)
@@ -380,9 +377,9 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/modelforms/&quot;&gt;Creating forms from models&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform&quot;&gt;Django forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform&quot;&gt;Django Advantage forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/modelforms/&quot;&gt;Creating forms from models&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform&quot;&gt;Django forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform&quot;&gt;Django Advantage forms.Form vs forms.ModelForm&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;2つ目の「modelと密接に結びついていないもの」はそこまで出番が無いように思える。これに関してはforms.Formを利用して素直に必要な項目と、項目に対する制約を記述すればいいと思う。大して言うことは無い。&lt;/p&gt;
@@ -391,7 +388,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/&quot;&gt;Working with forms&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;section-5&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;p&gt;&lt;strong&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/strong&gt;&lt;/p&gt;
 
@@ -402,58 +399,58 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;ココは賛否両論あり得ると思う。上記のような抽象的な話ではなく、forms.FormPreviewのdoneメソッドの話なのかもしれない(普通のModleFormやForm内でデータ変更を実装することはほぼ無いと思う)。上記でFormが担うべき役割をある程度明確にしたのに、いきなりここでデータの変更をされる、というすごい気持ち悪い状態になる。「データをどこで変更しているのか」を考える時に見なければいけない範囲が格段に広がるので、コードをたどるのが非常にダルくなる。が、Previewがどうしても必要なんだ！という場合もある。その場合は涙をのんでFormPreviewを使う(ちなみにデフォルトではFormPreviewではFileFieldはプレビューできない)。非常にダルい。ダルいのでそれをCBVにしようってのが以下のライブラリ。まだセキュリティー含めて検証中で実戦に投入はできていないが、CBVとしてPreview機能を実装しているので、Formの中にデータ変更処理が入る事なく、いい感じで書けそうな気がしている。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/ryankask/django-cbv-formpreview&quot;&gt;django-cbv-formpreview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/ryankask/django-cbv-formpreview&quot;&gt;django-cbv-formpreview&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;FileFieldもプレビューできるようにする実装のサンプル。これはそのまま実戦投入はできそうだけど、実装のコンセプトとして参考になる。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/razum2um/django-file-formpreview&quot;&gt;Django File FormPreview&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/razum2um/django-file-formpreview&quot;&gt;Django File FormPreview&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。&lt;/p&gt;
 
-&lt;h2 id=&quot;form&quot;&gt;Form関連のオススメライブラリ&lt;/h2&gt;
+&lt;h2&gt;Form関連のオススメライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;form-1&quot;&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
+&lt;h2&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。
 &lt;a href=&quot;https://github.com/dyve/django-bootstrap-toolkit/issues/103&quot;&gt;Performance issue : to many get_template&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;modelspy&quot;&gt;models.py&lt;/h1&gt;
+&lt;h1&gt;models.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-6&quot;&gt;役割&lt;/h2&gt;
+&lt;h2&gt;役割&lt;/h2&gt;
 
 &lt;p&gt;ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;DjangoにおけるActiveRecordパターンを担う&lt;/li&gt;
+&lt;li&gt;DjangoにおけるActiveRecordパターンを担う&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;デザインパターン便利。名前言うだけでなんか賢く見えるし。でも、これだとActiveRecordパターンを正確に理解できてないといけないし(自分はそこまで理解してない)、理解するまで何か書けないというのは辛いので以下、自分の言葉で表すとこうなります、というのをやってみる。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;RDBMSにおけるテーブルのPython表現&lt;/li&gt;
+&lt;li&gt;RDBMSにおけるテーブルのPython表現&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.martinfowler.com/eaaCatalog/activeRecord.html&quot;&gt;Active Record by Martin Fowler&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;section-7&quot;&gt;担うべき役割&lt;/h2&gt;
+&lt;h2&gt;担うべき役割&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
-  &lt;li&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/li&gt;
-  &lt;li&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/li&gt;
+&lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
+&lt;li&gt;1モデルが表現する1テーブルへの問い合わせに責任を持つ&lt;/li&gt;
+&lt;li&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;順に解説していきます。&lt;/p&gt;
@@ -468,7 +465,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
+&lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose&lt;em&gt;name, help&lt;/em&gt;text, Metaクラスは省略してます)。このmodelの属性である、author&lt;em&gt;checkとapprover&lt;/em&gt;checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -479,7 +476,7 @@ P12に記載あり&lt;/li&gt;
     &lt;span class=&quot;n&quot;&gt;date_created&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
+&lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover&lt;em&gt;checkとauthor&lt;/em&gt;checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -494,7 +491,7 @@ P12に記載あり&lt;/li&gt;
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
+&lt;p&gt;実際にis&lt;em&gt;ready&lt;/em&gt;to&lt;em&gt;publishがTrueならば公開する(≒published属性をTrueに設定、date&lt;/em&gt;publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -524,12 +521,12 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/&quot;&gt;Fat Models - A Django Code Organization Strategy&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;section-8&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
-  &lt;li&gt;処理が対象のモデルの中核をなすものでは無いロジック&lt;/li&gt;
-  &lt;li&gt;AWS等の外部サービスとやりとりするロジック&lt;/li&gt;
+&lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
+&lt;li&gt;処理が対象のモデルの中核をなすものでは無いロジック&lt;/li&gt;
+&lt;li&gt;AWS等の外部サービスとやりとりするロジック&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;これはmodelのメソッド内で完結するのは難しいし、そもそもmodel全然関係無い場合もある。先にも述べたようにDjango ORM自体、1モデル1テーブルを基準にして作られているから。なので上記は別の部分に切り出して書くのがいい気がしている。やはりDjangoのmodelはRDBMSにおけるテーブルのPython表現、くらいのプリミティブなものだと捉えておいた方が何かといいのではないかと思う。&lt;/p&gt;
@@ -537,16 +534,16 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;以下の記事はRuby on Railsに関する記事だけど、考え方が非常に参考になった。(ちなみにRuby on Railsは全く触ったこと無い。っていうかDjango以外にWAFを真面目に触ったことが無いという雑魚っぷりです)&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/&quot;&gt;7 Patterns to Refactor Fat ActiveRecord Models&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/&quot;&gt;7 Patterns to Refactor Fat ActiveRecord Models&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;viewspy&quot;&gt;views.py&lt;/h1&gt;
+&lt;h1&gt;views.py&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-9&quot;&gt;役割&lt;/h2&gt;
+&lt;h2&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
+&lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;雑に書いているわけではなく、このレイヤーは抽象的な処理に徹するべきだと思う。そして、可能な限り見通しよく、薄く作るのが、最終的にメンテナンスしやすい気がする。&lt;/p&gt;
@@ -555,32 +552,31 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;CBVやFBVをどこでどうやって使うべきか、という話は、&lt;a href=&quot;http://pydanny.com/announcing-two-scoops-of-django-1.6.html&quot;&gt;Two Scoops of Django&lt;/a&gt;に非常に詳しく書いてあり、とても参考になった。この本は本当に素晴らしい。&lt;/p&gt;
 
-&lt;h1 id=&quot;django&quot;&gt;Django全体通して&lt;/h1&gt;
+&lt;h1&gt;Django全体通して&lt;/h1&gt;
 
 &lt;p&gt;最後に、Django全体を通した思想っぽいものを紹介して、Djangoに対する感想など述べながら締めます。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/faq/general/#django-appears-to-be-a-mvc-framework-but-you-call-the-controller-the-view-and-the-view-the-template-how-come-you-don-t-use-the-standard-names&quot;&gt;MTV Framework?&lt;/a&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;V&lt;/strong&gt; Django Viewの事。「どのデータを」の部分を担当。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;T&lt;/strong&gt; Django templateの事。「どのように表示するか」の部分を担当。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;M&lt;/strong&gt; Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;V&lt;/strong&gt; Django Viewの事。「どのデータを」の部分を担当。&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;T&lt;/strong&gt; Django templateの事。「どのように表示するか」の部分を担当。&lt;/p&gt;
+
+&lt;p&gt;Well, the standard names are debatable.&lt;/p&gt;
+
+&lt;p&gt;In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.&lt;/p&gt;
+
+&lt;p&gt;So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.&lt;/p&gt;
+
+&lt;p&gt;Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.&lt;/p&gt;
+
+&lt;p&gt;If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.&lt;/p&gt;
+
+&lt;p&gt;At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
-&lt;pre&gt;&lt;code&gt;Well, the standard names are debatable.
-
-In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.
-
-So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.
-
-Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.
-
-Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.
-
-If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.
-
-At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.
-&lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;という、DjangoはMTVなフレームワークだ！という主張。&lt;/p&gt;
 
@@ -590,7 +586,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;もちろん工夫しだいで複雑にもできる作りになってる。&lt;/p&gt;
 
-&lt;h1 id=&quot;section-10&quot;&gt;まとめ&lt;/h1&gt;
+&lt;h1&gt;まとめ&lt;/h1&gt;
 
 &lt;p&gt;ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)&lt;/p&gt;
 
@@ -609,12 +605,11 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;(追伸：Templateまで届きませんでした。)&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
 </description>
 				<pubDate>Mon, 07 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/07/road-to-django-best-practice.html</link>
@@ -626,47 +621,47 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の二つ目となります。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;書くこと&lt;/h2&gt;
+&lt;h2&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;Django Best Practiceへの道の続きで、Djangoテスト戦術について書きます。Djangoでテストをする際に、どうしたら効率的に書けるか、メンテナンスしやすくなるか、ということに焦点を置いて書きます。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-1&quot;&gt;書かないこと&lt;/h2&gt;
+&lt;h2&gt;書かないこと&lt;/h2&gt;
 
 &lt;p&gt;テストをするべき、テストはいらない、どこまではするべき、といった類の話は書きません。する、しない、いまはしない、どこまではする、は各チームや開発者がその時置かれているコンテクストに非常に強く依存している為、閾値的なものや考え方を書くのは非常に難儀だなぁ、というのが素直なところです。それよりもテストするのが少しでも楽になり、どのようなコンテクストでも、取れる選択肢の幅が広がる方法を書きたいです。&lt;/p&gt;
 
-&lt;h1 id=&quot;section-2&quot;&gt;前提&lt;/h1&gt;
+&lt;h1&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
-  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;section-3&quot;&gt;何をテストすべきか&lt;/h1&gt;
+&lt;h1&gt;何をテストすべきか&lt;/h1&gt;
 
 &lt;p&gt;作っているのはDjango前提のWebサービスという前提で、テストすべきものをいくつかのグループに分けて考えてみました。テスト対象を明確にすることで、「どこにテストを書けばいいのか」、「何をテストすればいいのか」と迷わずにテストに着手できるようになるかなと思います。テスト対象の構成が上の方ほど単純で下に行くほど複雑になります(下に行くほどテストするまでにリクエスト/レスポンスが通るレイヤーが多い)&lt;/p&gt;
 
-&lt;h2 id=&quot;python&quot;&gt;関数レベル(Python)&lt;/h2&gt;
+&lt;h2&gt;関数レベル(Python)&lt;/h2&gt;
 
 &lt;p&gt;可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;test_models.py, test_forms.py, etc&lt;/p&gt;
+&lt;p&gt;test&lt;em&gt;models.py, test&lt;/em&gt;forms.py, etc&lt;/p&gt;
 
-&lt;h2 id=&quot;js&quot;&gt;関数レベル(JS)&lt;/h2&gt;
+&lt;h2&gt;関数レベル(JS)&lt;/h2&gt;
 
 &lt;p&gt;JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。&lt;/p&gt;
 
@@ -674,7 +669,7 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;未定&lt;/p&gt;
 
-&lt;h2 id=&quot;url&quot;&gt;URLルーティングレベル&lt;/h2&gt;
+&lt;h2&gt;URLルーティングレベル&lt;/h2&gt;
 
 &lt;p&gt;URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。&lt;/p&gt;
 
@@ -682,15 +677,15 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 
 &lt;p&gt;test_urls.py&lt;/p&gt;
 
-&lt;h2 id=&quot;section-4&quot;&gt;機能レベル&lt;/h2&gt;
+&lt;h2&gt;機能レベル&lt;/h2&gt;
 
 &lt;p&gt;複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;test_[app_name].py&lt;/p&gt;
+&lt;p&gt;test&lt;em&gt;[app&lt;/em&gt;name].py&lt;/p&gt;
 
-&lt;h2 id=&quot;section-5&quot;&gt;ブラウザレベル&lt;/h2&gt;
+&lt;h2&gt;ブラウザレベル&lt;/h2&gt;
 
 &lt;p&gt;JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。&lt;/p&gt;
 
@@ -705,77 +700,75 @@ At the end of the day, of course, it comes down to getting stuff done. And, rega
 &lt;p&gt;何をテストすべきか、その際に何を使うべきか、使う時にどういう方針で使うのがいいか、がハイパーまとまってる資料。この資料に一番影響されてると思う。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/699/testing-and-django&quot;&gt;YouTube: Testing and Django&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html&quot;&gt;Testing and Django Note&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/699/testing-and-django&quot;&gt;YouTube: Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/testing_and_django.html&quot;&gt;Testing and Django Note&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;抜粋&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;What type of test to write?
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;What type of test to write?
 
 Write system tests for your views.
 Write Selenium tests for Ajax, other JS/server interactions.
 Write unit tests for everything else (not strict).
 Test each case (code branch) where it occurs.
 One assert/action per test case method.
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;下記のStackOverflowの記事も何を、どうテストしていくのかに関して実例交えながら語ってる。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。
 - &lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;
 - &lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;section-6&quot;&gt;どうテストするのか&lt;/h1&gt;
+&lt;h1&gt;どうテストするのか&lt;/h1&gt;
 
 &lt;p&gt;「何を」テストするのか、が明確にした後、次は「どうやって」テストするのかの話をします。その為にまず、テストに求めるものを洗い出し、テストに利用するツールとテストの書き方が、それらの要件を満たすように設計していきました。&lt;/p&gt;
 
 &lt;p&gt;一旦今Djangoアプリのツールとして何を利用しているか列挙。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-7&quot;&gt;全レベル共通&lt;/h2&gt;
+&lt;h2&gt;全レベル共通&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;py.test&lt;/li&gt;
-  &lt;li&gt;pytest-cov&lt;/li&gt;
-  &lt;li&gt;pytest-pep8&lt;/li&gt;
-  &lt;li&gt;pytest-xdist(検証中)&lt;/li&gt;
-  &lt;li&gt;pytest-django&lt;/li&gt;
-  &lt;li&gt;factory_boy&lt;/li&gt;
-  &lt;li&gt;PyHamcrest&lt;/li&gt;
+&lt;li&gt;py.test&lt;/li&gt;
+&lt;li&gt;pytest-cov&lt;/li&gt;
+&lt;li&gt;pytest-pep8&lt;/li&gt;
+&lt;li&gt;pytest-xdist(検証中)&lt;/li&gt;
+&lt;li&gt;pytest-django&lt;/li&gt;
+&lt;li&gt;factory_boy&lt;/li&gt;
+&lt;li&gt;PyHamcrest&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-8&quot;&gt;機能レベル&lt;/h2&gt;
+&lt;h2&gt;機能レベル&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;WebTest&lt;/li&gt;
-  &lt;li&gt;django-webtest&lt;/li&gt;
+&lt;li&gt;WebTest&lt;/li&gt;
+&lt;li&gt;django-webtest&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-9&quot;&gt;ブラウザレベル&lt;/h2&gt;
+&lt;h2&gt;ブラウザレベル&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;selenium&lt;/li&gt;
-  &lt;li&gt;django-selenium&lt;/li&gt;
+&lt;li&gt;selenium&lt;/li&gt;
+&lt;li&gt;django-selenium&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;section-10&quot;&gt;テストに求めるもの&lt;/h1&gt;
+&lt;h1&gt;テストに求めるもの&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;テスト実行スピードが速い&lt;/li&gt;
-  &lt;li&gt;同一処理別データパターンのテストを効率良く書ける&lt;/li&gt;
-  &lt;li&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/li&gt;
-  &lt;li&gt;debugしやすい&lt;/li&gt;
-  &lt;li&gt;テストカバレッジが見れる&lt;/li&gt;
+&lt;li&gt;テスト実行スピードが速い&lt;/li&gt;
+&lt;li&gt;同一処理別データパターンのテストを効率良く書ける&lt;/li&gt;
+&lt;li&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/li&gt;
+&lt;li&gt;debugしやすい&lt;/li&gt;
+&lt;li&gt;テストカバレッジが見れる&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;順に解説していきます。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-11&quot;&gt;テスト実行スピードが速い&lt;/h2&gt;
+&lt;h2&gt;テスト実行スピードが速い&lt;/h2&gt;
 
 &lt;p&gt;細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。&lt;/p&gt;
 
@@ -785,53 +778,53 @@ One assert/action per test case method.
 &lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;詳細はコチラ&lt;/a&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;ローカルテスト用の設定はsqliteのインメモリDBを利用する。&lt;/li&gt;
-  &lt;li&gt;fixture(djangoのコンテクストでの)を撲滅してセットアップのスピードを上げる。&lt;/li&gt;
-  &lt;li&gt;southのmigrationテストをオフる。&lt;/li&gt;
-  &lt;li&gt;PASSWORD_HASHERSの変更。&lt;/li&gt;
+&lt;li&gt;ローカルテスト用の設定はsqliteのインメモリDBを利用する。&lt;/li&gt;
+&lt;li&gt;fixture(djangoのコンテクストでの)を撲滅してセットアップのスピードを上げる。&lt;/li&gt;
+&lt;li&gt;southのmigrationテストをオフる。&lt;/li&gt;
+&lt;li&gt;PASSWORD_HASHERSの変更。&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://tell-k.hatenablog.com/entry/2013/10/10/202208&quot;&gt;Django で unittest を高速化する(主にDBの話し)&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/1.5/topics/testing/overview/#speeding-up-the-tests&quot;&gt;Speeding up the tests&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/yuheiomori0718/20130615/1371305730&quot;&gt;Djangoでテストを速くするためにいろいろやってみた&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://tell-k.hatenablog.com/entry/2013/10/10/202208&quot;&gt;Django で unittest を高速化する(主にDBの話し)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/1.5/topics/testing/overview/#speeding-up-the-tests&quot;&gt;Speeding up the tests&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/yuheiomori0718/20130615/1371305730&quot;&gt;Djangoでテストを速くするためにいろいろやってみた&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;strong&gt;コード的工夫&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
-    &lt;ul&gt;
-      &lt;li&gt;django.test.TestCaseではなく、unittest.TestCaseを利用&lt;/li&gt;
-      &lt;li&gt;pytest-djangoを利用する場合は、DBを利用する場合にのみ@pytest.mark.django_dbデコレータを利用&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;WAFのレイヤーを可能な限りまたがない。
-    &lt;ul&gt;
-      &lt;li&gt;レイヤー(view/forms/models)をまたぐ度に処理が走るしセットアップも時間がかかる。&lt;/li&gt;
-      &lt;li&gt;ロジックはDjangoのモジュールをかませないようにして、単独でテストできるようにしておく。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
+&lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
+
+&lt;ul&gt;
+&lt;li&gt;django.test.TestCaseではなく、unittest.TestCaseを利用&lt;/li&gt;
+&lt;li&gt;pytest-djangoを利用する場合は、DBを利用する場合にのみ@pytest.mark.django_dbデコレータを利用&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;WAFのレイヤーを可能な限りまたがない。
+
+&lt;ul&gt;
+&lt;li&gt;レイヤー(view/forms/models)をまたぐ度に処理が走るしセットアップも時間がかかる。&lt;/li&gt;
+&lt;li&gt;ロジックはDjangoのモジュールをかませないようにして、単独でテストできるようにしておく。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/pelme/testing-django-applications-with-py-dot-test-europython-2013&quot;&gt;Testing Django applications with py.test (EuroPython 2013)&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/pelme/testing-django-applications-with-py-dot-test-europython-2013&quot;&gt;Testing Django applications with py.test (EuroPython 2013)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-12&quot;&gt;同一処理別データパターンのテストを効率良く書ける&lt;/h2&gt;
+&lt;h2&gt;同一処理別データパターンのテストを効率良く書ける&lt;/h2&gt;
 
 &lt;p&gt;以下箇条書きでなぜコレを求めているのかを列挙します。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;データだけ違って処理は同じなら同じ関数でテストしたい(同じもの書きたく無い)&lt;/li&gt;
-  &lt;li&gt;けどテストケースとしては分けたい&lt;/li&gt;
-  &lt;li&gt;便利なassertは使いたい&lt;/li&gt;
+&lt;li&gt;データだけ違って処理は同じなら同じ関数でテストしたい(同じもの書きたく無い)&lt;/li&gt;
+&lt;li&gt;けどテストケースとしては分けたい&lt;/li&gt;
+&lt;li&gt;便利なassertは使いたい&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。&lt;/p&gt;
@@ -839,7 +832,7 @@ One assert/action per test case method.
 &lt;p&gt;&lt;strong&gt;工夫&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
+&lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;同一処理別データパターンのテストを効率良く書く為、データ別にテストケースを生成するのがデフォルトの機能として備わっているpy.testを利用することとしました。他にも幾つか選択肢がありましたが、py.testの他の機能(fixtureやxdist)も利用したかったので、もともとunittest形式だったテストを全てpy.test形式に書き換えました。py.testはunittest形式のテストもpy.test形式が混ざった状態でテスト実行できるので順次移行できて助かりました。&lt;/p&gt;
@@ -847,18 +840,16 @@ One assert/action per test case method.
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;以下StackOverflowから見つけたparametrized testを簡単にしてくれるライブラリ一覧。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Some of the tools available for doing parametrized tests in Python are:
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Some of the tools available for doing parametrized tests in Python are:
 
 Nose test generators (only for function tests, not TestCase classes)
 nose-parametrized by by David Wolever (also for TestCase classes)
 Unittest template by Boris Feld
 Parametrized tests in py.test
 parametrized-testcase by Austin Bingham
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically? &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically? &lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。
@@ -872,13 +863,13 @@ parametrized-testcase by Austin Bingham
 &lt;p&gt;Two Scoops of Djangoの人の記事。本の中ではテストはコピペでもオッケー！という発言があったし正直そうだとも思うけど、それを回避する策に力注ぐほうが楽しいと思う。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://pydanny.com/pytest-no-boilerplate-testing.html&quot;&gt;pytest: no-boilerplate testing&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pydanny.com/pytest-no-boilerplate-testing.html&quot;&gt;pytest: no-boilerplate testing&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;もうunittestには戻れない。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://qiita.com/roothybrid7/items/9717137fbec2bedfd81d&quot;&gt;pytestを実戦投入してみた&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/roothybrid7/items/9717137fbec2bedfd81d&quot;&gt;pytestを実戦投入してみた&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;&lt;em&gt;サンプル&lt;/em&gt;&lt;/p&gt;
@@ -920,18 +911,18 @@ parametrized-testcase by Austin Bingham
 
 &lt;p&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;補足編書きました&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;section-13&quot;&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/h2&gt;
+&lt;h2&gt;プログラム本体のコードが変更された際にも追従しやすい&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;データセットアップの際にfixtureではなくfactory_boyを利用&lt;/li&gt;
+&lt;li&gt;データセットアップの際にfixtureではなくfactory_boyを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Djangoのfixture遅いしメンテナンスめんどくさいのでfactory_boyを利用して各テストケースに必要な分だけレコードを作成してテスト実行しています。この部分は正直まだまだ工夫の余地があるなぁという印象。もう少し時間がたったら書いてきたテストを見なおしてリファクタして行く際にまた工夫が生まれればいいなと思ってます。&lt;/p&gt;
 
-&lt;h2 id=&quot;debug&quot;&gt;debugしやすい&lt;/h2&gt;
+&lt;h2&gt;debugしやすい&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;py.testを利用&lt;/li&gt;
+&lt;li&gt;py.testを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;py.testはnoseよりも細かくエラーを出してくれます。pytest.vimを使って何度でも素早くテストできるようにしてます。テストを先に書く事のメリットひしひしと感じ始める今日このごろ。特に関数レベルのテスト。&lt;/p&gt;
@@ -939,35 +930,34 @@ parametrized-testcase by Austin Bingham
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://blog.restartr.com/2013/04/05/my-first-pytest/&quot;&gt;pythonのテストにpytestを使ってみた&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://blog.comutt.jp/entry/2013/12/03/230000&quot;&gt;TDD Advent Calendar 2013 3日目: vim と py.test で TDD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.restartr.com/2013/04/05/my-first-pytest/&quot;&gt;pythonのテストにpytestを使ってみた&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.comutt.jp/entry/2013/12/03/230000&quot;&gt;TDD Advent Calendar 2013 3日目: vim と py.test で TDD&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-14&quot;&gt;テストカバレッジが見れる&lt;/h2&gt;
+&lt;h2&gt;テストカバレッジが見れる&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;py.testのカバレッジプラグインを利用&lt;/li&gt;
+&lt;li&gt;py.testのカバレッジプラグインを利用&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;カバレッジ至上主義ではありませんが、あくまでも目安として、またちょっとしたゲーム感覚でテストを楽しめるようないい工夫だと思います。また、カバレッジレポートを見ることでまだ通っていないブランチが視覚的に分かるのも嬉しいところです。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.sakito.com/2012/09/pytest-pep8-coverage.html&quot;&gt;py.test で pep8 と coverage を同時にチェックする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.sakito.com/2012/09/pytest-pep8-coverage.html&quot;&gt;py.test で pep8 と coverage を同時にチェックする&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;section-15&quot;&gt;まとめ&lt;/h1&gt;
+&lt;h1&gt;まとめ&lt;/h1&gt;
 
 &lt;p&gt;今回はだいぶ概念的な話がおおくなってしまいました。。本当はもっとゴリッとしたテストセットアップ方法の工夫や、WebTestとpy.testの連携や、conftest.pyの配置と役割、とかを書きたかったのですが、今回は一旦ココまでとします。&lt;/p&gt;
 
 &lt;p&gt;次回はDjangoテスト戦術の第二弾でもっと実装よりの話をします。てかなげーな。このポスト。。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
 </description>
 				<pubDate>Fri, 04 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</link>
@@ -979,39 +969,39 @@ parametrized-testcase by Austin Bingham
 				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。&lt;/p&gt;
 
-&lt;h1 id=&quot;section&quot;&gt;前提&lt;/h1&gt;
+&lt;h1&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-  &lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-  &lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-  &lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-  &lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-  &lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-  &lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-  &lt;li&gt;トラフィックは少ない&lt;/li&gt;
-  &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
+&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
+&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
+&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
+&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
+&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
+&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
+&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
+&lt;li&gt;トラフィックは少ない&lt;/li&gt;
+&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;section-1&quot;&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
+&lt;h1&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-2&quot;&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
+&lt;h2&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
-  &lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
-  &lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
+&lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
+&lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
+&lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、”Do one thing, and one thing well”って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。&lt;/p&gt;
+&lt;p&gt;Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、&amp;quot;Do one thing, and one thing well&amp;quot;って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;
 - &lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;YouTube: DjangoCon 2008: Reusable Apps&lt;/a&gt;
@@ -1027,18 +1017,17 @@ parametrized-testcase by Austin Bingham
 
 &lt;p&gt;普通の単独自社サービスであれば、そこまで再利用性を高める為に時間をかける必要はない気がするけど、Djangoを使った自社サービスが複数ある中でのライブラリ作成や、個別のお客さんによってカスタマイズが必要なパッケージ、というシチュエーションであればある程度時間をかけて設計する価値はあると思う。実際上の資料内でJamesさんが自社パッケージを各お客さん用にカスタマイズする際に、プラガブルに設計してて助かったぜ、という話がある。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-3&quot;&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
+&lt;h2&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
-  &lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
+&lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
+&lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;section-4&quot;&gt;実装&lt;/h2&gt;
+&lt;h2&gt;実装&lt;/h2&gt;
 
 &lt;p&gt;他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;project
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;project
 ├── apps
 │   ├── appA
 │   ├── appB
@@ -1057,126 +1046,125 @@ parametrized-testcase by Austin Bingham
 ├── static
 ├── templates
 └── tests
-&lt;/code&gt;&lt;/pre&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;上から順に概要を説明します。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;apps
-    &lt;ul&gt;
-      &lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
-      &lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
-      &lt;li&gt;apps内のディレクトリ構成は、’&#39;’tests’’’, ‘&#39;’migrations’’’, ‘&#39;’templates’&#39;’が基本。(South利用前提)&lt;/li&gt;
-      &lt;li&gt;“Do one thing, and one thing well.”の原則。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;core
-    &lt;ul&gt;
-      &lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
-      &lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
-      &lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;docs
-    &lt;ul&gt;
-      &lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
-      &lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;fixtures
-    &lt;ul&gt;
-      &lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
-      &lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;libs
-    &lt;ul&gt;
-      &lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
-      &lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;requirements
-    &lt;ul&gt;
-      &lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
-      &lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
-      &lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;server-config
-    &lt;ul&gt;
-      &lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash_profile, ssh_config)。&lt;/li&gt;
-      &lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
-      &lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;static
-    &lt;ul&gt;
-      &lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;templates
-    &lt;ul&gt;
-      &lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;tests
-    &lt;ul&gt;
-      &lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
-      &lt;li&gt;具体例でいうと、’&#39;’factories.py’’’, ‘&#39;’conftest.py’’‘。(factory_boy, py.test利用前提)&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
+&lt;li&gt;&lt;p&gt;apps&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
+&lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
+&lt;li&gt;apps内のディレクトリ構成は、&amp;#39;&amp;#39;&amp;#39;tests&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;migrations&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;templates&amp;#39;&amp;#39;&amp;#39;が基本。(South利用前提)&lt;/li&gt;
+&lt;li&gt;&amp;quot;Do one thing, and one thing well.&amp;quot;の原則。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;core&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
+&lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
+&lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;docs&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
+&lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;fixtures&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
+&lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;libs&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
+&lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;requirements&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
+&lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
+&lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;server-config&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash&lt;em&gt;profile, ssh&lt;/em&gt;config)。&lt;/li&gt;
+&lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
+&lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;static&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;templates&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;tests&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
+&lt;li&gt;具体例でいうと、&amp;#39;&amp;#39;&amp;#39;factories.py&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;conftest.py&amp;#39;&amp;#39;&amp;#39;。(factory_boy, py.test利用前提)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。
 有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Two Scoops of Djangoで紹介されていた構成。これも非常に参考になる。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;参考になるライブラリ群&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1 id=&quot;section-5&quot;&gt;設定ファイル構成&lt;/h1&gt;
+&lt;h1&gt;設定ファイル構成&lt;/h1&gt;
 
-&lt;h2 id=&quot;section-6&quot;&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
+&lt;h2&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
-  &lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
-  &lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
-  &lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
+&lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
+&lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
+&lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
+&lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;1番目と2番めが非常に重要だと思ってます。可能な限り1番目と2番めの目標が達成できるようにする、という指針で以下のようにしました。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-7&quot;&gt;設定ファイル実装&lt;/h2&gt;
+&lt;h2&gt;設定ファイル実装&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;common.pyに各環境共通の設定を入れる
+&lt;li&gt;common.pyに各環境共通の設定を入れる
 (大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)&lt;/li&gt;
-  &lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
-    &lt;ul&gt;
-      &lt;li&gt;development.py&lt;/li&gt;
-      &lt;li&gt;staging.py&lt;/li&gt;
-      &lt;li&gt;production.py&lt;/li&gt;
-      &lt;li&gt;local_test.py&lt;/li&gt;
-      &lt;li&gt;ci.py&lt;/li&gt;
-      &lt;li&gt;local.sample.py&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
+&lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
+
+&lt;ul&gt;
+&lt;li&gt;development.py&lt;/li&gt;
+&lt;li&gt;staging.py&lt;/li&gt;
+&lt;li&gt;production.py&lt;/li&gt;
+&lt;li&gt;local_test.py&lt;/li&gt;
+&lt;li&gt;ci.py&lt;/li&gt;
+&lt;li&gt;local.sample.py&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;common.py以外は大体以下のような形になってます。&lt;/p&gt;
@@ -1209,13 +1197,10 @@ parametrized-testcase by Austin Bingham
 
 &lt;p&gt;各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。
 local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;
-# -*- coding: utf-8 -*-
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;# -*- coding: utf-8 -*-
 # ローカル環境用設定ファイル。以下のようにコピーして利用すること。
 # cp local.sample.py local.py
-&lt;/code&gt;&lt;/p&gt;
-
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;code&gt;core/settings/local.py&lt;/code&gt;は&lt;code&gt;.gitignore&lt;/code&gt;に記載しておき、リポジトリからは無視しておく。この&lt;code&gt;local.py&lt;/code&gt;に各開発者用の独自設定を入れていきます。&lt;a href=&quot;http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X&quot;&gt;Two Scoops of Django&lt;/a&gt;では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;local_test.py&lt;/strong&gt;&lt;/p&gt;
@@ -1224,7 +1209,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 
 &lt;p&gt;その他の設定ファイルは大体名前の通りの内容が入ってます。&lt;/p&gt;
 
-&lt;h2 id=&quot;section-8&quot;&gt;設定ファイル切り替え実装&lt;/h2&gt;
+&lt;h2&gt;設定ファイル切り替え実装&lt;/h2&gt;
 
 &lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Djangoトラノマキ&lt;/a&gt;参照&lt;/p&gt;
 
@@ -1239,26 +1224,22 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 
     &lt;span class=&quot;n&quot;&gt;execute_from_command_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;
-export DJANGO_SETTINGS_MODULE=core.config.staging
-&lt;/code&gt;&lt;/p&gt;
-
+&lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO&lt;em&gt;SETTINGS&lt;/em&gt;MODULEを設定して切り替える方式としています。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;export DJANGO_SETTINGS_MODULE=core.config.staging
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;
-- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について –偏った言語信者の垂れ流し&lt;/a&gt;
+- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について --偏った言語信者の垂れ流し&lt;/a&gt;
 - &lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Django トラノマキ&lt;/a&gt;
 - &lt;a href=&quot;http://surgo.jp/2010/02/django.html&quot;&gt;パーフェクトな Django の設定ファイル&lt;/a&gt; &lt;/p&gt;
 
 &lt;p&gt;次回はDjangoにおけるテスト戦術について書きます。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
 </description>
 				<pubDate>Tue, 01 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</link>
@@ -1271,7 +1252,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 フォーマットはどこかで見たことがある形ですが、その通りです。
 &lt;a href=&quot;https://gist.github.com/voluntas/6308998&quot;&gt;完全に参考にさせて頂いてます。&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;section&quot;&gt;仕事&lt;/h1&gt;
+&lt;h1&gt;仕事&lt;/h1&gt;
 
 &lt;p&gt;クレジットカード会社様と協力し、オンラインカード明細にクーポンを出してます。&lt;/p&gt;
 
@@ -1279,15 +1260,15 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;&lt;a href=&quot;https://kanmu.co.jp/advertisers&quot;&gt;Kanmu Card Linked Offer&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;section-1&quot;&gt;組織&lt;/h1&gt;
+&lt;h1&gt;組織&lt;/h1&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;社長&lt;/li&gt;
-  &lt;li&gt;デザイナー&lt;/li&gt;
-  &lt;li&gt;営業&lt;/li&gt;
-  &lt;li&gt;総務&lt;/li&gt;
-  &lt;li&gt;エンジニアA&lt;/li&gt;
-  &lt;li&gt;エンジニアB&lt;/li&gt;
+&lt;li&gt;社長&lt;/li&gt;
+&lt;li&gt;デザイナー&lt;/li&gt;
+&lt;li&gt;営業&lt;/li&gt;
+&lt;li&gt;総務&lt;/li&gt;
+&lt;li&gt;エンジニアA&lt;/li&gt;
+&lt;li&gt;エンジニアB&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;計6名&lt;/p&gt;
@@ -1296,134 +1277,133 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 &lt;p&gt;&lt;a href=&quot;https://kanmu.co.jp/jobs/engineer&quot;&gt;https://kanmu.co.jp/jobs/engineer&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1 id=&quot;section-2&quot;&gt;言語&lt;/h1&gt;
+&lt;h1&gt;言語&lt;/h1&gt;
 
-&lt;h2 id=&quot;python&quot;&gt;Python&lt;/h2&gt;
+&lt;h2&gt;Python&lt;/h2&gt;
 
 &lt;p&gt;カンムが提供するプロダクト全てに利用されています。特に強制しているわけではないのですが、今のところ全てPythonでまかなえているため、 今後もPythonで行けるところまで行く予定です。3.xへは利用しているWeb Application Frameworkが対応するタイミングで移行を考えています。(Django 1.7から)&lt;/p&gt;
 
 &lt;p&gt;エンジニア3人(社長含む)は全員Python好きです。&lt;/p&gt;
 
-&lt;h2 id=&quot;coffeescript&quot;&gt;CoffeeScript&lt;/h2&gt;
+&lt;h2&gt;CoffeeScript&lt;/h2&gt;
 
 &lt;p&gt;フロント側はCoffeeScriptで書かれています。JavaScriptで書かれていた部分も最近置き換えました。正直自分はまだしっかりCoffeeScriptを把握できてないので今後じっとり触っていきたいです。&lt;/p&gt;
 
-&lt;h2 id=&quot;sass&quot;&gt;Sass&lt;/h2&gt;
+&lt;h2&gt;Sass&lt;/h2&gt;
 
 &lt;p&gt;フロント側のマークアップは全てSassに移行しました。デザイナーが主に利用してます。バックエンドの人でも学習コストそんなに高くなく利用できて重宝してます。 CoffeeScriptと合わせてgruntを使ってコンパイルするスタンダードな使い方。最近はカンム独自CSSフレームワークを作成中で近日公開予定です。&lt;/p&gt;
 
-&lt;h2 id=&quot;hiveql&quot;&gt;HiveQL&lt;/h2&gt;
+&lt;h2&gt;HiveQL&lt;/h2&gt;
 
 &lt;p&gt;ログはAmazon EMR上にHadoop + Hiveを立ち上げて集計し、S3に格納後、DBに入れる方式をとっています。現在絶賛リファクタ中で、ログ集計基盤の設計方針ベストプラクティスを研究中。&lt;/p&gt;
 
-&lt;h2 id=&quot;scheme&quot;&gt;Scheme&lt;/h2&gt;
+&lt;h2&gt;Scheme&lt;/h2&gt;
 
 &lt;p&gt;SICPの勉強用に利用。&lt;/p&gt;
 
-&lt;h2 id=&quot;restructuredtext&quot;&gt;reStructuredText&lt;/h2&gt;
+&lt;h2&gt;reStructuredText&lt;/h2&gt;
 
 &lt;p&gt;主にプロジェクトのドキュメント用に利用しています。GitHubの自動レンダリングにお任せしており、Sphinxは現在利用していません。お客さん用のマニュアルの類が必要になった際は使う予定。&lt;/p&gt;
 
-&lt;h2 id=&quot;markdown&quot;&gt;Markdown&lt;/h2&gt;
+&lt;h2&gt;Markdown&lt;/h2&gt;
 
 &lt;p&gt;GitHubとTrello使う時は大抵Markdownにお世話になってます。&lt;/p&gt;
 
-&lt;h1 id=&quot;section-3&quot;&gt;環境&lt;/h1&gt;
+&lt;h1&gt;環境&lt;/h1&gt;
 
-&lt;h2 id=&quot;os&quot;&gt;OS&lt;/h2&gt;
+&lt;h2&gt;OS&lt;/h2&gt;
 
 &lt;p&gt;Ubuntuの最新版をメインで利用しています。&lt;/p&gt;
 
-&lt;h2 id=&quot;packer&quot;&gt;Packer&lt;/h2&gt;
+&lt;h2&gt;Packer&lt;/h2&gt;
 
 &lt;p&gt;ローカルで使うBoxファイル生成に利用しています。時雨堂さんのPacker Templateを利用中。
 &lt;a href=&quot;https://github.com/shiguredo/packer-templates&quot;&gt;shiguredo/packer-templates&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;vagrant&quot;&gt;Vagrant&lt;/h2&gt;
+&lt;h2&gt;Vagrant&lt;/h2&gt;
 
 &lt;p&gt;VirtualBoxと組み合わせて、ローカルに環境を作成する際に利用しています。VMWareは使ってみたいですが、まだ未検証のステータスです。&lt;/p&gt;
 
-&lt;h2 id=&quot;virtualbox&quot;&gt;VirtualBox&lt;/h2&gt;
+&lt;h2&gt;VirtualBox&lt;/h2&gt;
 
 &lt;p&gt;Vagrantで仮想環境を作るために利用。&lt;/p&gt;
 
-&lt;h2 id=&quot;fabric&quot;&gt;Fabric&lt;/h2&gt;
+&lt;h2&gt;Fabric&lt;/h2&gt;
 
 &lt;p&gt;まだ管理すべきサーバ台数 x 種類が小さい為、プロビジョニングもデプロイもFabricを利用しています。fabtoolsと併用することで、スタンダードなインストール/設定は非常に簡潔に書けて気に入っています。また、トランザクションが多い部分はAWS Elastic Beanstalkを利用しており、デプロイの度にAMIからサーバを作りなおしているので冪等性があんまり関係ないってのもあります。&lt;/p&gt;
 
 &lt;p&gt;ただし、今後サービスが拡大し、管理するサーバの種類と台数が増えた際には、インストールするパッケージの種類やサーバの役割等を細かくモジュール化して管理していく為の別の選択肢作っておきたいため、Ansibleを少しずつ触り始めています。&lt;/p&gt;
 
-&lt;h1 id=&quot;section-4&quot;&gt;サービス&lt;/h1&gt;
+&lt;h1&gt;サービス&lt;/h1&gt;
 
-&lt;h2 id=&quot;google-apps&quot;&gt;Google Apps&lt;/h2&gt;
+&lt;h2&gt;Google Apps&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;Gmail&lt;/li&gt;
-  &lt;li&gt;Google Calendar&lt;/li&gt;
-  &lt;li&gt;Google Drive&lt;/li&gt;
+&lt;li&gt;Gmail&lt;/li&gt;
+&lt;li&gt;Google Calendar&lt;/li&gt;
+&lt;li&gt;Google Drive&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;trello&quot;&gt;Trello&lt;/h2&gt;
+&lt;h2&gt;Trello&lt;/h2&gt;
 
-&lt;p&gt;今年に入ったくらいから導入し、まだ運用方法に関しては試行錯誤中の部分もありますが、だいぶ軌道に乗ってきました。UserVoiceという会社の使い方の中から、”Current Development Board”の部分を抜粋して利用してます。3人で約2週間に一度機能追加、デザインA/Bテストをリリースし続けている現在の開発スタイルにはマッチしてますが、今後もずっとこのスタイルを続けるかどうかは引き続き検討中です。&lt;/p&gt;
+&lt;p&gt;今年に入ったくらいから導入し、まだ運用方法に関しては試行錯誤中の部分もありますが、だいぶ軌道に乗ってきました。UserVoiceという会社の使い方の中から、&amp;quot;Current Development Board&amp;quot;の部分を抜粋して利用してます。3人で約2週間に一度機能追加、デザインA/Bテストをリリースし続けている現在の開発スタイルにはマッチしてますが、今後もずっとこのスタイルを続けるかどうかは引き続き検討中です。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://community.uservoice.com/blog/trello-google-docs-product-management/&quot;&gt;How we use Trello &amp;amp; Google Docs to make UserVoice better every day&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;Trelloを採用した際の要件抜粋&lt;/strong&gt;&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)&lt;/li&gt;
-  &lt;li&gt;次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)&lt;/li&gt;
-  &lt;li&gt;今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)&lt;/li&gt;
-  &lt;li&gt;バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)&lt;/li&gt;
-  &lt;li&gt;安い(今はお金があんまり無い)&lt;/li&gt;
+&lt;li&gt;人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)&lt;/li&gt;
+&lt;li&gt;次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)&lt;/li&gt;
+&lt;li&gt;今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)&lt;/li&gt;
+&lt;li&gt;バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)&lt;/li&gt;
+&lt;li&gt;安い(今はお金があんまり無い)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;タスクの進捗だけではなく、機能追加時のディスカッションや、各リリース毎の振り返り(KPT)にも利用できて重宝してます。コードに直接関係しない部分は、後述するGitHub Issueよりもこちらで議論する事が多いです。&lt;/p&gt;
 
-&lt;h2 id=&quot;scrum-for-trello&quot;&gt;Scrum for Trello&lt;/h2&gt;
+&lt;h2&gt;Scrum for Trello&lt;/h2&gt;
 
 &lt;p&gt;ChromeのエクステンションとしてScrum for Trelloを入れています。これを入れるとTrelloの各カードに対して予定と実績が入力できるようになります。予実の差分を毎週チェックし、クオリティーとスピードのバランスがとれたリリースができるようにチーム内で話し合ってます。&lt;/p&gt;
 
-&lt;h2 id=&quot;hipchat&quot;&gt;HipChat&lt;/h2&gt;
+&lt;h2&gt;HipChat&lt;/h2&gt;
 
 &lt;p&gt;非常に重宝しているチャットサービス。営業からエンジニア勢への相談事項、お知らせ、エンジニア間のコミュニケーションは込み入ったものでなければ全てこの中で完結させています。また、後述のdrone.ioからビルドの通知を、GitHubからはPush時/コメント時/PR作成時にノーティフィケーションを流すようにしています。&lt;/p&gt;
 
 &lt;p&gt;原則ココさえ見ておけばエンジニアは生活できるように、あらゆるサービスのノーティフィケーションを流すようにしてく予定です。&lt;/p&gt;
 
-&lt;h2 id=&quot;droneio&quot;&gt;drone.io&lt;/h2&gt;
+&lt;h2&gt;drone.io&lt;/h2&gt;
 
 &lt;p&gt;CIサーバとして利用しています。非常にシンプルに設定を記述できる、且つ廉価なのでセットアップは楽なのですが、いかんせんノーティフィケーションの方法がメールだけなのが痛い。一応ビルド成功時にHipChat側に通知を送るように仕込んでいるのですが、知りたいのはむしろビルド失敗時だったりして、そうするとHipChatのAPIを叩けなかったりと色々難儀です。&lt;/p&gt;
 
 &lt;p&gt;現在乗り換えを検討中。&lt;/p&gt;
 
-&lt;h2 id=&quot;github&quot;&gt;GitHub&lt;/h2&gt;
+&lt;h2&gt;GitHub&lt;/h2&gt;
 
 &lt;p&gt;ほぼ全てのリポジトリはGitHub上においてあります。技術的な相談、指摘、質問は全てプルリクエスト内で実施。新機能追加時には、設計の内容認識合わせをした後にWIP(work in progress)のPRを作成して、そこでの議論をベースに改善していく形をとっています。また、ChromeのMISAWA:MDを利用させて頂いており、殺伐とした議論にイラつきと若干の和みを同時に投入する習慣がついています。&lt;/p&gt;
 
 &lt;p&gt;GitHub Issueはアサインされている人軸で絞り込めず、誰が何をやっているのかの把握とタスク分配がやりにくいので、バグ、機能追加の仕様等は全てTrelloに集約しています。&lt;/p&gt;
 
-&lt;h2 id=&quot;amazon-web-services&quot;&gt;Amazon Web Services&lt;/h2&gt;
+&lt;h2&gt;Amazon Web Services&lt;/h2&gt;
 
 &lt;p&gt;大変お世話になってます。&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;VPC&lt;/li&gt;
-  &lt;li&gt;EC2&lt;/li&gt;
-  &lt;li&gt;S3&lt;/li&gt;
-  &lt;li&gt;Elastic Beanstalk&lt;/li&gt;
-  &lt;li&gt;Elastic MapReduce&lt;/li&gt;
+&lt;li&gt;VPC&lt;/li&gt;
+&lt;li&gt;EC2&lt;/li&gt;
+&lt;li&gt;S3&lt;/li&gt;
+&lt;li&gt;Elastic Beanstalk&lt;/li&gt;
+&lt;li&gt;Elastic MapReduce&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2 id=&quot;sentry&quot;&gt;Sentry&lt;/h2&gt;
+&lt;h2&gt;Sentry&lt;/h2&gt;
 
 &lt;p&gt;現在試験的に利用中。&lt;/p&gt;
 
-&lt;h2 id=&quot;new-relic&quot;&gt;New Relic&lt;/h2&gt;
+&lt;h2&gt;New Relic&lt;/h2&gt;
 
 &lt;p&gt;現在試験的に利用中。
 すごいいいんですけどお高いんですよね。ちなみにこの前アメリカのNew Relicから電話かかってきてmoquada氏がテンパッてました。&lt;/p&gt;
-
 </description>
 				<pubDate>Mon, 31 Mar 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/03/31/kanmu-tech.html</link>
@@ -1435,15 +1415,14 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 				<description>&lt;p&gt;Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
 OSアップグレード前はうまくいっていた。&lt;/p&gt;
 
-&lt;h2 id=&quot;section&quot;&gt;エラー詳細&lt;/h2&gt;
+&lt;h2&gt;エラー詳細&lt;/h2&gt;
 
 &lt;p&gt;どうやらヘッダファイルが無いらしい。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;building &#39;_imagingft&#39; extension
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;building &amp;#39;_imagingft&amp;#39; extension
 
 cc -fno-strict-aliasing -fno-common -dynamic -I/usr/local/include -I/usr/local/opt/sqlite/include -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -I/System/Library/Frameworks/Tcl.framework/Headers -I/System/Library/Frameworks/Tk.framework/Headers -I/usr/local/include/freetype2 -IlibImaging -I/Users/achiku/.virtualenvs/pil/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _imagingft.c -o build/temp.macosx-10.7-x86_64-2.7/_imagingft.o
 
-_imagingft.c:73:10: fatal error: &#39;freetype/fterrors.h&#39; file not found
+_imagingft.c:73:10: fatal error: &amp;#39;freetype/fterrors.h&amp;#39; file not found
 
 #include &amp;lt;freetype/fterrors.h&amp;gt;
 
@@ -1451,12 +1430,11 @@ _imagingft.c:73:10: fatal error: &#39;freetype/fterrors.h&#39; file not found
 
 1 error generated.
 
-error: command &#39;cc&#39; failed with exit status 1
+error: command &amp;#39;cc&amp;#39; failed with exit status 1
 
 ----------------------------------------
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;対応&lt;/h2&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;対応&lt;/h2&gt;
 
 &lt;p&gt;結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。&lt;/p&gt;
 
@@ -1464,10 +1442,9 @@ error: command &#39;cc&#39; failed with exit status 1
 &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
 &lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip install PIL&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;h2 id=&quot;section-2&quot;&gt;参考/こんなになった経緯等&lt;/h2&gt;
+&lt;h2&gt;参考/こんなになった経緯等&lt;/h2&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9&quot;&gt;Error installing Python Image Library using pip on Mac OS X 10.9&lt;/a&gt;&lt;/p&gt;
-
 </description>
 				<pubDate>Mon, 27 Jan 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/01/27/mac-109-mervericpippil.html</link>
@@ -1481,7 +1458,6 @@ error: command &#39;cc&#39; failed with exit status 1
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-vim&quot; data-lang=&quot;vim&quot;&gt;&lt;span class=&quot;nb&quot;&gt;nnoremap&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;j&lt;/span&gt; gj
 &lt;span class=&quot;nb&quot;&gt;nnoremap&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;k&lt;/span&gt; gk&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
 </description>
 				<pubDate>Tue, 19 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/19/todays-vim-keymap.html</link>

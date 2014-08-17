@@ -4,7 +4,7 @@
   <meta name="google-site-verification" content="H6k1xpusWugwaQgJsWDpiTw4J_AGFZHR4shRsOvPI78" />
   <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
-  <link rel="stylesheet" href="/stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="/stylesheets/pygment_github.css">
   <title>カンムを支える技術</title>
 </head>
 <body>
@@ -84,7 +84,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 フォーマットはどこかで見たことがある形ですが、その通りです。
 <a href="https://gist.github.com/voluntas/6308998">完全に参考にさせて頂いてます。</a></p>
 
-<h1 id="section">仕事</h1>
+<h1>仕事</h1>
 
 <p>クレジットカード会社様と協力し、オンラインカード明細にクーポンを出してます。</p>
 
@@ -92,15 +92,15 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="https://kanmu.co.jp/advertisers">Kanmu Card Linked Offer</a></p>
 
-<h1 id="section-1">組織</h1>
+<h1>組織</h1>
 
 <ul>
-  <li>社長</li>
-  <li>デザイナー</li>
-  <li>営業</li>
-  <li>総務</li>
-  <li>エンジニアA</li>
-  <li>エンジニアB</li>
+<li>社長</li>
+<li>デザイナー</li>
+<li>営業</li>
+<li>総務</li>
+<li>エンジニアA</li>
+<li>エンジニアB</li>
 </ul>
 
 <p>計6名</p>
@@ -109,134 +109,133 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="https://kanmu.co.jp/jobs/engineer">https://kanmu.co.jp/jobs/engineer</a></p>
 
-<h1 id="section-2">言語</h1>
+<h1>言語</h1>
 
-<h2 id="python">Python</h2>
+<h2>Python</h2>
 
 <p>カンムが提供するプロダクト全てに利用されています。特に強制しているわけではないのですが、今のところ全てPythonでまかなえているため、 今後もPythonで行けるところまで行く予定です。3.xへは利用しているWeb Application Frameworkが対応するタイミングで移行を考えています。(Django 1.7から)</p>
 
 <p>エンジニア3人(社長含む)は全員Python好きです。</p>
 
-<h2 id="coffeescript">CoffeeScript</h2>
+<h2>CoffeeScript</h2>
 
 <p>フロント側はCoffeeScriptで書かれています。JavaScriptで書かれていた部分も最近置き換えました。正直自分はまだしっかりCoffeeScriptを把握できてないので今後じっとり触っていきたいです。</p>
 
-<h2 id="sass">Sass</h2>
+<h2>Sass</h2>
 
 <p>フロント側のマークアップは全てSassに移行しました。デザイナーが主に利用してます。バックエンドの人でも学習コストそんなに高くなく利用できて重宝してます。 CoffeeScriptと合わせてgruntを使ってコンパイルするスタンダードな使い方。最近はカンム独自CSSフレームワークを作成中で近日公開予定です。</p>
 
-<h2 id="hiveql">HiveQL</h2>
+<h2>HiveQL</h2>
 
 <p>ログはAmazon EMR上にHadoop + Hiveを立ち上げて集計し、S3に格納後、DBに入れる方式をとっています。現在絶賛リファクタ中で、ログ集計基盤の設計方針ベストプラクティスを研究中。</p>
 
-<h2 id="scheme">Scheme</h2>
+<h2>Scheme</h2>
 
 <p>SICPの勉強用に利用。</p>
 
-<h2 id="restructuredtext">reStructuredText</h2>
+<h2>reStructuredText</h2>
 
 <p>主にプロジェクトのドキュメント用に利用しています。GitHubの自動レンダリングにお任せしており、Sphinxは現在利用していません。お客さん用のマニュアルの類が必要になった際は使う予定。</p>
 
-<h2 id="markdown">Markdown</h2>
+<h2>Markdown</h2>
 
 <p>GitHubとTrello使う時は大抵Markdownにお世話になってます。</p>
 
-<h1 id="section-3">環境</h1>
+<h1>環境</h1>
 
-<h2 id="os">OS</h2>
+<h2>OS</h2>
 
 <p>Ubuntuの最新版をメインで利用しています。</p>
 
-<h2 id="packer">Packer</h2>
+<h2>Packer</h2>
 
 <p>ローカルで使うBoxファイル生成に利用しています。時雨堂さんのPacker Templateを利用中。
 <a href="https://github.com/shiguredo/packer-templates">shiguredo/packer-templates</a></p>
 
-<h2 id="vagrant">Vagrant</h2>
+<h2>Vagrant</h2>
 
 <p>VirtualBoxと組み合わせて、ローカルに環境を作成する際に利用しています。VMWareは使ってみたいですが、まだ未検証のステータスです。</p>
 
-<h2 id="virtualbox">VirtualBox</h2>
+<h2>VirtualBox</h2>
 
 <p>Vagrantで仮想環境を作るために利用。</p>
 
-<h2 id="fabric">Fabric</h2>
+<h2>Fabric</h2>
 
 <p>まだ管理すべきサーバ台数 x 種類が小さい為、プロビジョニングもデプロイもFabricを利用しています。fabtoolsと併用することで、スタンダードなインストール/設定は非常に簡潔に書けて気に入っています。また、トランザクションが多い部分はAWS Elastic Beanstalkを利用しており、デプロイの度にAMIからサーバを作りなおしているので冪等性があんまり関係ないってのもあります。</p>
 
 <p>ただし、今後サービスが拡大し、管理するサーバの種類と台数が増えた際には、インストールするパッケージの種類やサーバの役割等を細かくモジュール化して管理していく為の別の選択肢作っておきたいため、Ansibleを少しずつ触り始めています。</p>
 
-<h1 id="section-4">サービス</h1>
+<h1>サービス</h1>
 
-<h2 id="google-apps">Google Apps</h2>
+<h2>Google Apps</h2>
 
 <ul>
-  <li>Gmail</li>
-  <li>Google Calendar</li>
-  <li>Google Drive</li>
+<li>Gmail</li>
+<li>Google Calendar</li>
+<li>Google Drive</li>
 </ul>
 
-<h2 id="trello">Trello</h2>
+<h2>Trello</h2>
 
-<p>今年に入ったくらいから導入し、まだ運用方法に関しては試行錯誤中の部分もありますが、だいぶ軌道に乗ってきました。UserVoiceという会社の使い方の中から、”Current Development Board”の部分を抜粋して利用してます。3人で約2週間に一度機能追加、デザインA/Bテストをリリースし続けている現在の開発スタイルにはマッチしてますが、今後もずっとこのスタイルを続けるかどうかは引き続き検討中です。</p>
+<p>今年に入ったくらいから導入し、まだ運用方法に関しては試行錯誤中の部分もありますが、だいぶ軌道に乗ってきました。UserVoiceという会社の使い方の中から、&quot;Current Development Board&quot;の部分を抜粋して利用してます。3人で約2週間に一度機能追加、デザインA/Bテストをリリースし続けている現在の開発スタイルにはマッチしてますが、今後もずっとこのスタイルを続けるかどうかは引き続き検討中です。</p>
 
 <p><a href="https://community.uservoice.com/blog/trello-google-docs-product-management/">How we use Trello &amp; Google Docs to make UserVoice better every day</a></p>
 
 <p><strong>Trelloを採用した際の要件抜粋</strong></p>
 
 <ul>
-  <li>人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)</li>
-  <li>次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)</li>
-  <li>今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)</li>
-  <li>バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)</li>
-  <li>安い(今はお金があんまり無い)</li>
+<li>人軸で何をやっているのか、タスク総量がどれくらいなのかがすぐわかる(メンバーをアサインしてフィルタ)</li>
+<li>次のリリースまでに何が完了していないといけないのかすぐわかる(NextUpボード参照)</li>
+<li>今何が終わってて何が終わってないのかがすぐわかる(In Progress, QAボード参照)</li>
+<li>バグ、新機能、リファクタのタスクがすぐわかる(ラベルを使って対応)</li>
+<li>安い(今はお金があんまり無い)</li>
 </ul>
 
 <p>タスクの進捗だけではなく、機能追加時のディスカッションや、各リリース毎の振り返り(KPT)にも利用できて重宝してます。コードに直接関係しない部分は、後述するGitHub Issueよりもこちらで議論する事が多いです。</p>
 
-<h2 id="scrum-for-trello">Scrum for Trello</h2>
+<h2>Scrum for Trello</h2>
 
 <p>ChromeのエクステンションとしてScrum for Trelloを入れています。これを入れるとTrelloの各カードに対して予定と実績が入力できるようになります。予実の差分を毎週チェックし、クオリティーとスピードのバランスがとれたリリースができるようにチーム内で話し合ってます。</p>
 
-<h2 id="hipchat">HipChat</h2>
+<h2>HipChat</h2>
 
 <p>非常に重宝しているチャットサービス。営業からエンジニア勢への相談事項、お知らせ、エンジニア間のコミュニケーションは込み入ったものでなければ全てこの中で完結させています。また、後述のdrone.ioからビルドの通知を、GitHubからはPush時/コメント時/PR作成時にノーティフィケーションを流すようにしています。</p>
 
 <p>原則ココさえ見ておけばエンジニアは生活できるように、あらゆるサービスのノーティフィケーションを流すようにしてく予定です。</p>
 
-<h2 id="droneio">drone.io</h2>
+<h2>drone.io</h2>
 
 <p>CIサーバとして利用しています。非常にシンプルに設定を記述できる、且つ廉価なのでセットアップは楽なのですが、いかんせんノーティフィケーションの方法がメールだけなのが痛い。一応ビルド成功時にHipChat側に通知を送るように仕込んでいるのですが、知りたいのはむしろビルド失敗時だったりして、そうするとHipChatのAPIを叩けなかったりと色々難儀です。</p>
 
 <p>現在乗り換えを検討中。</p>
 
-<h2 id="github">GitHub</h2>
+<h2>GitHub</h2>
 
 <p>ほぼ全てのリポジトリはGitHub上においてあります。技術的な相談、指摘、質問は全てプルリクエスト内で実施。新機能追加時には、設計の内容認識合わせをした後にWIP(work in progress)のPRを作成して、そこでの議論をベースに改善していく形をとっています。また、ChromeのMISAWA:MDを利用させて頂いており、殺伐とした議論にイラつきと若干の和みを同時に投入する習慣がついています。</p>
 
 <p>GitHub Issueはアサインされている人軸で絞り込めず、誰が何をやっているのかの把握とタスク分配がやりにくいので、バグ、機能追加の仕様等は全てTrelloに集約しています。</p>
 
-<h2 id="amazon-web-services">Amazon Web Services</h2>
+<h2>Amazon Web Services</h2>
 
 <p>大変お世話になってます。</p>
 
 <ul>
-  <li>VPC</li>
-  <li>EC2</li>
-  <li>S3</li>
-  <li>Elastic Beanstalk</li>
-  <li>Elastic MapReduce</li>
+<li>VPC</li>
+<li>EC2</li>
+<li>S3</li>
+<li>Elastic Beanstalk</li>
+<li>Elastic MapReduce</li>
 </ul>
 
-<h2 id="sentry">Sentry</h2>
+<h2>Sentry</h2>
 
 <p>現在試験的に利用中。</p>
 
-<h2 id="new-relic">New Relic</h2>
+<h2>New Relic</h2>
 
 <p>現在試験的に利用中。
 すごいいいんですけどお高いんですよね。ちなみにこの前アメリカのNew Relicから電話かかってきてmoquada氏がテンパッてました。</p>
-
 
 </div>
 <div class="post-sharing">
