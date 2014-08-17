@@ -7,10 +7,137 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
-				<title>Hadoop Conference Japan 2014 に行ってきて感じた事まとめ</title>
-				<description>&lt;p&gt;&lt;img src=&quot;/images/hadoop-conference-japan.png&quot; alt=&quot;hcj2014&quot;&gt;&lt;/p&gt;
+				<title>Golangへの道 #1</title>
+				<description>&lt;p&gt;ちょっと書いてみたくなった。&lt;/p&gt;
 
-&lt;p&gt;さる2014/07/08、Hadoop Conference Japan 2014が開催されました。1ヶ月以上もアウトプットできなかった理由はおいといて、基調講演には出れていないのだけれど、いくつか回ったセッションを総合して、感じた事をまとめておきたいと思います。前提として、自分はHadoopの素人且つエンジニア1年目なので、鋭いマサカリ投げられると失禁したまま気絶する事が予想されますが、事実と異なる事書いてしまっていたり、それちがうんじゃねーのか、的な指摘は是非コメントください！間違ってる事書いておくの嫌ですし、他の人達がどう考えているのか知りたいです。&lt;/p&gt;
+&lt;h2&gt;目標&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;VimでGolang書けるように環境を設定する(一旦ライブラリ管理等のベストプラクティスは無視)&lt;/li&gt;
+&lt;li&gt;Golangの基礎基本を覚える&lt;/li&gt;
+&lt;li&gt;最終的にGETリクエストに対して何かJSON返すサーバーを作る&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;前提&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;環境はMac OS X 10.9.4。homebrewインストール済み&lt;/li&gt;
+&lt;li&gt;学習者はPython歴9ヶ月、ポインタに関する理解はポインタ演算手前まで&lt;/li&gt;
+&lt;li&gt;学習者は平行/並列処理の知識無し&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;インストール&lt;/h2&gt;
+
+&lt;p&gt;既に入ってるのでアップグレード。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ brew upgrade go 
+==&amp;gt; Upgrading 1 outdated package, with result:
+go 1.2.2
+==&amp;gt; Upgrading go
+==&amp;gt; Downloading https://downloads.sf.net/project/machomebrew/Bottles/go-1.2.2.mavericks.bottle.tar.gz
+######################################################################## 100.0%
+==&amp;gt; Pouring go-1.2.2.mavericks.bottle.tar.gz
+==&amp;gt; Caveats
+As of go 1.2, a valid GOPATH is required to use the `go get` command:
+  http://golang.org/doc/code.html#GOPATH
+
+`go vet` and `go doc` are now part of the go.tools sub repo:
+  http://golang.org/doc/go1.2#go_tools_godoc
+
+To get `go vet` and `go doc` run:
+  go get code.google.com/p/go.tools/cmd/godoc
+  go get code.google.com/p/go.tools/cmd/vet
+
+You may wish to add the GOROOT-based install location to your PATH:
+  export PATH=$PATH:/usr/local/opt/go/libex
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;インストール後の確認&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ go version
+go version go1.2.2 darwin/amd64
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Vim Plugin&lt;/h2&gt;
+
+&lt;p&gt;ざっと見てコレが一番良さそうだったので入れる。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/fatih/vim-go&quot;&gt;https://github.com/fatih/vim-go&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;以下の設定を.zshrcに入れる&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#for golang&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOPATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$HOME&lt;/span&gt;/.go
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; go env GOROOT &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$GOPATH&lt;/span&gt;/bin:&lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;.vimrcに以下を追加。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;set rtp+=$GOROOT/misc/vim
+exe &amp;quot;set rtp+=&amp;quot;.globpath($GOPATH, &amp;quot;src/github.com/nsf/gocode/vim”)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;vim開くと色々インストールされる&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;vim-go: gocode not found. Installing github.com/nsf/gocode to folder /Users/achiku/.vim-go/
+vim-go: goimports not found. Installing code.google.com/p/go.tools/cmd/goimports to folder /Users/achiku/.vim-go/
+vim-go: godef not found. Installing code.google.com/p/rog-go/exp/cmd/godef to folder /Users/achiku/.vim-go/
+vim-go: oracle not found. Installing code.google.com/p/go.tools/cmd/oracle to folder /Users/achiku/.vim-go/
+vim-go: golint not found. Installing github.com/golang/lint/golint to folder /Users/achiku/.vim-go/
+vim-go: errcheck not found. Installing github.com/kisielk/errcheck to folder /Users/achiku/.vim-go/
+vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users/achiku/.vim-go/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;おなじみのHello, Worldからはじまる。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;fmt&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Hello, World!\n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Vimで編集してて、import &amp;quot;fmt&amp;quot;書いた後に:wでファイル保存したらその部分だけ削除されて、なんじゃこりゃってなってたけど、どうやら先ほど入れたVimプラグインが使ってるパッケージを自動検出してソースをフォーマットしてくれているらしい。逆にimport文ナシで上のソースを書いて保存したらimport &amp;quot;fmt&amp;quot;の部分は自動で追記された。IDEみたい。&lt;/p&gt;
+
+&lt;p&gt;書いた後に、:GoBuildでビルド。:GoRunでビルドして実行。便利。&lt;/p&gt;
+
+&lt;h2&gt;おまけ&lt;/h2&gt;
+
+&lt;p&gt;Pythonに比べるとカッコが多い気がするので以下のVimプラグインを入れておく事をオススメ。設定はデフォルトでも十分。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/jiangmiao/auto-pairs&quot;&gt;https://github.com/jiangmiao/auto-pairs&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;と思ったけど、自分が常用しているKaoriya-vimの日本語入力(インサートモードから抜けた時のIMEモードを記録しておく設定)とかち合うので以下にした。数時間しか使っていないがauto-pairsの方が高機能なイメージ(関数書いた後に{}を書いて改行すると自動的にカーソルがいい感じの位置に来たり、等)。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/Raimondi/delimitMate&quot;&gt;https://github.com/Raimondi/delimitMate&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2&gt;基礎基本&lt;/h2&gt;
+
+&lt;p&gt;とりあえず以下を全部写経して覚える。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://gobyexample.com/&quot;&gt;https://gobyexample.com/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;まだ全部は終わってないけど、channelまでは比較的サクサク進む。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/achiku/syakyou/tree/master/golang/gobyexample&quot;&gt;https://github.com/achiku/syakyou/tree/master/golang/gobyexample&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2&gt;Golangっぽいところ1&lt;/h2&gt;
+
+&lt;p&gt;先述のGo By Example、goroutine、channel、selectあたりからGolangっぽいところが出てくる気がする。自分自身平行/並列処理系はまったく分かってないので、多分この辺りを読んで実際書いていかないと難しい。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://jxck.hatenablog.com/entry/20130414/1365960707&quot;&gt;Go の並行処理&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;あとエラーの扱い方もJavaやPythonのExceptionに慣れている身からすると面白かった。Golangに関しての記述はなかったけど、「エラーハンドリング」という領域に関しては「コーディングを支える技術」で語られていたので再度読み直したいと思う。&lt;/p&gt;
+
+&lt;h2&gt;Golangっぽいところ2&lt;/h2&gt;
+
+&lt;p&gt;型、型推論が非常に便利な気がする。どこか小さく領域を見つけて実戦に投入してみようと決意した。&lt;/p&gt;
+
+&lt;h2&gt;新しい言語を学ぶということに関して&lt;/h2&gt;
+
+&lt;p&gt;新しい言語を学ぶ際は、「やりたい事も挙動も確定している何か」ってのを題材に、ガッツリ作るのがやっぱりいい気がする。言語を使う事だけに集中できる。Vの方はRFCを何個か暗記してるからソレを実装するって言ってたし、「コーディングを支える技術」には新言語を学ぶときは特定のアルゴリズムを新しい言語で実装する、という事が書いてあった。&lt;/p&gt;
+
+&lt;p&gt;まぁ、どちらもバケモノなので、自分は自分に合った何かを探そうと思います。&lt;/p&gt;
+</description>
+				<pubDate>Sun, 17 Aug 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/08/17/golang-01.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/08/17/golang-01.html</guid>
+			</item>
+		
+			<item>
+				<title>Hadoop Conference Japan 2014 に行ってきて感じた事まとめ</title>
+				<description>&lt;p&gt;さる2014/07/08、Hadoop Conference Japan 2014が開催されました。1ヶ月以上もアウトプットできなかった理由はおいといて、基調講演には出れていないのだけれど、いくつか回ったセッションを総合して、感じた事をまとめておきたいと思います。前提として、自分はHadoopの素人且つエンジニア1年目なので、鋭いマサカリ投げられると失禁したまま気絶する事が予想されますが、事実と異なる事書いてしまっていたり、それちがうんじゃねーのか、的な指摘は是非コメントください！間違ってる事書いておくの嫌ですし、他の人達がどう考えているのか知りたいです。&lt;/p&gt;
 
 &lt;h2&gt;見て回ったセッション&lt;/h2&gt;
 
@@ -1462,39 +1589,6 @@ error: command &amp;#39;cc&amp;#39; failed with exit status 1
 				<pubDate>Tue, 19 Nov 2013 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2013/11/19/todays-vim-keymap.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2013/11/19/todays-vim-keymap.html</guid>
-			</item>
-		
-			<item>
-				<title>転職しました</title>
-				<description>&lt;p&gt;5年間お世話になったアクセンチュアを卒業し、本日より株式会社カンムで働きます。&lt;/p&gt;
-
-&lt;p&gt;思い返せばゴミ虫のごとく無能なのに、「俺が日本で適当に大学生活送ってきた輩どもに負けるわけねー。どいつもこいつも雑魚ばっかだ。」とか比較的本気で信じてた22歳でした。恥ずかし過ぎて鼻血がでますが、そんな無邪気な万能感は、ファーストアサインで木っ端微塵に吹っ飛び、ちょっと仕事を覚えては新しいジョブにアサインされ、懲りずに調子に乗り、調子に乗ったまま守備範囲を広げ、自分から広げたくせにボコボコになり、鼻っ柱というか脊椎の辺りからバックリ折られて呆然とする、という事を繰り返してここまできました。&lt;/p&gt;
-
-&lt;p&gt;この5年間、自分の目指すスーパーな姿と実際のミジンコクラスの実力の断絶に、何度も嫌気がさし、嫌気が差しては飲んだくれ、歌を歌い、ちょっと泣き、また次の仕事に取り組んできました。そうやって振り返った時思い出すのは、やはりお世話になりまくった上司、チームは全然違うのに飲むときはやたら一緒にいる先輩や後輩、事ある毎に飲み会を開く同期達です。&lt;/p&gt;
-
-&lt;p&gt;皆さんと働けて、自分の5年間は本当に幸せでした。&lt;/p&gt;
-
-&lt;p&gt;本当にありがとうございました。&lt;/p&gt;
-
-&lt;p&gt;アクセンチュアで働き続ける事もきっとすごく面白い事なのでしょうが、ただ、もっと作りたくなってしまいました。自分の頭で考えたものを自分の手で実装する。自分の中でサービスやプロダクトを作るということは、各人がもっている「世はかくあれかし」という精神を実装する事だと思っています。カンムはまだ小さい会社ですが「世はかくあれかし」を持っています。ただ持っているだけではなく、作る、ということがどういうことが知っている会社だと思います。いいものを作るという事は、綺麗に整理整頓された思想や精神性だけで行える事ではなく、底なし沼ばりにドロドロしたトレードオフ、血の滴るような戦術レベルの意思決定、ヒリヒリするような関係各所の利害関係調整など、時に目をそむけたくなるようなものも沢山あるのです。&lt;/p&gt;
-
-&lt;p&gt;そんな鉄火場で、自分の核にある技術を使い、尊敬できるチームと一緒に「いいものを！」と叫びながら働きまくる。そういうことを新しい場所で全力でやってみたいと感じ、最終的な転職を決めました。&lt;/p&gt;
-
-&lt;p&gt;お世話になった皆様方。&lt;/p&gt;
-
-&lt;p&gt;知久は今後もバチバチに仕事とどつきあってきます。&lt;/p&gt;
-
-&lt;p&gt;へこんでたら、酒とレッドブルを注入してください。&lt;/p&gt;
-
-&lt;p&gt;あとミスチル。&lt;/p&gt;
-
-&lt;p&gt;5年間、本当にありがとうございました！！&lt;/p&gt;
-
-&lt;p&gt;今後ともよろしくお願いします！！&lt;/p&gt;
-</description>
-				<pubDate>Mon, 18 Nov 2013 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2013/11/18/job.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2013/11/18/job.html</guid>
 			</item>
 		
 	</channel>
