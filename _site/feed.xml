@@ -7,6 +7,100 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>PyCon 2014でPython+EMRについて発表してきた</title>
+				<description>&lt;p&gt;今週末、PyCon JPに初参加し、初技術系発表してきた。&lt;/p&gt;
+
+&lt;p&gt;YouTubeでの発表もみたんですが、噛みまくっててヤバメな表情してるタイミングがあるんですが、あれは発表してる時間を計測しているiPhoneの電池が切れた時と、後ろに「あと5分」をお知らせする紙が上がった時です。スーパー焦った。&lt;/p&gt;
+
+&lt;p&gt;また、全般的にテンション高めだったのは単に元気になる飲み物をキメてたからです。&lt;/p&gt;
+
+&lt;h3&gt;謝辞&lt;/h3&gt;
+
+&lt;p&gt;PyConの運営をしてくださったみなさん、本当にありがとうございました。あのような大規模なイベントをあれだけスムーズに運営されるスキル、本当に凄いです。&lt;/p&gt;
+
+&lt;p&gt;tagomorisさんのData Analysis Flowの図をベースに前半は説明行いました。恐らくあの図がなかったら発表前日にあのような資料を作ることはできなかったと思います。ぼんやりしている概念を図に落としこんで公開して頂き、本当にありがとうございます。(ちょっと無断利用なので行儀は良くないなと思いつつ焦りまくっていて一言入れれなかったのは反省してます。。)&lt;/p&gt;
+
+&lt;h3&gt;発表資料&lt;/h3&gt;
+
+&lt;script async class=&quot;speakerdeck-embed&quot; data-id=&quot;d93ef1101e17013278dc06e915146373&quot; data-ratio=&quot;1.33333333333333&quot; src=&quot;//speakerdeck.com/assets/embed.js&quot;&gt;&lt;/script&gt;
+
+&lt;h3&gt;発表サマリ&lt;/h3&gt;
+
+&lt;p&gt;大体こんな感じでした。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;「なぜその構成なのか」に焦点を置いた事例の共有
+
+&lt;ul&gt;
+&lt;li&gt;会社の個別具体的な「リソース制約」、「実現したいこと」、を紹介&lt;/li&gt;
+&lt;li&gt;上記の制約と要件を実現する構成の提示&lt;/li&gt;
+&lt;li&gt;各構成の概念的要素内でのポイント&lt;/li&gt;
+&lt;li&gt;逃げ場のある構成、大事&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;「入門以上」を目指したPython + EMR活用方法の共有
+
+&lt;ul&gt;
+&lt;li&gt;aws-cli最高&lt;/li&gt;
+&lt;li&gt;Hiveの設定もまあまあできる&lt;/li&gt;
+&lt;li&gt;Pythonのスクリプトから起動するEMR&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;感想&lt;/h3&gt;
+
+&lt;p&gt;発表すること本当に大事だなーと思いました。以下大事だと思った理由。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;発表後話しかけてもらえる
+
+&lt;ul&gt;
+&lt;li&gt;これは完全に人に話しかけるの苦手な自分には助かる事でした&lt;/li&gt;
+&lt;li&gt;自分はエンジニアと名乗るようになって1年目なのでエンジニア系の友人があまりおらず、知り合いが増えたのは大変うれしかったです&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;仕事で考えていた事がまとまるし精度が上がる
+
+&lt;ul&gt;
+&lt;li&gt;誰かに効率的に何かを伝えなければいけない状態で資料を書くとやはりまとまります&lt;/li&gt;
+&lt;li&gt;また、「あれ、俺なんでこうしたんだっけ」と問いなおすいい機会だなと思いました&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;反省点は以下。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;若干オーディエンスとトークがマッチしてない感あった
+
+&lt;ul&gt;
+&lt;li&gt;最初にログ集計に関わる方に挙手お願いしたのですが部屋の中の1割くらいでした&lt;/li&gt;
+&lt;li&gt;そこからさらにHadoop, Hive, EMRと行くとドンドン人数が減って行きました&lt;/li&gt;
+&lt;li&gt;入門的な話はしたくなかったので細かめの内容にしたのですが、ちょっと聞きたい話にマッチしてなかったかもしれないと思いました&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;読み上げる練習あんまりしてなかった
+
+&lt;ul&gt;
+&lt;li&gt;噛んでたし、言い回しをその場で考えるのって難しい&lt;/li&gt;
+&lt;li&gt;次回はもっとスラスラできるようになろうと思う&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;やっぱりカンファレンスは発表する方が聞きに行くだけよりも得るもの大きいっていうのが実感として腑に落ちました。2日目のキーノートで西尾さんが言っていたCommunicationによって盲点に気づき、人間として強化されていいくっていうのが、経験として実感できた感じになります。なので今後も何か知見が溜まってきたらどのような領域でも可能な限り公開していきたいなと思います。&lt;/p&gt;
+
+&lt;h3&gt;広告&lt;/h3&gt;
+
+&lt;p&gt;Kanmuでは引き続きエンジニア募集中です！&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://kanmu.co.jp/jobs/engineer&quot;&gt;Kanmuエンジニア採用情報&lt;/a&gt;&lt;/p&gt;
+
+&lt;iframe frameborder=&quot;0&quot; scrolling=&quot;no&quot; style=&quot;height: 240px; width: 490px;&quot; src=&quot;https://widget.wantedly.com/projects/9282/widget_h&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;なんでギネスついでる社長がでてくんだよ。。。&lt;/p&gt;
+</description>
+				<pubDate>Mon, 15 Sep 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/09/15/pyconjp-2014.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/09/15/pyconjp-2014.html</guid>
+			</item>
+		
+			<item>
 				<title>MQTT as a Service sango + paho-mqtt Python</title>
 				<description>&lt;p&gt;本日のMQTT(もきゅっと)の会直前に時雨堂さんがMQTT as a Service, sangoをリリースしていたので触ってみた。&lt;/p&gt;
 
@@ -1643,47 +1737,6 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 				<pubDate>Mon, 31 Mar 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/03/31/kanmu-tech.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/03/31/kanmu-tech.html</guid>
-			</item>
-		
-			<item>
-				<title>Mac 10.9 Mervericsでpip install PILが失敗する</title>
-				<description>&lt;p&gt;Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
-OSアップグレード前はうまくいっていた。&lt;/p&gt;
-
-&lt;h2&gt;エラー詳細&lt;/h2&gt;
-
-&lt;p&gt;どうやらヘッダファイルが無いらしい。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;building &amp;#39;_imagingft&amp;#39; extension
-
-cc -fno-strict-aliasing -fno-common -dynamic -I/usr/local/include -I/usr/local/opt/sqlite/include -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -I/System/Library/Frameworks/Tcl.framework/Headers -I/System/Library/Frameworks/Tk.framework/Headers -I/usr/local/include/freetype2 -IlibImaging -I/Users/achiku/.virtualenvs/pil/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _imagingft.c -o build/temp.macosx-10.7-x86_64-2.7/_imagingft.o
-
-_imagingft.c:73:10: fatal error: &amp;#39;freetype/fterrors.h&amp;#39; file not found
-
-#include &amp;lt;freetype/fterrors.h&amp;gt;
-
-         ^
-
-1 error generated.
-
-error: command &amp;#39;cc&amp;#39; failed with exit status 1
-
-----------------------------------------
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2&gt;対応&lt;/h2&gt;
-
-&lt;p&gt;結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;brew install freetype
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip install PIL&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h2&gt;参考/こんなになった経緯等&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9&quot;&gt;Error installing Python Image Library using pip on Mac OS X 10.9&lt;/a&gt;&lt;/p&gt;
-</description>
-				<pubDate>Mon, 27 Jan 2014 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2014/01/27/mac-109-mervericpippil.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2014/01/27/mac-109-mervericpippil.html</guid>
 			</item>
 		
 	</channel>
