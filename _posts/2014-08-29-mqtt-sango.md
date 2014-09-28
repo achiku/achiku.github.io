@@ -26,7 +26,7 @@ import paho.mqtt.client as mqtt
 
 def on_connect(client, userdata, flags, rc):
     print('Connected with result code '+str(rc))
-    client.subscribe("/achiku@github/#")
+    client.subscribe("achiku@github/#")
 
 
 def on_message(client, userdata, msg):
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     username = 'yourname@github'
     password = 'yourpass'
     host = 'free.mqtt.shiguredo.jp'
-    topic = '/achiku@github/test_topic'
+    topic = 'achiku@github/test_topic'
     port = 1883
 
     client = mqtt.Client()
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     for i in range(10):
         print '[{}] Sending message to sango.'.format(i)
-        client.publish(topic, '[{}] connected from pub!'.format(i))
+        client.publish(topic, '[{}] message from pub coming through sango!'.format(i))
         sleep(0.5)
 {% endhighlight %}
 
@@ -106,16 +106,16 @@ sub.py側で以下のような表示が確認できるはず。
 
 
 {% highlight bash %}
-/achiku@github/test_topic [0] connected from pub!
-/achiku@github/test_topic [1] connected from pub!
-/achiku@github/test_topic [2] connected from pub!
-/achiku@github/test_topic [3] connected from pub!
-/achiku@github/test_topic [4] connected from pub!
-/achiku@github/test_topic [5] connected from pub!
-/achiku@github/test_topic [6] connected from pub!
-/achiku@github/test_topic [7] connected from pub!
-/achiku@github/test_topic [8] connected from pub!
-/achiku@github/test_topic [9] connected from pub!
+achiku@github/test_topic [0] message from pub coming through sango!
+achiku@github/test_topic [1] message from pub coming through sango!
+achiku@github/test_topic [2] message from pub coming through sango!
+achiku@github/test_topic [3] message from pub coming through sango!
+achiku@github/test_topic [4] message from pub coming through sango!
+achiku@github/test_topic [5] message from pub coming through sango!
+achiku@github/test_topic [6] message from pub coming through sango!
+achiku@github/test_topic [7] message from pub coming through sango!
+achiku@github/test_topic [8] message from pub coming through sango!
+achiku@github/test_topic [9] message from pub coming through sango!
 {% endhighlight %}
 
 
