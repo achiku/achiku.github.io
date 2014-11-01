@@ -1,5 +1,4 @@
 .inner {
-    font-family: "メイリオ", "Meiryo", "ヒラギノ角ゴ ProN W3", "Hiragino Kaku Gothic ProN", Sans-Serif;
     padding: 1em;
     color: #333333;
     background-color: #fff;
@@ -12,11 +11,14 @@ a:hover { color: orange; }
 a:active { color: orange; }
 a { text-decoration: none; }
 
-a.post-title { color: #333333; }
+a.post-title { color: #555; }
 a.post-title:hover { color: orange; }
 
-h1.blog-title {text-decoration:none;}
-h1 {text-decoration: underline;}
+h1.blog-title {
+  font-family: "HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+  color: #555;
+  text-decoration:none;
+}
 
 
 blockquote {
@@ -27,7 +29,6 @@ header, article, footer {
     margin: 0 auto;
     width: 70%;
     max-width: 780px;
-    font-family: 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
     padding: 1em 4em;
     margin-bottom: 1em;
     background-color: white;
@@ -43,22 +44,23 @@ footer {
  }
 
 .text, .text-loose, .control-label, .controls .textinput, .controls .datetimeinput, .controls .dateinput, .controls .checkboxinput, .controls .textarea, .controls .select, .change-src, .change-dest {
-  font-size: 15px;
-  color: black;
+  font-family: "HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+  color: #555;
+  font-size: 18px;
   font-weight: 300;
-  line-height: 1.45;
+  line-height: 30px;
 }
 
 .text-sm, .nav > li > a, .nav > li > p, #hierarchial-nav, .section a.content p, .tab-nav-group li a, .preview-table p, .list-table td, .list-table th, .alert-block, .controls .help-block {
   font-size: 13px;
-  color: #333333;
+  color: #555;
   font-weight: 300;
   line-height: 1.45;
 }
 
 .text-xs, .list-table thead tr th, .list-table tbody td .status-label {
   font-size: 11px;
-  color: #666666;
+  color: #555;
   font-weight: 300;
   line-height: 1.45;
 }
@@ -68,7 +70,7 @@ footer {
 }
 
 a.text, a.text-loose, a.control-label, .controls a.textinput, .controls a.datetimeinput, .controls a.dateinput, .controls a.checkboxinput, .controls a.textarea, .controls a.select, a.change-src, a.change-dest {
-  color: #3366ff;
+  color: #555;
 }
 
 a.text-lg {
