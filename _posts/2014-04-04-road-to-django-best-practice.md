@@ -49,7 +49,7 @@ Django Best Practiceへの道の続きで、Djangoテスト戦術について書
 
 可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。
 
-**テスト用ファイル名**
+### テスト用ファイル名
 
 test_models.py, test_forms.py, etc
 
@@ -59,7 +59,7 @@ test_models.py, test_forms.py, etc
 
 JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。
 
-**テスト用ファイル名**
+### テスト用ファイル名
 
 未定
 
@@ -69,7 +69,7 @@ URLルーティングレベル
 
 URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。
 
-**テスト用ファイル名**
+### テスト用ファイル名
 
 test_urls.py
 
@@ -79,7 +79,7 @@ test_urls.py
 
 複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。
 
-**テスト用ファイル名**
+### テスト用ファイル名
 
 test_[app_name].py
 
@@ -89,7 +89,7 @@ test_[app_name].py
 
 JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。
 
-**テスト用ファイル名**
+### テスト用ファイル名
 
 test_browser.py
 
@@ -120,7 +120,9 @@ test_browser.py
 
 - [What are the best practices for testing “different layers” in Django?](http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django)
 
+
 以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。
+
 - [YouTube: Faste test, slow test](http://pyvideo.org/video/631/fast-test-slow-test)
 - [Faste test, slow test Note](https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html)
 
@@ -177,7 +179,7 @@ test_browser.py
 細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。
 
 
-**設定的工夫**
+### 設定的工夫
 
 ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。
 [詳細はコチラ](http://achiku.github.io/2014/04/01/road-to-django-best-practice.html)
@@ -195,7 +197,7 @@ test_browser.py
 - [Testing and Django](http://carljm.github.io/django-testing-slides/#1)
 
 
-**コード的工夫**
+### コード的工夫
 
 - 兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
   * django.test.TestCaseではなく、unittest.TestCaseを利用
@@ -223,7 +225,7 @@ test_browser.py
 結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。
 
 
-**工夫**
+### 工夫
 
 - py.testのparametrizeアノテーションを利用
 
@@ -245,10 +247,12 @@ test_browser.py
 - [Python unittest: Generate multiple tests programmatically? ](http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically)
 
 unittest形式でテストを生成する際に非常に参考になった記事。
+
 - [TestCaseを拡張しよう](http://d.hatena.ne.jp/nullpobug/20091204/1259863417)
 - [Unittest template](http://feldboris.alwaysdata.net/blog/unittest-template.html)
 
 py.testに惚れるきっかけとなった記事
+
 - [Pytest本家](http://pytest.org/latest-ja/)
 - [pytest fixtures nuts and bolts](http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/)
 

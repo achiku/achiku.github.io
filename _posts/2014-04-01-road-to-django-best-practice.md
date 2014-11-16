@@ -44,6 +44,7 @@ DjangoのWebアプリを開発している際、リファクタ/テスト拡充�
 Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、"Do one thing, and one thing well"って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。
 
 *DjangoCon 2008: Reusable Apps*
+
 - [YouTube: DjangoCon 2008: Reusable Apps](http://www.youtube.com/watch?v=A-S0tqpPga4)
 - [Developing reusable apps](http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf)
 
@@ -98,11 +99,11 @@ Djangoにはプロジェクトとアプリケーションという思想があ�
 - apps
   - Djangoアプリケーションを格納。
   - アプリケーションを何単位で作るのかは先述の資料を参考に要議論。
-  - apps内のディレクトリ構成は、'''tests''', '''migrations''', '''templates'''が基本。(South利用前提)
+  - apps内のディレクトリ構成は、tests, migrations, templatesが基本。(South利用前提)
   - "Do one thing, and one thing well."の原則。
 
 - core
-  - 設定ファイル群を格納。各環境用の設定ファイルを```settings```ディレクトリに格納しておく。(詳細後述)
+  - 設定ファイル群を格納。各環境用の設定ファイルをsettingsディレクトリに格納しておく。(詳細後述)
   - wsgiファイルを格納。
   - ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。
 
@@ -136,7 +137,7 @@ Djangoにはプロジェクトとアプリケーションという思想があ�
 
 - tests
   - 各Djangoアプリケーション内のテストで共通的に利用するものを格納。
-  - 具体例でいうと、'''factories.py''', '''conftest.py'''。(factory_boy, py.test利用前提)
+  - 具体例でいうと、factories.py, conftest.py。(factory_boy, py.test利用前提)
 
 
 この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。
@@ -225,7 +226,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 # cp local.sample.py local.py
 ```
 
-```core/settings/local.py```は```.gitignore```に記載しておき、リポジトリからは無視しておく。この```local.py```に各開発者用の独自設定を入れていきます。[Two Scoops of Django](http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X)では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。
+core/settings/local.pyは.gitignoreに記載しておき、リポジトリからは無視しておく。このlocal.pyに各開発者用の独自設定を入れていきます。[Two Scoops of Django](http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X)では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。
 
 **local_test.py**
 
@@ -238,7 +239,9 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 設定ファイル切り替え実装
 ------------------------
 
-manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。[Djangoトラノマキ](https://gist.github.com/voluntas/6855579)参照
+manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。
+
+- [Djangoトラノマキ](https://gist.github.com/voluntas/6855579)参照
 
 
 {% highlight python %}
@@ -263,6 +266,7 @@ export DJANGO_SETTINGS_MODULE=core.config.staging
 
 
 *参考文献*
+
 - [Djangoのsettingsの分割と構造化について --偏った言語信者の垂れ流し](http://d.hatena.ne.jp/nullpobug/20131015/1381763671)
 - [Django トラノマキ](https://gist.github.com/voluntas/6855579)
 - [パーフェクトな Django の設定ファイル](http://surgo.jp/2010/02/django.html) 
