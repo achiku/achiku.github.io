@@ -3,7 +3,7 @@ layout: post
 title: 'AWS EMRでPrestoを動かしてshibからクエリ流してみる'
 ---
 
-[Spark, SQL on Hadoop etc. Advent Calendar 2014](http://qiita.com/advent-calendar/2014/distributedcomputing)の最終日です！！
+[Spark, SQL on Hadoop etc. Advent Calendar 2014](http://qiita.com/advent-calendar/2014/distributedcomputing)の最終日です。
 
 
 ## 書くこと

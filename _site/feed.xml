@@ -8,7 +8,7 @@
 		
 			<item>
 				<title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
-				<description>&lt;p&gt;&lt;a href=&quot;http://qiita.com/advent-calendar/2014/distributedcomputing&quot;&gt;Spark, SQL on Hadoop etc. Advent Calendar 2014&lt;/a&gt;の最終日です！！&lt;/p&gt;
+				<description>&lt;p&gt;&lt;a href=&quot;http://qiita.com/advent-calendar/2014/distributedcomputing&quot;&gt;Spark, SQL on Hadoop etc. Advent Calendar 2014&lt;/a&gt;の最終日です。&lt;/p&gt;
 
 &lt;h2&gt;書くこと&lt;/h2&gt;
 
