@@ -119,7 +119,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。</p>
 
-<p><strong>テスト用ファイル名</strong></p>
+<h3>テスト用ファイル名</h3>
 
 <p>test<em>models.py, test</em>forms.py, etc</p>
 
@@ -127,7 +127,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。</p>
 
-<p><strong>テスト用ファイル名</strong></p>
+<h3>テスト用ファイル名</h3>
 
 <p>未定</p>
 
@@ -135,7 +135,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。</p>
 
-<p><strong>テスト用ファイル名</strong></p>
+<h3>テスト用ファイル名</h3>
 
 <p>test_urls.py</p>
 
@@ -143,7 +143,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。</p>
 
-<p><strong>テスト用ファイル名</strong></p>
+<h3>テスト用ファイル名</h3>
 
 <p>test<em>[app</em>name].py</p>
 
@@ -151,7 +151,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。</p>
 
-<p><strong>テスト用ファイル名</strong></p>
+<h3>テスト用ファイル名</h3>
 
 <p>test_browser.py</p>
 
@@ -182,9 +182,12 @@ One assert/action per test case method.
 <li><a href="http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django">What are the best practices for testing “different layers” in Django?</a></li>
 </ul>
 
-<p>以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。
-- <a href="http://pyvideo.org/video/631/fast-test-slow-test">YouTube: Faste test, slow test</a>
-- <a href="https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html">Faste test, slow test Note</a></p>
+<p>以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。</p>
+
+<ul>
+<li><a href="http://pyvideo.org/video/631/fast-test-slow-test">YouTube: Faste test, slow test</a></li>
+<li><a href="https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html">Faste test, slow test Note</a></li>
+</ul>
 
 <h1>どうテストするのか</h1>
 
@@ -234,7 +237,7 @@ One assert/action per test case method.
 
 <p>細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。</p>
 
-<p><strong>設定的工夫</strong></p>
+<h3>設定的工夫</h3>
 
 <p>ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。
 <a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">詳細はコチラ</a></p>
@@ -255,7 +258,7 @@ One assert/action per test case method.
 <li><a href="http://carljm.github.io/django-testing-slides/#1">Testing and Django</a></li>
 </ul>
 
-<p><strong>コード的工夫</strong></p>
+<h3>コード的工夫</h3>
 
 <ul>
 <li>兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
@@ -291,7 +294,7 @@ One assert/action per test case method.
 
 <p>結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。</p>
 
-<p><strong>工夫</strong></p>
+<h3>工夫</h3>
 
 <ul>
 <li>py.testのparametrizeアノテーションを利用</li>
@@ -314,13 +317,19 @@ parametrized-testcase by Austin Bingham
 <li><a href="http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically">Python unittest: Generate multiple tests programmatically? </a></li>
 </ul>
 
-<p>unittest形式でテストを生成する際に非常に参考になった記事。
-- <a href="http://d.hatena.ne.jp/nullpobug/20091204/1259863417">TestCaseを拡張しよう</a>
-- <a href="http://feldboris.alwaysdata.net/blog/unittest-template.html">Unittest template</a></p>
+<p>unittest形式でテストを生成する際に非常に参考になった記事。</p>
 
-<p>py.testに惚れるきっかけとなった記事
-- <a href="http://pytest.org/latest-ja/">Pytest本家</a>
-- <a href="http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/">pytest fixtures nuts and bolts</a></p>
+<ul>
+<li><a href="http://d.hatena.ne.jp/nullpobug/20091204/1259863417">TestCaseを拡張しよう</a></li>
+<li><a href="http://feldboris.alwaysdata.net/blog/unittest-template.html">Unittest template</a></li>
+</ul>
+
+<p>py.testに惚れるきっかけとなった記事</p>
+
+<ul>
+<li><a href="http://pytest.org/latest-ja/">Pytest本家</a></li>
+<li><a href="http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/">pytest fixtures nuts and bolts</a></li>
+</ul>
 
 <p>Two Scoops of Djangoの人の記事。本の中ではテストはコピペでもオッケー！という発言があったし正直そうだとも思うけど、それを回避する策に力注ぐほうが楽しいと思う。</p>
 

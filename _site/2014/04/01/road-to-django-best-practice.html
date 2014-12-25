@@ -117,9 +117,12 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、&quot;Do one thing, and one thing well&quot;って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。</p>
 
-<p><em>DjangoCon 2008: Reusable Apps</em>
-- <a href="http://www.youtube.com/watch?v=A-S0tqpPga4">YouTube: DjangoCon 2008: Reusable Apps</a>
-- <a href="http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf">Developing reusable apps</a></p>
+<p><em>DjangoCon 2008: Reusable Apps</em></p>
+
+<ul>
+<li><a href="http://www.youtube.com/watch?v=A-S0tqpPga4">YouTube: DjangoCon 2008: Reusable Apps</a></li>
+<li><a href="http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf">Developing reusable apps</a></li>
+</ul>
 
 <p>上の資料を参考に設計する利点は主に2つ。</p>
 
@@ -169,13 +172,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <ul>
 <li>Djangoアプリケーションを格納。</li>
 <li>アプリケーションを何単位で作るのかは先述の資料を参考に要議論。</li>
-<li>apps内のディレクトリ構成は、&#39;&#39;&#39;tests&#39;&#39;&#39;, &#39;&#39;&#39;migrations&#39;&#39;&#39;, &#39;&#39;&#39;templates&#39;&#39;&#39;が基本。(South利用前提)</li>
+<li>apps内のディレクトリ構成は、tests, migrations, templatesが基本。(South利用前提)</li>
 <li>&quot;Do one thing, and one thing well.&quot;の原則。</li>
 </ul></li>
 <li><p>core</p>
 
 <ul>
-<li>設定ファイル群を格納。各環境用の設定ファイルを<code>settings</code>ディレクトリに格納しておく。(詳細後述)</li>
+<li>設定ファイル群を格納。各環境用の設定ファイルをsettingsディレクトリに格納しておく。(詳細後述)</li>
 <li>wsgiファイルを格納。</li>
 <li>ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。</li>
 </ul></li>
@@ -225,7 +228,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <ul>
 <li>各Djangoアプリケーション内のテストで共通的に利用するものを格納。</li>
-<li>具体例でいうと、&#39;&#39;&#39;factories.py&#39;&#39;&#39;, &#39;&#39;&#39;conftest.py&#39;&#39;&#39;。(factory_boy, py.test利用前提)</li>
+<li>具体例でいうと、factories.py, conftest.py。(factory_boy, py.test利用前提)</li>
 </ul></li>
 </ul>
 
@@ -315,7 +318,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 # ローカル環境用設定ファイル。以下のようにコピーして利用すること。
 # cp local.sample.py local.py
 </code></pre></div>
-<p><code>core/settings/local.py</code>は<code>.gitignore</code>に記載しておき、リポジトリからは無視しておく。この<code>local.py</code>に各開発者用の独自設定を入れていきます。<a href="http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X">Two Scoops of Django</a>では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。</p>
+<p>core/settings/local.pyは.gitignoreに記載しておき、リポジトリからは無視しておく。このlocal.pyに各開発者用の独自設定を入れていきます。<a href="http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X">Two Scoops of Django</a>では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。</p>
 
 <p><strong>local_test.py</strong></p>
 
@@ -325,7 +328,11 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 
 <h2>設定ファイル切り替え実装</h2>
 
-<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。<a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</p>
+<p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。</p>
+
+<ul>
+<li><a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</li>
+</ul>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -341,10 +348,13 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 <p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO<em>SETTINGS</em>MODULEを設定して切り替える方式としています。</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">export DJANGO_SETTINGS_MODULE=core.config.staging
 </code></pre></div>
-<p><em>参考文献</em>
-- <a href="http://d.hatena.ne.jp/nullpobug/20131015/1381763671">Djangoのsettingsの分割と構造化について --偏った言語信者の垂れ流し</a>
-- <a href="https://gist.github.com/voluntas/6855579">Django トラノマキ</a>
-- <a href="http://surgo.jp/2010/02/django.html">パーフェクトな Django の設定ファイル</a> </p>
+<p><em>参考文献</em></p>
+
+<ul>
+<li><a href="http://d.hatena.ne.jp/nullpobug/20131015/1381763671">Djangoのsettingsの分割と構造化について --偏った言語信者の垂れ流し</a></li>
+<li><a href="https://gist.github.com/voluntas/6855579">Django トラノマキ</a></li>
+<li><a href="http://surgo.jp/2010/02/django.html">パーフェクトな Django の設定ファイル</a> </li>
+</ul>
 
 <p>次回はDjangoにおけるテスト戦術について書きます。</p>
 

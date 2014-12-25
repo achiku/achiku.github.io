@@ -7,6 +7,305 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
+				<description>&lt;p&gt;&lt;a href=&quot;http://qiita.com/advent-calendar/2014/distributedcomputing&quot;&gt;Spark, SQL on Hadoop etc. Advent Calendar 2014&lt;/a&gt;の最終日です！！&lt;/p&gt;
+
+&lt;h2&gt;書くこと&lt;/h2&gt;
+
+&lt;p&gt;AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。&lt;/p&gt;
+
+&lt;h2&gt;Prestoについて&lt;/h2&gt;
+
+&lt;p&gt;Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;本家: &lt;a href=&quot;http://prestodb.io/&quot;&gt;Presto - Distributed SQL Query Engine for Big Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;TDさんのわかりやすい解説: &lt;a href=&quot;http://treasure-data.hateblo.jp/entry/2014/07/10/150250&quot;&gt;『Prestoとは何か，Prestoで何ができるか』&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;同じ系統のクエリエンジン括りだとImpalaやApache DrillがOSSとして開発されている。MPPクエリエンジン/データベースの大まかな流れや種類、それぞれの使いドコロについてははコチラの記事が最高にまとまっていて参考になる。
+&lt;a href=&quot;http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/&quot;&gt;MPP on Hadoop, Redshift, BigQuery&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。&lt;/p&gt;
+
+&lt;h2&gt;shibについて&lt;/h2&gt;
+
+&lt;p&gt;PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;本家: &lt;a href=&quot;https://github.com/tagomoris/shib&quot;&gt;shib -WebUI for query engines: Hive and Presto&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;なぜnodeか: &lt;a href=&quot;http://d.hatena.ne.jp/tagomoris/20110805/1312536706&quot;&gt;Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;AWS EMRについて&lt;/h2&gt;
+
+&lt;p&gt;AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;本家: &lt;a href=&quot;http://aws.amazon.com/jp/elasticmapreduce/&quot;&gt;AWS Elastic MapReduce&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;知る限り最強のEMR資料: &lt;a href=&quot;https://media.amazonwebservices.com/AWS_Amazon_EMR_Best_Practices.pdf&quot;&gt;Best Practices for Amazon EMR&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;前置きが長くなるとアレなので早速awscliを利用し環境を構築。&lt;/p&gt;
+
+&lt;h2&gt;環境概要&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;HadoopはEMRを使ってクラスタ起動&lt;/li&gt;
+&lt;li&gt;AMI 3.3.1 (Hadoop Amazon 2.4.0, Hive 0.13.1)&lt;/li&gt;
+&lt;li&gt;Hive/HueはEMRデフォルトの機能を使ってインストール&lt;/li&gt;
+&lt;li&gt;Hiveメタストアは一旦ローカルで&lt;/li&gt;
+&lt;li&gt;PrestoはEMRのBootstrap Actionを使ってインストール(v0.85)&lt;/li&gt;
+&lt;li&gt;ShibはEMRのBootstrap Actionを使ってインストール(v0.3.8)&lt;/li&gt;
+&lt;li&gt;S3上にあるファイルにPrestoからクエリを投げる&lt;/li&gt;
+&lt;li&gt;S3からHDFS上にフラットファイルで持ってきてPrestoからクエリを投げる&lt;/li&gt;
+&lt;li&gt;S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;構築方法&lt;/h2&gt;
+
+&lt;h3&gt;AWS CLIの準備&lt;/h3&gt;
+
+&lt;p&gt;CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Python 2.7.5&lt;/li&gt;
+&lt;li&gt;virtualenv==1.10.1&lt;/li&gt;
+&lt;li&gt;virtualenvwrapper==4.1.1&lt;/li&gt;
+&lt;li&gt;awscli==1.6.10&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ mkvirtualenv emr
+(emr)$ pip install awscli
+(emr)$ pip freeze | grep awscli
+awscli==1.6.10
+(emr)$ mkdir ~/.awscli
+(emr)$ cat &amp;lt;&amp;lt;-EOF &amp;gt;&amp;gt;  ~/.awscli/config
+[profile development]
+aws_access_key_id=&amp;lt;development_access_key&amp;gt;
+aws_secret_access_key=&amp;lt;development_secret_key&amp;gt;
+region=ap-northeast-1
+EOF
+(emr)$ cat &amp;lt;&amp;lt;-EOF &amp;gt;&amp;gt;  $VIRTUAL_ENV/bin/activate
+export AWS_CONFIG_FILE=~/.awscli/config
+export AWS_DEFAULT_PROFILE=development
+source aws_zsh_completer.sh
+EOF
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;S3に必要なプログラムを配置&lt;/h3&gt;
+
+&lt;p&gt;2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。&lt;/p&gt;
+
+&lt;p&gt;今回使ったソースは以下&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz&quot;&gt;presto-server-0.85.tar.gz&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar&quot;&gt;presto-cli-0.85-executable.jar&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/tagomoris/shib/tree/v0.3.8&quot;&gt;shib v0.3.8&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;上記をダウンロードし、適当なS3キーに配置しておきます。以下例。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
+$ aws s3 cp presto-server-0.85.tar.gz s3://yourbucket/libs/
+$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar
+$ aws s3 cp presto-cli-0.85-executable.jar s3://yourbucket/libs/
+$ wget https://github.com/tagomoris/shib/archive/v0.3.8.zip
+$ unzip v0.3.8.zip &amp;amp;&amp;amp; mv shib-0.3.8 shib
+$ tar cvfz shib.tar.gz shib
+$ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;S3に必要な設定ファイルを配置&lt;/h3&gt;
+
+&lt;p&gt;shibがPrestoにクエリするための設定ファイル。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;var servers = exports.servers = {
+  listen: 3000,
+  fetch_lines: 1000,   // lines per fetch in shib
+  query_timeout: null, // shib waits queries forever
+  setup_queries: [],
+  storage: {
+    datadir: &amp;#39;./var&amp;#39;
+  },
+  engines: [
+    { label: &amp;#39;PrestoCluster&amp;#39;,
+      executer: {
+        name: &amp;#39;presto&amp;#39;,
+        host: &amp;#39;localhost&amp;#39;,
+        port: 8080,
+        catalog: &amp;#39;hive&amp;#39;,  // required configuration argument
+        support_database: true,
+        default_database: &amp;#39;default&amp;#39;
+      },
+      monitor: null
+    },
+  ],
+};
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ aws s3 cp shib-config.js s3://yourbucket/libs/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;S3に必要なBootstrap Actionを配置&lt;/h3&gt;
+
+&lt;p&gt;Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。&lt;/p&gt;
+
+&lt;h4&gt;PrestoのBootstrap Action&lt;/h4&gt;
+
+&lt;p&gt;こちらのAWS Labリポジトリにあるので流用します。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/awslabs/emr-bootstrap-actions&quot;&gt;awslabs/emr-bootstrap-actions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/awslabs/emr-bootstrap-actions/tree/master/presto&quot;&gt;Presto BootstrapAction&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;PrestoのBootstrap Actionはそんなオフィシャルにサポートしてはいないですが、READMEもちゃんと書いてあるし、そこまで複雑ではないので要件によっては自作も有りかなと思います。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
+$ aws s3 cp install-presto.rb s3://yourbucket/libs/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;shibのBootstrap Action&lt;/h4&gt;
+
+&lt;p&gt;shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;install-shib.sh&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;#!/bin/bash
+
+shib_tarball_path=$1
+config_file_path=$2
+
+sudo yum -y update
+sudo yum install -y git
+sudo yum install -y nodejs npm --enablerepo=epel
+
+aws s3 cp ${shib_tarball_path} /home/hadoop/shib.tar.gz
+{
+  cd /home/hadoop &amp;amp;&amp;amp; tar xvfz /home/hadoop/shib.tar.gz
+  cd /home/hadoop/shib &amp;amp;&amp;amp; npm install
+}
+aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
+{
+  cd /home/hadoop/shib &amp;amp;&amp;amp; nohup npm start &amp;amp;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これも同様にS3にあげる。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ aws s3 cp install-shib.sh s3://yourbucket/libs/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;AWS CLIでクラスタ立ち上げ&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;create-cluster.sh&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;#!/bin/bash
+
+aws emr create-cluster --ami-version 3.3.1 \
+    --name &amp;quot;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date &amp;#39;+%Y%m%d%H%M&amp;#39; )&amp;quot; \
+    --tags Name=presto-on-emr environment=development \
+    --ec2-attributes KeyName=yourkey \
+    --applications Name=hive Name=hue \
+    --instance-groups file://./large-instance-setup.json \
+    --bootstrap-actions file://./bootstrap-presto.json \
+    --log-uri &amp;#39;s3://yourbucket/jobflow_logs/&amp;#39; \
+    --no-auto-terminate \
+    --use-default-roles \
+    --visible-to-all-users
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;※AWSアカウントによっては--use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。&lt;/p&gt;
+
+&lt;p&gt;instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;large-instance-setup.json&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[
+  {
+     &amp;quot;Name&amp;quot;: &amp;quot;emr-master-production&amp;quot;,
+     &amp;quot;InstanceGroupType&amp;quot;: &amp;quot;MASTER&amp;quot;,
+     &amp;quot;InstanceCount&amp;quot;: 1,
+     &amp;quot;InstanceType&amp;quot;: &amp;quot;m3.xlarge&amp;quot;
+  },
+  {
+     &amp;quot;Name&amp;quot;: &amp;quot;emr-core-production&amp;quot;,
+     &amp;quot;InstanceGroupType&amp;quot;: &amp;quot;CORE&amp;quot;,
+     &amp;quot;InstanceCount&amp;quot;: 2 ,
+     &amp;quot;InstanceType&amp;quot;: &amp;quot;m3.xlarge&amp;quot;
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;bootstrap-presto.json&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;[
+  {
+    &amp;quot;Name&amp;quot;: &amp;quot;Install/Setup Shib&amp;quot;,
+    &amp;quot;Path&amp;quot;: &amp;quot;s3://yourbucket/libs/install-shib.sh&amp;quot;,
+    &amp;quot;Args&amp;quot;: [
+        &amp;quot;s3://yourbucket/libs/shib.tar.gz&amp;quot;,
+        &amp;quot;s3://yourbucket/libs/shib-config.js&amp;quot;
+    ]
+  },
+  {
+    &amp;quot;Name&amp;quot;: &amp;quot;Install/Setup Presto&amp;quot;,
+    &amp;quot;Path&amp;quot;: &amp;quot;s3://yourbucket/libs/install-presto.rb&amp;quot;,
+    &amp;quot;Args&amp;quot;: [
+        &amp;quot;--s3-path-to-presto-server-bin&amp;quot;,&amp;quot;s3://yourbucket/libs/presto-server-0.85.tar.gz&amp;quot;,
+        &amp;quot;--s3-path-to-presto-cli&amp;quot;, &amp;quot;s3://yourbucket/libs/presto-cli-0.85-executable.jar&amp;quot;
+    ]
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;Shib/Hueアクセス方法&lt;/h2&gt;
+
+&lt;h3&gt;FoxyProxyとSSHトネリングを利用&lt;/h3&gt;
+
+&lt;p&gt;FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;http://getfoxyproxy.org/&quot;&gt;FoxyProxy - Firefox/Chrome&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;sample-emr-proxy.xml&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;foxyproxy&amp;gt;
+    &amp;lt;proxies&amp;gt;
+        &amp;lt;proxy name=&amp;quot;emr-socks-proxy&amp;quot; id=&amp;quot;2322596116&amp;quot; notes=&amp;quot;&amp;quot; fromSubscription=&amp;quot;false&amp;quot; enabled=&amp;quot;true&amp;quot; mode=&amp;quot;manual&amp;quot; selectedTabIndex=&amp;quot;2&amp;quot; lastresort=&amp;quot;false&amp;quot; animatedIcons=&amp;quot;true&amp;quot; includeInCycle=&amp;quot;true&amp;quot; color=&amp;quot;#0055E5&amp;quot; proxyDNS=&amp;quot;true&amp;quot; noInternalIPs=&amp;quot;false&amp;quot; autoconfMode=&amp;quot;pac&amp;quot; clearCacheBeforeUse=&amp;quot;false&amp;quot; disableCache=&amp;quot;false&amp;quot; clearCookiesBeforeUse=&amp;quot;false&amp;quot; rejectCookies=&amp;quot;false&amp;quot;&amp;gt;
+            &amp;lt;matches&amp;gt;
+                &amp;lt;match enabled=&amp;quot;true&amp;quot; name=&amp;quot;*ec2*.amazonaws.com*&amp;quot; pattern=&amp;quot;*ec2*.amazonaws.com*&amp;quot; isRegEx=&amp;quot;false&amp;quot; isBlackList=&amp;quot;false&amp;quot; isMultiLine=&amp;quot;false&amp;quot; caseSensitive=&amp;quot;false&amp;quot; fromSubscription=&amp;quot;false&amp;quot; /&amp;gt;
+                &amp;lt;match enabled=&amp;quot;true&amp;quot; name=&amp;quot;*ec2*.compute*&amp;quot; pattern=&amp;quot;*ec2*.compute*&amp;quot; isRegEx=&amp;quot;false&amp;quot; isBlackList=&amp;quot;false&amp;quot; isMultiLine=&amp;quot;false&amp;quot; caseSensitive=&amp;quot;false&amp;quot; fromSubscription=&amp;quot;false&amp;quot; /&amp;gt;
+                &amp;lt;match enabled=&amp;quot;true&amp;quot; name=&amp;quot;10.*&amp;quot; pattern=&amp;quot;http://10.*&amp;quot; isRegEx=&amp;quot;false&amp;quot; isBlackList=&amp;quot;false&amp;quot; isMultiLine=&amp;quot;false&amp;quot; caseSensitive=&amp;quot;false&amp;quot; fromSubscription=&amp;quot;false&amp;quot; /&amp;gt;
+            &amp;lt;/matches&amp;gt;
+            &amp;lt;manualconf host=&amp;quot;localhost&amp;quot; port=&amp;quot;8157&amp;quot; socksversion=&amp;quot;5&amp;quot; isSocks=&amp;quot;true&amp;quot; username=&amp;quot;&amp;quot; password=&amp;quot;&amp;quot; domain=&amp;quot;&amp;quot; /&amp;gt;
+        &amp;lt;/proxy&amp;gt;
+    &amp;lt;/proxies&amp;gt;
+&amp;lt;/foxyproxy&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;http://youremrhost.compute.amazonaws.com:3000&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;また、以下のURLにアクセスするとHueにアクセスできます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;http://youremrhost.compute.amazonaws.com:8888&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;AWS SecurityGroupを変更&lt;/h3&gt;
+
+&lt;p&gt;EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。&lt;/p&gt;
+
+&lt;h2&gt;パフォーマンス&lt;/h2&gt;
+
+&lt;p&gt;パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。&lt;/p&gt;
+
+&lt;h2&gt;終わりに&lt;/h2&gt;
+
+&lt;p&gt;いかがでしたでしょうか。
+PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
+もうあと25日は2時間しか残ってませんがハッピーメリークリスマス！&lt;/p&gt;
+</description>
+				<pubDate>Thu, 25 Dec 2014 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2014/12/25/presto-hue-shib-on-awsemr.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2014/12/25/presto-hue-shib-on-awsemr.html</guid>
+			</item>
+		
+			<item>
 				<title>それは機能です</title>
 				<description>&lt;p&gt;もうすぐ今の会社に入って1年経つのでエモ文章を書く。&lt;/p&gt;
 
@@ -774,26 +1073,38 @@ P12に記載あり&lt;/li&gt;
 
 &lt;h2&gt;役割&lt;/h2&gt;
 
-&lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。
-- HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る
-- ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)&lt;/p&gt;
+&lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。&lt;/p&gt;
 
-&lt;p&gt;以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。
-- models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)
-- データ登録/編集のロジック(複数モデルを扱いながら)を記述する &lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る&lt;/li&gt;
+&lt;li&gt;ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/li&gt;
+&lt;li&gt;データ登録/編集のロジック(複数モデルを扱いながら)を記述する &lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;h2&gt;担うべき役割&lt;/h2&gt;
 
-&lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。
-1. modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)
-2. modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/p&gt;
+&lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)&lt;/li&gt;
+&lt;li&gt;modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/li&gt;
+&lt;/ol&gt;
 
 &lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose&lt;em&gt;name, help&lt;/em&gt;textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
 
-&lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。
-- modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)
-- 1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)
-- 過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)&lt;/p&gt;
+&lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)&lt;/li&gt;
+&lt;li&gt;1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)&lt;/li&gt;
+&lt;li&gt;過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;p&gt;もちろんmodelにもカスタムバリデーターを登録することは可能だけど、現時点ではしていない。理由は、DjangoのmodelはどちらかというとRDBMSにおけるテーブルのPython表現っぽい、という風にとらえているから。modelって名前、ややこしいね。もし本当にpersistent storageレベルで必要なバリデーションがあるのであれば、それはpersistent storageレベルで設定されるべきな気がしている(Oracleのcheck制約とか、MySQLのENUM型とか)。それはPython(Django ORM)以外からデータが扱われる事があったとしても適切にデータの整合性を守ってくれることとなる。&lt;/p&gt;
 
@@ -1082,7 +1393,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;テスト用ファイル名&lt;/h3&gt;
 
 &lt;p&gt;test&lt;em&gt;models.py, test&lt;/em&gt;forms.py, etc&lt;/p&gt;
 
@@ -1090,7 +1401,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;テスト用ファイル名&lt;/h3&gt;
 
 &lt;p&gt;未定&lt;/p&gt;
 
@@ -1098,7 +1409,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;テスト用ファイル名&lt;/h3&gt;
 
 &lt;p&gt;test_urls.py&lt;/p&gt;
 
@@ -1106,7 +1417,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;テスト用ファイル名&lt;/h3&gt;
 
 &lt;p&gt;test&lt;em&gt;[app&lt;/em&gt;name].py&lt;/p&gt;
 
@@ -1114,7 +1425,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;テスト用ファイル名&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;テスト用ファイル名&lt;/h3&gt;
 
 &lt;p&gt;test_browser.py&lt;/p&gt;
 
@@ -1145,9 +1456,12 @@ One assert/action per test case method.
 &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/11543117/what-are-the-best-practices-for-testing-different-layers-in-django&quot;&gt;What are the best practices for testing “different layers” in Django?&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。
-- &lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;
-- &lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以下の資料はユニットテストを書く利点と注意点がわかりやすく整理されている。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/631/fast-test-slow-test&quot;&gt;YouTube: Faste test, slow test&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html&quot;&gt;Faste test, slow test Note&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;h1&gt;どうテストするのか&lt;/h1&gt;
 
@@ -1197,7 +1511,7 @@ One assert/action per test case method.
 
 &lt;p&gt;細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;設定的工夫&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;設定的工夫&lt;/h3&gt;
 
 &lt;p&gt;ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。
 &lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;詳細はコチラ&lt;/a&gt;&lt;/p&gt;
@@ -1218,7 +1532,7 @@ One assert/action per test case method.
 &lt;li&gt;&lt;a href=&quot;http://carljm.github.io/django-testing-slides/#1&quot;&gt;Testing and Django&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;&lt;strong&gt;コード的工夫&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;コード的工夫&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
@@ -1254,7 +1568,7 @@ One assert/action per test case method.
 
 &lt;p&gt;結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;工夫&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;工夫&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;py.testのparametrizeアノテーションを利用&lt;/li&gt;
@@ -1277,13 +1591,19 @@ parametrized-testcase by Austin Bingham
 &lt;li&gt;&lt;a href=&quot;http://stackoverflow.com/questions/2798956/python-unittest-generate-multiple-tests-programmatically&quot;&gt;Python unittest: Generate multiple tests programmatically? &lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。
-- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20091204/1259863417&quot;&gt;TestCaseを拡張しよう&lt;/a&gt;
-- &lt;a href=&quot;http://feldboris.alwaysdata.net/blog/unittest-template.html&quot;&gt;Unittest template&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;unittest形式でテストを生成する際に非常に参考になった記事。&lt;/p&gt;
 
-&lt;p&gt;py.testに惚れるきっかけとなった記事
-- &lt;a href=&quot;http://pytest.org/latest-ja/&quot;&gt;Pytest本家&lt;/a&gt;
-- &lt;a href=&quot;http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/&quot;&gt;pytest fixtures nuts and bolts&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20091204/1259863417&quot;&gt;TestCaseを拡張しよう&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://feldboris.alwaysdata.net/blog/unittest-template.html&quot;&gt;Unittest template&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;py.testに惚れるきっかけとなった記事&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://pytest.org/latest-ja/&quot;&gt;Pytest本家&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://pythontesting.net/framework/pytest/pytest-fixtures-nuts-bolts/&quot;&gt;pytest fixtures nuts and bolts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;p&gt;Two Scoops of Djangoの人の記事。本の中ではテストはコピペでもオッケー！という発言があったし正直そうだとも思うけど、それを回避する策に力注ぐほうが楽しいと思う。&lt;/p&gt;
 
@@ -1387,288 +1707,6 @@ parametrized-testcase by Austin Bingham
 				<pubDate>Fri, 04 Apr 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/04/04/road-to-django-best-practice.html</guid>
-			</item>
-		
-			<item>
-				<title>Django Best Practiceへの道 #1</title>
-				<description>&lt;p&gt;DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。&lt;/p&gt;
-
-&lt;h1&gt;前提&lt;/h1&gt;
-
-&lt;ul&gt;
-&lt;li&gt;既に本番リリースされてる&lt;/li&gt;
-&lt;li&gt;Django 1.5で作られてる&lt;/li&gt;
-&lt;li&gt;中/小規模Webアプリケーション(テーブルサイズ10 - 20)&lt;/li&gt;
-&lt;li&gt;開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)&lt;/li&gt;
-&lt;li&gt;バックエンド処理ロジックは比較的シンプル&lt;/li&gt;
-&lt;li&gt;Celeryを使った非同期タスクとして動く処理がある&lt;/li&gt;
-&lt;li&gt;JSはクリティカルな処理では使ってない(表示整形くらい)&lt;/li&gt;
-&lt;li&gt;トラフィックは少ない&lt;/li&gt;
-&lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1&gt;プロジェクト/アプリケーション構成&lt;/h1&gt;
-
-&lt;h2&gt;アプリケーション構成に何を求めるか&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;巨大な1ファイルのコードが存在しえない&lt;/li&gt;
-&lt;li&gt;コードの見通しが自然とよくなる&lt;/li&gt;
-&lt;li&gt;各モジュールの依存関係が少ない&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、&amp;quot;Do one thing, and one thing well&amp;quot;って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;DjangoCon 2008: Reusable Apps&lt;/em&gt;
-- &lt;a href=&quot;http://www.youtube.com/watch?v=A-S0tqpPga4&quot;&gt;YouTube: DjangoCon 2008: Reusable Apps&lt;/a&gt;
-- &lt;a href=&quot;http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf&quot;&gt;Developing reusable apps&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;上の資料を参考に設計する利点は主に2つ。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;メンテナンスしやすくなる&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;このアプリケーション分割をすることで、「巨大な1ファイルのコード」が存在し得ない構成となる。誰かが意識してメンテしにくい巨大な1ファイルを作らないようにする、ではなく、そもそもそんなものが発生し得ない構成にすることが肝要だと思った。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;各モジュールの再利用可能性向上&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;普通の単独自社サービスであれば、そこまで再利用性を高める為に時間をかける必要はない気がするけど、Djangoを使った自社サービスが複数ある中でのライブラリ作成や、個別のお客さんによってカスタマイズが必要なパッケージ、というシチュエーションであればある程度時間をかけて設計する価値はあると思う。実際上の資料内でJamesさんが自社パッケージを各お客さん用にカスタマイズする際に、プラガブルに設計してて助かったぜ、という話がある。&lt;/p&gt;
-
-&lt;h2&gt;プロジェクト構成に何を求めるか&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;共通な部分と固有な部分を直感的に分けたい&lt;/li&gt;
-&lt;li&gt;何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2&gt;実装&lt;/h2&gt;
-
-&lt;p&gt;他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;project
-├── apps
-│   ├── appA
-│   ├── appB
-│   └── appC
-├── core
-│   └── settings
-├── docs
-│   ├── files
-│   └── styleguide
-├── fixtures
-├── libs
-│   └── management
-│       └── commands
-├── requirements
-├── server-config
-├── static
-├── templates
-└── tests
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;上から順に概要を説明します。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;p&gt;apps&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Djangoアプリケーションを格納。&lt;/li&gt;
-&lt;li&gt;アプリケーションを何単位で作るのかは先述の資料を参考に要議論。&lt;/li&gt;
-&lt;li&gt;apps内のディレクトリ構成は、&amp;#39;&amp;#39;&amp;#39;tests&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;migrations&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;templates&amp;#39;&amp;#39;&amp;#39;が基本。(South利用前提)&lt;/li&gt;
-&lt;li&gt;&amp;quot;Do one thing, and one thing well.&amp;quot;の原則。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;core&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;設定ファイル群を格納。各環境用の設定ファイルを&lt;code&gt;settings&lt;/code&gt;ディレクトリに格納しておく。(詳細後述)&lt;/li&gt;
-&lt;li&gt;wsgiファイルを格納。&lt;/li&gt;
-&lt;li&gt;ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;docs&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;プロジェクトのドキュメントを格納(仕様等)&lt;/li&gt;
-&lt;li&gt;README.rstをリポジトリのトップにおいておき、そこから参照させる形で。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;fixtures&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。&lt;/li&gt;
-&lt;li&gt;テスト時に利用するアップロード用ファイルを置いておく。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;libs&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。&lt;/li&gt;
-&lt;li&gt;カスタムで作成するmanage.pyのコマンドもここに入れていく。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;requirements&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。&lt;/li&gt;
-&lt;li&gt;各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。&lt;/li&gt;
-&lt;li&gt;requirements/common.txt, test.txt, development.txt等(詳細は後で)&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;server-config&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;サーバ(OS)レベルで必要なファイルの格納(e.g. bash&lt;em&gt;profile, ssh&lt;/em&gt;config)。&lt;/li&gt;
-&lt;li&gt;ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。&lt;/li&gt;
-&lt;li&gt;本当はこの辺Ansibleで統一したい。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;static&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;CSS, JS, Image等を入れる。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;templates&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;&lt;p&gt;tests&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;各Djangoアプリケーション内のテストで共通的に利用するものを格納。&lt;/li&gt;
-&lt;li&gt;具体例でいうと、&amp;#39;&amp;#39;&amp;#39;factories.py&amp;#39;&amp;#39;&amp;#39;, &amp;#39;&amp;#39;&amp;#39;conftest.py&amp;#39;&amp;#39;&amp;#39;。(factory_boy, py.test利用前提)&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。
-有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/rdegges/django-skel&quot;&gt;django-skel&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/amccloud/django-project-skel&quot;&gt;django-project-skel&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/theduke/django-kickstart&quot;&gt;django-kickstart&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Two Scoops of Djangoで紹介されていた構成。これも非常に参考になる。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/twoscoops/django-twoscoops-project&quot;&gt;django-twoscoops-project&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;参考になるライブラリ群&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.djangopackages.com/grids/g/project-templates/&quot;&gt;Django Packages - Project Templates&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1&gt;設定ファイル構成&lt;/h1&gt;
-
-&lt;h2&gt;設定ファイル構成に何を求めるか&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;各環境別に異なる設定が明確&lt;/li&gt;
-&lt;li&gt;全環境で共通な設定が明確&lt;/li&gt;
-&lt;li&gt;各環境別に柔軟な設定変更が可能&lt;/li&gt;
-&lt;li&gt;ローカルでは自分だけの設定も入れれる柔軟性が必要&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;1番目と2番めが非常に重要だと思ってます。可能な限り1番目と2番めの目標が達成できるようにする、という指針で以下のようにしました。&lt;/p&gt;
-
-&lt;h2&gt;設定ファイル実装&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;common.pyに各環境共通の設定を入れる
-(大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)&lt;/li&gt;
-&lt;li&gt;各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
-
-&lt;ul&gt;
-&lt;li&gt;development.py&lt;/li&gt;
-&lt;li&gt;staging.py&lt;/li&gt;
-&lt;li&gt;production.py&lt;/li&gt;
-&lt;li&gt;local_test.py&lt;/li&gt;
-&lt;li&gt;ci.py&lt;/li&gt;
-&lt;li&gt;local.sample.py&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;各環境用設定ファイルの最後でlocal.pyから設定をimportする&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;common.py以外は大体以下のような形になってます。&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;core.settings.common&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# NOQA&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;DEBUG&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;TEMPLATE_DEBUG&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ENVIRONMENT&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;staging&amp;#39;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;DATABASES&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;s&quot;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;ENGINE&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;django.db.backends.mysql&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;NAME&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;django2&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;USER&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hoge_user&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;PASSWORD&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hoge_password&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;HOST&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;hogehost&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&amp;#39;PORT&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;core.settings.local&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# NOQA&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;ne&quot;&gt;ImportError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;以下若干わかりにくそうな部分を解説します。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;local.sample.py&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。
-local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;# -*- coding: utf-8 -*-
-# ローカル環境用設定ファイル。以下のようにコピーして利用すること。
-# cp local.sample.py local.py
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;core/settings/local.py&lt;/code&gt;は&lt;code&gt;.gitignore&lt;/code&gt;に記載しておき、リポジトリからは無視しておく。この&lt;code&gt;local.py&lt;/code&gt;に各開発者用の独自設定を入れていきます。&lt;a href=&quot;http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X&quot;&gt;Two Scoops of Django&lt;/a&gt;では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;local_test.py&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;ローカルでテストを実行する時に利用する設定で、PASSWORD_HASHERSとかを変更、DBをsqliteのインメモリにしたり、テストを高速化するための工夫が施してある。この中身についてはテスト戦術で詳細に書きます。&lt;/p&gt;
-
-&lt;p&gt;その他の設定ファイルは大体名前の通りの内容が入ってます。&lt;/p&gt;
-
-&lt;h2&gt;設定ファイル切り替え実装&lt;/h2&gt;
-
-&lt;p&gt;manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。&lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Djangoトラノマキ&lt;/a&gt;参照&lt;/p&gt;
-
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env python&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;environ&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setdefault&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;DJANGO_SETTINGS_MODULE&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;core.settings.development&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;django.core.management&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;execute_from_command_line&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;execute_from_command_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO&lt;em&gt;SETTINGS&lt;/em&gt;MODULEを設定して切り替える方式としています。&lt;/p&gt;
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;export DJANGO_SETTINGS_MODULE=core.config.staging
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;em&gt;参考文献&lt;/em&gt;
-- &lt;a href=&quot;http://d.hatena.ne.jp/nullpobug/20131015/1381763671&quot;&gt;Djangoのsettingsの分割と構造化について --偏った言語信者の垂れ流し&lt;/a&gt;
-- &lt;a href=&quot;https://gist.github.com/voluntas/6855579&quot;&gt;Django トラノマキ&lt;/a&gt;
-- &lt;a href=&quot;http://surgo.jp/2010/02/django.html&quot;&gt;パーフェクトな Django の設定ファイル&lt;/a&gt; &lt;/p&gt;
-
-&lt;p&gt;次回はDjangoにおけるテスト戦術について書きます。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/01/road-to-django-best-practice.html&quot;&gt;#1 Djangoプロジェクト/アプリケーション/設定ファイル構成&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;#2 Djangoテスト戦術&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/14/django-pytest-webtest.html&quot;&gt;#2 補足編&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-				<pubDate>Tue, 01 Apr 2014 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2014/04/01/road-to-django-best-practice.html</guid>
 			</item>
 		
 	</channel>
