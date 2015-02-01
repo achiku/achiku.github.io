@@ -14,9 +14,10 @@ title: 'Pythonライブラリを最新に保つ為に(hubot-piptools)'
 
 - 提供しているサービスのバックエンドはPython
 - 開発チーム構成
-    * バックエンド(moqada, achiku) 1.5名
-    * フロント/デザイン(moqada, ideyuta) 1.5名
-    * インフラ/データ分析(achiku) 1名
+    * 企画(ideyuta)
+    * フロント/デザイン(moqada, ideyuta)
+    * バックエンド(moqada, achiku)
+    * インフラ/データ分析(achiku)
 - GitHub使って開発してる
 - CircleCI使ってCIまわしてる
 - 大体HipChat使ってコミュニケーションしてる
