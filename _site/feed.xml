@@ -23,9 +23,10 @@
 &lt;li&gt;開発チーム構成
 
 &lt;ul&gt;
-&lt;li&gt;バックエンド(moqada, achiku) 1.5名&lt;/li&gt;
-&lt;li&gt;フロント/デザイン(moqada, ideyuta) 1.5名&lt;/li&gt;
-&lt;li&gt;インフラ/データ分析(achiku) 1名&lt;/li&gt;
+&lt;li&gt;企画(ideyuta)&lt;/li&gt;
+&lt;li&gt;フロント/デザイン(moqada, ideyuta)&lt;/li&gt;
+&lt;li&gt;バックエンド(moqada, achiku)&lt;/li&gt;
+&lt;li&gt;インフラ/データ分析(achiku)&lt;/li&gt;
 &lt;/ul&gt;&lt;/li&gt;
 &lt;li&gt;GitHub使って開発してる&lt;/li&gt;
 &lt;li&gt;CircleCI使ってCIまわしてる&lt;/li&gt;
@@ -53,7 +54,7 @@
 
 &lt;h3&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/h3&gt;
 
-&lt;p&gt;ライブラリを更新したらAPIが変更になってたり、新規に潜り込んだバグの為にこっちのコード修正したり、テスト直したりしなければならないコストは、正直不可避だなと思う。互換性は壊れる時は壊れるし、バグは無くならない。それをもってして余りあるメリットを外部ライブラリからは受けているので、この部分は受け入れるもんだと思ってる。&lt;/p&gt;
+&lt;p&gt;ライブラリを更新したらAPIが変更になってたり、新規に潜り込んだバグの為にこっちのコード修正したり、テスト直したりしなければならないコストは、正直不可避だなと思う。互換性は壊れる時は壊れるし、バグは無くならない。それをもってして余りあるメリットを外部ライブラリからは受けているので、この部分は受け入れるもんだと思ってる。寧ろ感謝の気持ちを込めて再現性のあるIssueを上げたりPR出したりしていきたい。&lt;/p&gt;
 
 &lt;h3&gt;ライブラリ更新確認のコスト&lt;/h3&gt;
 
@@ -1016,7 +1017,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;そこでWebTestも含めて全てpy.test形式でつくろうと思ったのですが、django_webtestパッケージ内のWebTestは既にdjango.test.TestCaseを継承しており、unittest.TestCaseを継承しているので、そのままではpy.test形式で使えない。&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django&lt;em&gt;webtest/\&lt;/em&gt;_init__.py&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django_webtest/__init__.py&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango&lt;em&gt;webtest.WebTestMixinというクラスに切りだされ、django&lt;/em&gt;webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
 
