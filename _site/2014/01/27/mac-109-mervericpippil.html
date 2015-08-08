@@ -83,7 +83,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <p>Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
 OSアップグレード前はうまくいっていた。</p>
 
-<h2>エラー詳細</h2>
+<h2 id="エラー詳細">エラー詳細</h2>
 
 <p>どうやらヘッダファイルが無いらしい。</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">building &#39;_imagingft&#39; extension
@@ -102,7 +102,7 @@ error: command &#39;cc&#39; failed with exit status 1
 
 ----------------------------------------
 </code></pre></div>
-<h2>対応</h2>
+<h2 id="対応">対応</h2>
 
 <p>結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。</p>
 
@@ -110,7 +110,7 @@ error: command &#39;cc&#39; failed with exit status 1
 <span class="nv">$ </span>ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
 <span class="nv">$ </span>pip install PIL</code></pre></div>
 
-<h2>参考/こんなになった経緯等</h2>
+<h2 id="参考/こんなになった経緯等">参考/こんなになった経緯等</h2>
 
 <p><a href="http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9">Error installing Python Image Library using pip on Mac OS X 10.9</a></p>
 

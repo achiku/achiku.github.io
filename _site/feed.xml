@@ -16,7 +16,7 @@
 
 &lt;p&gt;&lt;img src=&quot;/images/hubot-piptools.png&quot; alt=&quot;hubot-piptools&quot;&gt;&lt;/p&gt;
 
-&lt;h2&gt;前提&lt;/h2&gt;
+&lt;h2 id=&quot;前提&quot;&gt;前提&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;提供しているサービスのバックエンドはPython&lt;/li&gt;
@@ -35,7 +35,7 @@
 &lt;li&gt;サービスモニタリング、ノーティフィケーションの類もHipChatに集約されてる&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;解決しようとした課題&lt;/h2&gt;
+&lt;h2 id=&quot;解決しようとした課題&quot;&gt;解決しようとした課題&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;現在利用しているPythonのライブラリ更新確認、更新実施に使うコストがかかる&lt;/li&gt;
@@ -45,24 +45,24 @@
 
 &lt;p&gt;この「ユーザの眼に触れない部分の安定化/最新化」は、自分たちが作るサービスが直接ユーザに届けれる価値といったものからは若干の距離があり、コスト的に手をかけてやる事が難しい部分だ。前提に書いたように少人数で運営している場合などは特に難しいと感じる。とはいえ、中期的に、ふと気づいたら返済できないくらい溜まった負債を抱えない為に(大量且つ一度に実行されるライブラリアップデートはエラーの切り分けがダルい)、細かく簡単に返済していく何がしかの仕組みがあると便利だなと考えた。&lt;/p&gt;
 
-&lt;h2&gt;解決しようとした課題を分割した&lt;/h2&gt;
+&lt;h2 id=&quot;解決しようとした課題を分割した&quot;&gt;解決しようとした課題を分割した&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/li&gt;
 &lt;li&gt;ライブラリ更新確認のコスト&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/h3&gt;
+&lt;h3 id=&quot;ライブラリ更新実施/コード修正/テスト修正のコスト&quot;&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/h3&gt;
 
 &lt;p&gt;ライブラリを更新したらAPIが変更になってたり、新規に潜り込んだバグの為にこっちのコード修正したり、テスト直したりしなければならないコストは、正直不可避だなと思う。互換性は壊れる時は壊れるし、バグは無くならない。それをもってして余りあるメリットを外部ライブラリからは受けているので、この部分は受け入れるもんだと思ってる。寧ろ感謝の気持ちを込めて再現性のあるIssueを上げたりPR出したりしていきたい。&lt;/p&gt;
 
-&lt;h3&gt;ライブラリ更新確認のコスト&lt;/h3&gt;
+&lt;h3 id=&quot;ライブラリ更新確認のコスト&quot;&gt;ライブラリ更新確認のコスト&lt;/h3&gt;
 
 &lt;p&gt;なので、達成すべきは「チームが簡単に更新を知って各自動き始める事」なのではないかと考えた。ポイントは「個人が簡単に更新を知って動き始める事」では無いところだと思う。チームメンバー内でも忙しさの波ってのは変わり得て、誰かが忙しいから更新が滞るってなってしまうと結局上手くいかない。&lt;/p&gt;
 
-&lt;h2&gt;課題に対する解決策&lt;/h2&gt;
+&lt;h2 id=&quot;課題に対する解決策&quot;&gt;課題に対する解決策&lt;/h2&gt;
 
-&lt;h3&gt;それ、pip-toolsで&lt;/h3&gt;
+&lt;h3 id=&quot;それ、pip-toolsで&quot;&gt;それ、pip-toolsで&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;https://github.com/nvie/pip-tools&quot;&gt;pip-tools&lt;/a&gt;&lt;/li&gt;
@@ -70,7 +70,7 @@
 
 &lt;p&gt;これ結構便利なんだけど、結局自分のローカルでしか動かせない。だから「チームが簡単に更新を知って動き始める事」ってのはちょっと達成できそうにないなと思った。これ実行してHipChatに毎日張るってのもありといえばありだけど俄然やりたくない。&lt;/p&gt;
 
-&lt;h3&gt;それ、外部サービスで&lt;/h3&gt;
+&lt;h3 id=&quot;それ、外部サービスで&quot;&gt;それ、外部サービスで&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;https://requires.io/&quot;&gt;requires.io&lt;/a&gt;&lt;/li&gt;
@@ -86,7 +86,7 @@
 
 &lt;p&gt;外部サービスに対してお金は全然払っても良いと思うしチームでは幾つかのサービスに課金もしている。ただ、これは別にちょっと落ちててもあまり大きな問題にはなんないんじゃないかと思いと、GitHubから指定ファイル取ってきてパースしてPyPiに問い合わせるだけっしょっていう思いから、いきなりお金払ってサービスを受けるのには若干抵抗があった。あと、極力社内の会話はチャットツールに寄せたいってのも大きく、一旦採用を見送った。&lt;/p&gt;
 
-&lt;h3&gt;それ、Botで&lt;/h3&gt;
+&lt;h3 id=&quot;それ、botで&quot;&gt;それ、Botで&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/hubot-piptools&quot;&gt;hubot-piptools&lt;/a&gt;&lt;/li&gt;
@@ -103,11 +103,11 @@
 
 &lt;p&gt;人間じゃないヤツから毎日通知されるのであれば嫌味も無いし、空いてる時に一つずつでもいいからサクッとアップグレードしてCI回せば良い。CI落ちたらChangeLog確認してテストとコード修正するなり、CI落ちてチャットツールに通知されて「やっぱ駄目だったから後回し」ってするなり、状況に合わせてチームで判断していけばいい。&lt;/p&gt;
 
-&lt;h2&gt;おわり&lt;/h2&gt;
+&lt;h2 id=&quot;おわり&quot;&gt;おわり&lt;/h2&gt;
 
 &lt;p&gt;もっとチーム人数増えたりしたらもちろんこの解決策が有効じゃなくなってくることはあると思うけど、そんときはそんときで最適な形を考えます。実装に使った技術は全く新しくもなんともないですが、サーバサイドのCoffeeScript初めて書いたし、node周辺技術よく分かってないし、正直目的達成最優先でクッソ雑に書いてるのでマサカリ歓迎。&lt;/p&gt;
 
-&lt;h2&gt;おまけ&lt;/h2&gt;
+&lt;h2 id=&quot;おまけ&quot;&gt;おまけ&lt;/h2&gt;
 
 &lt;p&gt;kanmukunは色々できるいい子です。&lt;/p&gt;
 
@@ -122,11 +122,11 @@
 				<title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
 				<description>&lt;p&gt;&lt;a href=&quot;http://qiita.com/advent-calendar/2014/distributedcomputing&quot;&gt;Spark, SQL on Hadoop etc. Advent Calendar 2014&lt;/a&gt;の最終日です。&lt;/p&gt;
 
-&lt;h2&gt;書くこと&lt;/h2&gt;
+&lt;h2 id=&quot;書くこと&quot;&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。&lt;/p&gt;
 
-&lt;h2&gt;Prestoについて&lt;/h2&gt;
+&lt;h2 id=&quot;prestoについて&quot;&gt;Prestoについて&lt;/h2&gt;
 
 &lt;p&gt;Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。&lt;/p&gt;
 
@@ -140,7 +140,7 @@
 
 &lt;p&gt;Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。&lt;/p&gt;
 
-&lt;h2&gt;shibについて&lt;/h2&gt;
+&lt;h2 id=&quot;shibについて&quot;&gt;shibについて&lt;/h2&gt;
 
 &lt;p&gt;PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。&lt;/p&gt;
 
@@ -149,7 +149,7 @@
 &lt;li&gt;なぜnodeか: &lt;a href=&quot;http://d.hatena.ne.jp/tagomoris/20110805/1312536706&quot;&gt;Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;AWS EMRについて&lt;/h2&gt;
+&lt;h2 id=&quot;aws-emrについて&quot;&gt;AWS EMRについて&lt;/h2&gt;
 
 &lt;p&gt;AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。&lt;/p&gt;
 
@@ -160,7 +160,7 @@
 
 &lt;p&gt;前置きが長くなるとアレなので早速awscliを利用し環境を構築。&lt;/p&gt;
 
-&lt;h2&gt;環境概要&lt;/h2&gt;
+&lt;h2 id=&quot;環境概要&quot;&gt;環境概要&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;HadoopはEMRを使ってクラスタ起動&lt;/li&gt;
@@ -174,9 +174,9 @@
 &lt;li&gt;S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;構築方法&lt;/h2&gt;
+&lt;h2 id=&quot;構築方法&quot;&gt;構築方法&lt;/h2&gt;
 
-&lt;h3&gt;AWS CLIの準備&lt;/h3&gt;
+&lt;h3 id=&quot;aws-cliの準備&quot;&gt;AWS CLIの準備&lt;/h3&gt;
 
 &lt;p&gt;CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下&lt;/p&gt;
 
@@ -203,7 +203,7 @@ export AWS_DEFAULT_PROFILE=development
 source aws_zsh_completer.sh
 EOF
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h3&gt;S3に必要なプログラムを配置&lt;/h3&gt;
+&lt;h3 id=&quot;s3に必要なプログラムを配置&quot;&gt;S3に必要なプログラムを配置&lt;/h3&gt;
 
 &lt;p&gt;2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。&lt;/p&gt;
 
@@ -225,7 +225,7 @@ $ unzip v0.3.8.zip &amp;amp;&amp;amp; mv shib-0.3.8 shib
 $ tar cvfz shib.tar.gz shib
 $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h3&gt;S3に必要な設定ファイルを配置&lt;/h3&gt;
+&lt;h3 id=&quot;s3に必要な設定ファイルを配置&quot;&gt;S3に必要な設定ファイルを配置&lt;/h3&gt;
 
 &lt;p&gt;shibがPrestoにクエリするための設定ファイル。&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;var servers = exports.servers = {
@@ -252,11 +252,11 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 };
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ aws s3 cp shib-config.js s3://yourbucket/libs/
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h3&gt;S3に必要なBootstrap Actionを配置&lt;/h3&gt;
+&lt;h3 id=&quot;s3に必要なbootstrap-actionを配置&quot;&gt;S3に必要なBootstrap Actionを配置&lt;/h3&gt;
 
 &lt;p&gt;Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。&lt;/p&gt;
 
-&lt;h4&gt;PrestoのBootstrap Action&lt;/h4&gt;
+&lt;h4 id=&quot;prestoのbootstrap-action&quot;&gt;PrestoのBootstrap Action&lt;/h4&gt;
 
 &lt;p&gt;こちらのAWS Labリポジトリにあるので流用します。&lt;/p&gt;
 
@@ -269,7 +269,7 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
 $ aws s3 cp install-presto.rb s3://yourbucket/libs/
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h4&gt;shibのBootstrap Action&lt;/h4&gt;
+&lt;h4 id=&quot;shibのbootstrap-action&quot;&gt;shibのBootstrap Action&lt;/h4&gt;
 
 &lt;p&gt;shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。&lt;/p&gt;
 
@@ -298,7 +298,7 @@ aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
 &lt;p&gt;これも同様にS3にあげる。&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ aws s3 cp install-shib.sh s3://yourbucket/libs/
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h3&gt;AWS CLIでクラスタ立ち上げ&lt;/h3&gt;
+&lt;h3 id=&quot;aws-cliでクラスタ立ち上げ&quot;&gt;AWS CLIでクラスタ立ち上げ&lt;/h3&gt;
 
 &lt;ul&gt;
 &lt;li&gt;create-cluster.sh&lt;/li&gt;
@@ -361,9 +361,9 @@ aws emr create-cluster --ami-version 3.3.1 \
   }
 ]
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2&gt;Shib/Hueアクセス方法&lt;/h2&gt;
+&lt;h2 id=&quot;shib/hueアクセス方法&quot;&gt;Shib/Hueアクセス方法&lt;/h2&gt;
 
-&lt;h3&gt;FoxyProxyとSSHトネリングを利用&lt;/h3&gt;
+&lt;h3 id=&quot;foxyproxyとsshトネリングを利用&quot;&gt;FoxyProxyとSSHトネリングを利用&lt;/h3&gt;
 
 &lt;p&gt;FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。&lt;/p&gt;
 
@@ -389,24 +389,24 @@ aws emr create-cluster --ami-version 3.3.1 \
 &lt;p&gt;これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;http://youremrhost.compute.amazonaws.com:3000&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://youremrhost.compute.amazonaws.com:3000&quot;&gt;http://youremrhost.compute.amazonaws.com:3000&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;また、以下のURLにアクセスするとHueにアクセスできます。&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;http://youremrhost.compute.amazonaws.com:8888&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://youremrhost.compute.amazonaws.com:8888&quot;&gt;http://youremrhost.compute.amazonaws.com:8888&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3&gt;AWS SecurityGroupを変更&lt;/h3&gt;
+&lt;h3 id=&quot;aws-securitygroupを変更&quot;&gt;AWS SecurityGroupを変更&lt;/h3&gt;
 
 &lt;p&gt;EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。&lt;/p&gt;
 
-&lt;h2&gt;パフォーマンス&lt;/h2&gt;
+&lt;h2 id=&quot;パフォーマンス&quot;&gt;パフォーマンス&lt;/h2&gt;
 
 &lt;p&gt;パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。&lt;/p&gt;
 
-&lt;h2&gt;終わりに&lt;/h2&gt;
+&lt;h2 id=&quot;終わりに&quot;&gt;終わりに&lt;/h2&gt;
 
 &lt;p&gt;いかがでしたでしょうか。
 PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
@@ -421,7 +421,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 				<title>それは機能です</title>
 				<description>&lt;p&gt;もうすぐ今の会社に入って1年経つのでエモ文章を書く。&lt;/p&gt;
 
-&lt;h2&gt;TL;DR&lt;/h2&gt;
+&lt;h2 id=&quot;tl;dr&quot;&gt;TL;DR&lt;/h2&gt;
 
 &lt;p&gt;30歳1歩手前の自分の考えをまとめておく。35歳の自分へ。人間の機能編。&lt;/p&gt;
 
@@ -432,11 +432,11 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 &lt;li&gt;人間の機能とその先&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;公開するにあたって&lt;/h2&gt;
+&lt;h2 id=&quot;公開するにあたって&quot;&gt;公開するにあたって&lt;/h2&gt;
 
 &lt;p&gt;以下書くことは自分が生きやすいように考えた体系なので自分以外には当てはまらない部分が沢山あると思う。しかも大概が2008年から2014年までのたった6年働いた経験を元にエモ要素多めにひねり出しているものなので、読むのであれば、これは真理とかの類じゃなくてこういう考え方もあると思って読んで頂けるといいんじゃないかと思う。&lt;/p&gt;
 
-&lt;h2&gt;人間を機能の集合と捉える&lt;/h2&gt;
+&lt;h2 id=&quot;人間を機能の集合と捉える&quot;&gt;人間を機能の集合と捉える&lt;/h2&gt;
 
 &lt;p&gt;人間は機能の塊だ。機能とは例えば「スケジュールを上手く組んで予定通り事を進める」だったり、「突拍子も無い事を言ってみんなを笑わせる」であったり、「結構速く走れる」だったり、「鼻毛が出てる人に言葉を使わずに鼻毛が出てる事を気づかせてあげる」事だったりする。抽象的に言えば、意識的な反復と反復の中で経験される成功/失敗から成功の確率を上げていける行動全て、を機能と言う事にする。もちろん、成功と失敗の間はグラデーションになっているので一概には言えない部分もあるけど、「何が目指す先に合致する成功なのか、失敗なのか、グラデーションの中でも許容できる範囲を適切に決める」という事も、意識的な反復と学習によって精度は上げれるので、一種の機能という事ができると思う。&lt;/p&gt;
 
@@ -444,7 +444,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;こういう定義をしたのは、それが真理だから、という類のものではなく、それが色々便利だから、という理由による。幾つかその理由を上げてみる。&lt;/p&gt;
 
-&lt;h4&gt;1. 苦手があんまり無くなる&lt;/h4&gt;
+&lt;h4 id=&quot;1.-苦手があんまり無くなる&quot;&gt;1. 苦手があんまり無くなる&lt;/h4&gt;
 
 &lt;p&gt;こういう定義にしておくと、まず「何かが苦手」という意識が少なくなる。どういう事かというと、上記定義にもとれば、成功の確率が高く無い、うまくできない、というのは「反復した回数が少ない」と「学習速度が遅い」の二つに分離でき、どちらかに問題がある場合に発生する成功率の低さを言い表した事にすぎないからだ。&lt;/p&gt;
 
@@ -452,13 +452,13 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;もちろん好きであった方が機能の精度向上スピードは段違いに速いし、嫌いな事をやってたらテンション下がる上に効率はよくない。自分は組織として価値を作って対価を貰う活動を5年くらいやって来て、色々な仕事に関わってきているけど、今のところ「絶対やりたくない」というレベルの仕事には出会ったことはない。ただ、上に書いたような理由で「好きだ、嫌いだ」は口に出して言うけど、「苦手」とはあまり言わなくなった。&lt;/p&gt;
 
-&lt;h4&gt;2. 名前を付けれる、再現性が有る&lt;/h4&gt;
+&lt;h4 id=&quot;2.-名前を付けれる、再現性が有る&quot;&gt;2. 名前を付けれる、再現性が有る&lt;/h4&gt;
 
 &lt;p&gt;機能として精度を上げていくと、同じような状況で、その機能を再度実行できるようになる。自分は特別な才能は持ちあわせておらず、反復と学習以上の結果を人生で出した事がない。運も無ければ閃きも無いし、大体結果は反復と学習に見合う結果か、その瞬間の体調によってはそれ以下だ。&lt;/p&gt;
 
 &lt;p&gt;愚痴っぽくなったけど、機能という単位で自分ができる事を認識しておけば、それを再現させることも、組み合わせて使う事も、何も体系が無い場合よりも簡単になるような気がしている。&lt;/p&gt;
 
-&lt;h4&gt;3. 個人のアイデンティティと機能を分離できる&lt;/h4&gt;
+&lt;h4 id=&quot;3.-個人のアイデンティティと機能を分離できる&quot;&gt;3. 個人のアイデンティティと機能を分離できる&lt;/h4&gt;
 
 &lt;p&gt;仕事をしていると、他の人の仕事を見てイマイチだなーと思う事が正直たまにある。ただ、その時も結局そういった機能を備えてない、つまり反復と学習が足りてないだけで、反復と学習すれば身につくものだから、その人自体にどうこう思わないようになる。前職時代に顕著だったけど、自分は何かを達成しようと動いている時、比較的頭に血が登りやすく、今思い出すだけでも結構痛い、個人攻撃とも取れるような行動をとっていたと思う。恥ずい。ただ機能の概念を脳味噌に染み込ませるにつけ、そういう時にも冷静に行動できるようになった気がする。この部分に関してはまだまだうまいことやれる気がしている。&lt;/p&gt;
 
@@ -466,13 +466,13 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;個人のアイデンティティと機能を密結合させ、突き詰めていけば、もはや誰も手が及ばないくらい物凄い機能を発達させそうな気もしているけど、機能とアイデンティティの密結合は自分にはむいてねーなと思っているのが現状です。&lt;/p&gt;
 
-&lt;h2&gt;機能を研ぎ澄まし、発動速度、マッチング精度を向上させる&lt;/h2&gt;
+&lt;h2 id=&quot;機能を研ぎ澄まし、発動速度、マッチング精度を向上させる&quot;&gt;機能を研ぎ澄まし、発動速度、マッチング精度を向上させる&lt;/h2&gt;
 
 &lt;p&gt;機能は精度を向上させることができる。これはつまり、「反復回数」と「学習速度」という2つの要素を向上させ、現状を成功と定義した状態に持っていける可能性と速度を上げれるという事だ。この機能の精度に加えて、マッチング精度があるように思う。&lt;/p&gt;
 
 &lt;p&gt;目の前にある前提条件を元に、どの機能を発動させれば良い結果が得られそうか、というのがマッチングの精度。機能の精度、現状と発動させる機能のマッチング精度、の2要素に分けておくことで、今回は機能の精度が足りなかったのか、それとも現状にそぐわない機能を発動させてしまったのか、何かが上手く行かなかった場合、後から分析する時に役に立つ気がしている。&lt;/p&gt;
 
-&lt;h2&gt;無意識に発動する機能に意識的になる&lt;/h2&gt;
+&lt;h2 id=&quot;無意識に発動する機能に意識的になる&quot;&gt;無意識に発動する機能に意識的になる&lt;/h2&gt;
 
 &lt;p&gt;上記のように、機能の精度、マッチング精度を上げていくと、比較的物事が上手く進むようになる。迷わない。何度も上手くいきはじめるとこの傾向はより一層強化される。特に、価値を作って対価を貰う人になってからしばらくすると、自分がいる状況、つまりは職場の状況に合わせてこの傾向がどんどん強化されていく。最初は意識して発動させていた機能も、やがて発動コストは下がり、マッチングスピードも上がり、なんならもはやほとんど意識しないで実行できるようになる。&lt;/p&gt;
 
@@ -488,7 +488,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;特に自分の場合は職場も職業も変わったので、ことさらこの課題感が大きくなってるってのもある。こういう風に考えておくと、「大企業からスタートアップに転職したから今までの考え方を捨てろ！」的な雑な議論ではなく、「今まで培ってきた機能はこういうコンテクストだったから効果を発揮していた。今のコンテクストはこのように変化しているので、既存機能を捨てるのではなく、脇に除けておいて新しく機能を作ろう。その際に脇にある機能から一部借りても良い。」とかって話ができる。&lt;/p&gt;
 
-&lt;h2&gt;人間の機能とその先&lt;/h2&gt;
+&lt;h2 id=&quot;人間の機能とその先&quot;&gt;人間の機能とその先&lt;/h2&gt;
 
 &lt;p&gt;ダラダラ長ったらしく書いたことは全て、戦術レベルの話だ。目的は決まっており、達成すべき目標が有り、そこに効率的に向かう手段をどのように捉えるかという問に対する自分なりの答えが「人を機能の塊と捉える」だ。&lt;/p&gt;
 
@@ -502,7 +502,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;その理で割り切れない残りカスこそ、自分が自分である所以である「好き」や「嫌い」や「ワクワクする」なのかもしれないというのが今思うところ。そういった説明のつかない部分は定期的に引きこもって言語化を試みている。定量的に計測しにくい上に個人的で言語化しにくく、理由無く礼賛される部分に関しては思考停止しがちなので、諦めずに今後も言語化を試みようと思う。&lt;/p&gt;
 
-&lt;h2&gt;35歳の自分へ&lt;/h2&gt;
+&lt;h2 id=&quot;35歳の自分へ&quot;&gt;35歳の自分へ&lt;/h2&gt;
 
 &lt;p&gt;進捗どうですか？&lt;/p&gt;
 
@@ -521,17 +521,17 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;また、全般的にテンション高めだったのは単に元気になる飲み物をキメてたからです。&lt;/p&gt;
 
-&lt;h3&gt;謝辞&lt;/h3&gt;
+&lt;h3 id=&quot;謝辞&quot;&gt;謝辞&lt;/h3&gt;
 
 &lt;p&gt;PyConの運営をしてくださったみなさん、本当にありがとうございました。あのような大規模なイベントをあれだけスムーズに運営されるスキル、本当に凄いです。&lt;/p&gt;
 
 &lt;p&gt;tagomorisさんのData Analysis Flowの図をベースに前半は説明行いました。恐らくあの図がなかったら発表前日にあのような資料を作ることはできなかったと思います。ぼんやりしている概念を図に落としこんで公開して頂き、本当にありがとうございます。(ちょっと無断利用なので行儀は良くないなと思いつつ焦りまくっていて一言入れれなかったのは反省してます。。)&lt;/p&gt;
 
-&lt;h3&gt;発表資料&lt;/h3&gt;
+&lt;h3 id=&quot;発表資料&quot;&gt;発表資料&lt;/h3&gt;
 
 &lt;script async class=&quot;speakerdeck-embed&quot; data-id=&quot;d93ef1101e17013278dc06e915146373&quot; data-ratio=&quot;1.33333333333333&quot; src=&quot;//speakerdeck.com/assets/embed.js&quot;&gt;&lt;/script&gt;
 
-&lt;h3&gt;発表サマリ&lt;/h3&gt;
+&lt;h3 id=&quot;発表サマリ&quot;&gt;発表サマリ&lt;/h3&gt;
 
 &lt;p&gt;大体こんな感じでした。&lt;/p&gt;
 
@@ -553,7 +553,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 &lt;/ul&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h3&gt;感想&lt;/h3&gt;
+&lt;h3 id=&quot;感想&quot;&gt;感想&lt;/h3&gt;
 
 &lt;p&gt;発表すること本当に大事だなーと思いました。以下大事だと思った理由。&lt;/p&gt;
 
@@ -592,7 +592,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;やっぱりカンファレンスは発表する方が聞きに行くだけよりも得るもの大きいっていうのが実感として腑に落ちました。2日目のキーノートで西尾さんが言っていたCommunicationによって盲点に気づき、人間として強化されていいくっていうのが、経験として実感できた感じになります。なので今後も何か知見が溜まってきたらどのような領域でも可能な限り公開していきたいなと思います。&lt;/p&gt;
 
-&lt;h3&gt;広告&lt;/h3&gt;
+&lt;h3 id=&quot;広告&quot;&gt;広告&lt;/h3&gt;
 
 &lt;p&gt;Kanmuでは引き続きエンジニア募集中です！&lt;/p&gt;
 
@@ -620,7 +620,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
 &lt;p&gt;これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。&lt;/p&gt;
 
-&lt;h3&gt;sub.py&lt;/h3&gt;
+&lt;h3 id=&quot;sub.py&quot;&gt;sub.py&lt;/h3&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
@@ -650,7 +650,7 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
     &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keepalive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loop_forever&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;h3&gt;pub.py&lt;/h3&gt;
+&lt;h3 id=&quot;pub.py&quot;&gt;pub.py&lt;/h3&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
@@ -719,7 +719,7 @@ achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span
 				<title>Golangへの道 #1</title>
 				<description>&lt;p&gt;ちょっと書いてみたくなった。&lt;/p&gt;
 
-&lt;h2&gt;目標&lt;/h2&gt;
+&lt;h2 id=&quot;目標&quot;&gt;目標&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;VimでGolang書けるように環境を設定する(一旦ライブラリ管理等のベストプラクティスは無視)&lt;/li&gt;
@@ -727,7 +727,7 @@ achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span
 &lt;li&gt;最終的にGETリクエストに対して何かJSON返すサーバーを作る&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;前提&lt;/h2&gt;
+&lt;h2 id=&quot;前提&quot;&gt;前提&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;環境はMac OS X 10.9.4。homebrewインストール済み&lt;/li&gt;
@@ -735,7 +735,7 @@ achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span
 &lt;li&gt;学習者は平行/並列処理の知識無し&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;インストール&lt;/h2&gt;
+&lt;h2 id=&quot;インストール&quot;&gt;インストール&lt;/h2&gt;
 
 &lt;p&gt;既に入ってるのでアップグレード。&lt;/p&gt;
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ brew upgrade go 
@@ -763,7 +763,7 @@ You may wish to add the GOROOT-based install location to your PATH:
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;$ go version
 go version go1.2.2 darwin/amd64
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;h2&gt;Vim Plugin&lt;/h2&gt;
+&lt;h2 id=&quot;vim-plugin&quot;&gt;Vim Plugin&lt;/h2&gt;
 
 &lt;p&gt;ざっと見てコレが一番良さそうだったので入れる。&lt;/p&gt;
 
@@ -801,7 +801,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;書いた後に、:GoBuildでビルド。:GoRunでビルドして実行。便利。&lt;/p&gt;
 
-&lt;h2&gt;おまけ&lt;/h2&gt;
+&lt;h2 id=&quot;おまけ&quot;&gt;おまけ&lt;/h2&gt;
 
 &lt;p&gt;Pythonに比べるとカッコが多い気がするので以下のVimプラグインを入れておく事をオススメ。設定はデフォルトでも十分。&lt;/p&gt;
 
@@ -811,7 +811,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;&lt;a href=&quot;https://github.com/Raimondi/delimitMate&quot;&gt;https://github.com/Raimondi/delimitMate&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2&gt;基礎基本&lt;/h2&gt;
+&lt;h2 id=&quot;基礎基本&quot;&gt;基礎基本&lt;/h2&gt;
 
 &lt;p&gt;とりあえず以下を全部写経して覚える。&lt;/p&gt;
 
@@ -821,7 +821,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;&lt;a href=&quot;https://github.com/achiku/syakyou/tree/master/golang/gobyexample&quot;&gt;https://github.com/achiku/syakyou/tree/master/golang/gobyexample&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2&gt;Golangっぽいところ1&lt;/h2&gt;
+&lt;h2 id=&quot;golangっぽいところ1&quot;&gt;Golangっぽいところ1&lt;/h2&gt;
 
 &lt;p&gt;先述のGo By Example、goroutine、channel、selectあたりからGolangっぽいところが出てくる気がする。自分自身平行/並列処理系はまったく分かってないので、多分この辺りを読んで実際書いていかないと難しい。&lt;/p&gt;
 
@@ -829,11 +829,11 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;あとエラーの扱い方もJavaやPythonのExceptionに慣れている身からすると面白かった。Golangに関しての記述はなかったけど、「エラーハンドリング」という領域に関しては「コーディングを支える技術」で語られていたので再度読み直したいと思う。&lt;/p&gt;
 
-&lt;h2&gt;Golangっぽいところ2&lt;/h2&gt;
+&lt;h2 id=&quot;golangっぽいところ2&quot;&gt;Golangっぽいところ2&lt;/h2&gt;
 
 &lt;p&gt;型、型推論が非常に便利な気がする。どこか小さく領域を見つけて実戦に投入してみようと決意した。&lt;/p&gt;
 
-&lt;h2&gt;新しい言語を学ぶということに関して&lt;/h2&gt;
+&lt;h2 id=&quot;新しい言語を学ぶということに関して&quot;&gt;新しい言語を学ぶということに関して&lt;/h2&gt;
 
 &lt;p&gt;新しい言語を学ぶ際は、「やりたい事も挙動も確定している何か」ってのを題材に、ガッツリ作るのがやっぱりいい気がする。言語を使う事だけに集中できる。Vの方はRFCを何個か暗記してるからソレを実装するって言ってたし、「コーディングを支える技術」には新言語を学ぶときは特定のアルゴリズムを新しい言語で実装する、という事が書いてあった。&lt;/p&gt;
 
@@ -848,7 +848,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 				<title>Hadoop Conference Japan 2014 に行ってきて感じた事まとめ</title>
 				<description>&lt;p&gt;さる2014/07/08、Hadoop Conference Japan 2014が開催されました。1ヶ月以上もアウトプットできなかった理由はおいといて、基調講演には出れていないのだけれど、いくつか回ったセッションを総合して、感じた事をまとめておきたいと思います。前提として、自分はHadoopの素人且つエンジニア1年目なので、鋭いマサカリ投げられると失禁したまま気絶する事が予想されますが、事実と異なる事書いてしまっていたり、それちがうんじゃねーのか、的な指摘は是非コメントください！間違ってる事書いておくの嫌ですし、他の人達がどう考えているのか知りたいです。&lt;/p&gt;
 
-&lt;h2&gt;見て回ったセッション&lt;/h2&gt;
+&lt;h2 id=&quot;見て回ったセッション&quot;&gt;見て回ったセッション&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;SQLによるバッチ処理とストリーム処理 &lt;a href=&quot;http://www.slideshare.net/tagomoris/hcj2014-sql&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
@@ -858,7 +858,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 &lt;li&gt;並列SQLエンジンPresto - 大規模データセットを高速にグラフ化する方法 &lt;a href=&quot;http://www.slideshare.net/frsyuki/presto-hadoop-conference-japan-2014&quot;&gt;資料&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;思ったこと&lt;/h2&gt;
+&lt;h2 id=&quot;思ったこと&quot;&gt;思ったこと&lt;/h2&gt;
 
 &lt;p&gt;このカンファレンスに出て思ったことが3つある。&lt;/p&gt;
 
@@ -870,7 +870,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;これら思ったことについて順にまとめていく。&lt;/p&gt;
 
-&lt;h2&gt;「大規模データ処理」という言葉の細分化&lt;/h2&gt;
+&lt;h2 id=&quot;「大規模データ処理」という言葉の細分化&quot;&gt;「大規模データ処理」という言葉の細分化&lt;/h2&gt;
 
 &lt;p&gt;今回一連のセッションを聞いていて一番深く感じ入ったのは、タゴモリさんの公演「SQLによるバッチ処理とストリーム処理」に出てきた分類表。&lt;/p&gt;
 
@@ -878,11 +878,11 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;大規模なデータを処理している人たちにとってみたらもはやあたりまえの事なのかもしれないですが、自分の中でこのような分類がなされていなかったため、今後何をどこで使っていくのか、ということを考える際に凄い参考になりました。&lt;/p&gt;
 
-&lt;h4&gt;Batch&lt;/h4&gt;
+&lt;h4 id=&quot;batch&quot;&gt;Batch&lt;/h4&gt;
 
 &lt;p&gt;少し前の時代、大量のデータに対して実行される高いレイテンシを持つ処理(週単位、月単位とか)を、安全確実/自動リカバリ付きでコモディティHW上でも実行できるYARNベースの夜間バッチが「所謂大規模データ処理」のメインストリームだったように思えます。(YARNベース、ちょっと言葉おかしいかもしれないけど、リソース管理、スケジューリング、投機的実行を管理しているのがYARNなのでHiveもJavaやその他言語で書いたMapReduceも含む)。そこで集計されたサマリ値をRDBMSに投入し、日別の実績推移を確認できる。これで今までRDBMSで処理していたバッチ処理というものを、より速く確実にスケールする構成で実行できるようになっていった。これが表のBatch部分。&lt;/p&gt;
 
-&lt;h4&gt;Short Batch (Interactive Query)&lt;/h4&gt;
+&lt;h4 id=&quot;short-batch-(interactive-query)&quot;&gt;Short Batch (Interactive Query)&lt;/h4&gt;
 
 &lt;p&gt;次はShort Batch部分。時代は移り変わり「既存RDBMSで捌ききれなかったような大量データを安全確実に集計処理できる」から一歩進んで「既存RDBMSで捌ききれなかったような大量データを、軽快に、エンジニア以外の人が分析したい」という要望が発生してきている。至極当然な流れで、結局大量のデータを処理するのは、膨大なファクトから商売に対する示唆を得て実際の施策成功精度向上/仮説検証プロセスの高速化であり、事実から示唆を絞り出すのはエンジニアよりも現場で商売を回している人達の方がその商売独自の勘所もある。こういった要望に対して、Hadoopで集計してRDBMSに入れて、というプロセスで対応出来ないことも無い。対応出来ないことも無いけど、ちょっと想定と異なる軸で見ようとすると新規集計バッチを作らなければいけなくなったり、例えばささっと作ったHiveQLを作って流さないといけなかったりする(流石にアドホックにMapReduceを書く事はあまり無いような気がする)。そうなると、Hiveはもともと高いレイテンシ向けの処理用に作られており、JVMの起動、リソース確保、スケジューリング、MapReduceアルゴリズムへの変換、等の処理で起動/実行のオーバーヘッド大きいため、インタラクティブに示唆を！という要望にはあんまりマッチしなかったりするように思う。shibとかがこの領域で頑張っていた雰囲気。&lt;/p&gt;
 
@@ -894,7 +894,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;&lt;a href=&quot;http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/&quot;&gt;MPP on Hadoop, Redshift, BigQuery&lt;/a&gt;&lt;/p&gt;
 
-&lt;h4&gt;Stream Processing&lt;/h4&gt;
+&lt;h4 id=&quot;stream-processing&quot;&gt;Stream Processing&lt;/h4&gt;
 
 &lt;p&gt;最後に表のStream部分。これはInteractive Queryより更に踏み込んでおり、自分もまだ手元に環境作って試せていないのですが、Streamとして送られてくるデータをストレージに書き込む前に集計してしまう代物らしい。ニアリアルタイムとか、5分毎のバッチ、そういう甘い話ではなく、流れてくるデータがストレージに書き込まれる前に集計されて記録される。そしてタゴモリさんが作っているNorikraは、集計の記述にSQLライクな言語を利用できるという。&lt;/p&gt;
 
@@ -908,7 +908,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;次。&lt;/p&gt;
 
-&lt;h2&gt;SQL系のDSLが支配的になってきてる背景&lt;/h2&gt;
+&lt;h2 id=&quot;sql系のdslが支配的になってきてる背景&quot;&gt;SQL系のDSLが支配的になってきてる背景&lt;/h2&gt;
 
 &lt;p&gt;コレはやっぱり感じた。Norikraもそうだけど、ImpalaもPrestoもSQL。Sparkも今までのプログラミングモデル(メソッドチェーン的なヤツ)からSQL系のDSLに乗り換えていく、という話をされていた。&lt;a href=&quot;http://www.infoq.com/jp/news/2014/04/databricks-spark-sql&quot;&gt;DataBricks，Sparkで構造化データを操作するSpark SQLを発表&lt;/a&gt;&lt;/p&gt;
 
@@ -922,7 +922,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;自分はSQLかなり好きなのでこの流れは個人的に嬉しいです。&lt;/p&gt;
 
-&lt;h2&gt;リアルタイムデータ処理の先にあるもの&lt;/h2&gt;
+&lt;h2 id=&quot;リアルタイムデータ処理の先にあるもの&quot;&gt;リアルタイムデータ処理の先にあるもの&lt;/h2&gt;
 
 &lt;p&gt;ココは本当に未来な感じだし、自分もまだよく考えが練れていない。&lt;/p&gt;
 
@@ -938,7 +938,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;「人間の意思決定」を挟まないところには非常に有効だが、リアルタイムに集計されるグラフを見て人がその場で値千金の意思決定を秒速でする、というのは、どうもあまりしっくり来てない。しっくりきてないんだけど、この領域はまだ見ぬ応用方法が色々ありそうでとっても面白そうだなーー、と思いながら新橋から帰りました。&lt;/p&gt;
 
-&lt;h2&gt;まとめ&lt;/h2&gt;
+&lt;h2 id=&quot;まとめ&quot;&gt;まとめ&lt;/h2&gt;
 
 &lt;p&gt;最後になりますが、一ヶ月も経ってなんだよ、という感じではありますが、会場の準備をしてくださった方々、公演してくださった方々、本当にありがとうございました！あの大規模なカンファレンスが無料という奇跡、本当に凄いです。&lt;/p&gt;
 </description>
@@ -984,7 +984,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;分解していきます。&lt;/p&gt;
 
-&lt;h2&gt;Djangoのテストにpy.testを使う&lt;/h2&gt;
+&lt;h2 id=&quot;djangoのテストにpy.testを使う&quot;&gt;Djangoのテストにpy.testを使う&lt;/h2&gt;
 
 &lt;p&gt;以下のライブラリを利用する。
 (なぜpy.testを選択したかは&lt;a href=&quot;http://achiku.github.io/2014/04/04/road-to-django-best-practice.html&quot;&gt;コチラ&lt;/a&gt;)&lt;/p&gt;
@@ -995,7 +995,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。&lt;/p&gt;
 
-&lt;h2&gt;DjangoのテストにWebTestを使う&lt;/h2&gt;
+&lt;h2 id=&quot;djangoのテストにwebtestを使う&quot;&gt;DjangoのテストにWebTestを使う&lt;/h2&gt;
 
 &lt;p&gt;以下のライブラリを利用する。&lt;/p&gt;
 
@@ -1011,7 +1011,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 &lt;li&gt;&lt;a href=&quot;http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/&quot;&gt;Prefer WebTest to Djangos test client for functional tests&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;unittest形式が嫌&lt;/h2&gt;
+&lt;h2 id=&quot;unittest形式が嫌&quot;&gt;unittest形式が嫌&lt;/h2&gt;
 
 &lt;p&gt;そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。&lt;/p&gt;
 
@@ -1019,7 +1019,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 &lt;p&gt;&lt;a href=&quot;https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py&quot;&gt;django-webtest/django_webtest/__init__.py&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango&lt;em&gt;webtest.WebTestMixinというクラスに切りだされ、django&lt;/em&gt;webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
+&lt;p&gt;ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。&lt;/p&gt;
 
 &lt;p&gt;ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。&lt;/p&gt;
 
@@ -1095,7 +1095,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 &lt;li&gt;&lt;a href=&quot;http://mathieu.agopian.info/presentations/2013_09_djangocong/&quot;&gt;PyTest et WebTest&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;おまけ&lt;/h2&gt;
+&lt;h2 id=&quot;おまけ&quot;&gt;おまけ&lt;/h2&gt;
 
 &lt;p&gt;django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。&lt;/p&gt;
 
@@ -1106,7 +1106,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 P12に記載あり&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;まとめ&lt;/h2&gt;
+&lt;h2 id=&quot;まとめ&quot;&gt;まとめ&lt;/h2&gt;
 
 &lt;p&gt;py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。&lt;/p&gt;
 </description>
@@ -1126,13 +1126,13 @@ P12に記載あり&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;http://achiku.github.io/2014/04/07/road-to-django-best-practice.html&quot;&gt;#3 Django Model/View/From/Template戦術&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;書くこと&lt;/h2&gt;
+&lt;h2 id=&quot;書くこと&quot;&gt;書くこと&lt;/h2&gt;
 
 &lt;p&gt;Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。&lt;/p&gt;
 
 &lt;p&gt;あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。&lt;/p&gt;
 
-&lt;h1&gt;前提&lt;/h1&gt;
+&lt;h1 id=&quot;前提&quot;&gt;前提&lt;/h1&gt;
 
 &lt;ul&gt;
 &lt;li&gt;既に本番リリースされてる&lt;/li&gt;
@@ -1146,9 +1146,9 @@ P12に記載あり&lt;/li&gt;
 &lt;li&gt;インフラはAWS(VPC + ELB + EC2 + RDS)&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1&gt;urls.py&lt;/h1&gt;
+&lt;h1 id=&quot;urls.py&quot;&gt;urls.py&lt;/h1&gt;
 
-&lt;h2&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;役割&quot;&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;URLとViewの紐付け&lt;/li&gt;
@@ -1181,9 +1181,9 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  &lt;a href=&quot;https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design&quot;&gt;Django Design Philosophies: URL&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h1&gt;forms.py&lt;/h1&gt;
+&lt;h1 id=&quot;forms.py&quot;&gt;forms.py&lt;/h1&gt;
 
-&lt;h2&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;役割&quot;&gt;役割&lt;/h2&gt;
 
 &lt;p&gt;いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。&lt;/p&gt;
 
@@ -1199,7 +1199,7 @@ P12に記載あり&lt;/li&gt;
 &lt;li&gt;データ登録/編集のロジック(複数モデルを扱いながら)を記述する &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;担うべき役割&lt;/h2&gt;
+&lt;h2 id=&quot;担うべき役割&quot;&gt;担うべき役割&lt;/h2&gt;
 
 &lt;p&gt;まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。&lt;/p&gt;
 
@@ -1208,7 +1208,7 @@ P12に記載あり&lt;/li&gt;
 &lt;li&gt;modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose&lt;em&gt;name, help&lt;/em&gt;textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
+&lt;p&gt;1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。&lt;/p&gt;
 
 &lt;p&gt;「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。&lt;/p&gt;
 
@@ -1236,7 +1236,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://docs.djangoproject.com/en/dev/topics/forms/&quot;&gt;Working with forms&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2 id=&quot;担わない方がいいと思う役割&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;p&gt;&lt;strong&gt;models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)&lt;/strong&gt;&lt;/p&gt;
 
@@ -1258,13 +1258,13 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。&lt;/p&gt;
 
-&lt;h2&gt;Form関連のオススメライブラリ&lt;/h2&gt;
+&lt;h2 id=&quot;form関連のオススメライブラリ&quot;&gt;Form関連のオススメライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-crispy-forms&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h2&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
+&lt;h2 id=&quot;form関連のオススメしないライブラリ&quot;&gt;Form関連のオススメしないライブラリ&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;&lt;a href=&quot;https://github.com/maraujop/django-crispy-forms&quot;&gt;django-bootstrap-toolkit&lt;/a&gt;&lt;/li&gt;
@@ -1273,9 +1273,9 @@ P12に記載あり&lt;/li&gt;
 &lt;p&gt;パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。
 &lt;a href=&quot;https://github.com/dyve/django-bootstrap-toolkit/issues/103&quot;&gt;Performance issue : to many get_template&lt;/a&gt;&lt;/p&gt;
 
-&lt;h1&gt;models.py&lt;/h1&gt;
+&lt;h1 id=&quot;models.py&quot;&gt;models.py&lt;/h1&gt;
 
-&lt;h2&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;役割&quot;&gt;役割&lt;/h2&gt;
 
 &lt;p&gt;ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。&lt;/p&gt;
 
@@ -1293,7 +1293,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://www.martinfowler.com/eaaCatalog/activeRecord.html&quot;&gt;Active Record by Martin Fowler&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2&gt;担うべき役割&lt;/h2&gt;
+&lt;h2 id=&quot;担うべき役割&quot;&gt;担うべき役割&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;1モデルが表現する1テーブルの各属性について責任を持って更新管理する&lt;/li&gt;
@@ -1313,7 +1313,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;strong&gt;1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose&lt;em&gt;name, help&lt;/em&gt;text, Metaクラスは省略してます)。このmodelの属性である、author&lt;em&gt;checkとapprover&lt;/em&gt;checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
+&lt;p&gt;大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -1324,7 +1324,7 @@ P12に記載あり&lt;/li&gt;
     &lt;span class=&quot;n&quot;&gt;date_created&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;date_published&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DateTimeField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blank&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover&lt;em&gt;checkとauthor&lt;/em&gt;checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
+&lt;p&gt;このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -1339,7 +1339,7 @@ P12に記載あり&lt;/li&gt;
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;is_ready_to_publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;author_check&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;approver_check&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;実際にis&lt;em&gt;ready&lt;/em&gt;to&lt;em&gt;publishがTrueならば公開する(≒published属性をTrueに設定、date&lt;/em&gt;publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
+&lt;p&gt;実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TextField&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -1369,7 +1369,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;&lt;a href=&quot;http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/&quot;&gt;Fat Models - A Django Code Organization Strategy&lt;/a&gt;&lt;/p&gt;
 
-&lt;h2&gt;担わない方がいいと思う役割&lt;/h2&gt;
+&lt;h2 id=&quot;担わない方がいいと思う役割&quot;&gt;担わない方がいいと思う役割&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;複数モデルが絡み合うロジック&lt;/li&gt;
@@ -1386,9 +1386,9 @@ P12に記載あり&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738&quot;&gt;肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h1&gt;views.py&lt;/h1&gt;
+&lt;h1 id=&quot;views.py&quot;&gt;views.py&lt;/h1&gt;
 
-&lt;h2&gt;役割&lt;/h2&gt;
+&lt;h2 id=&quot;役割&quot;&gt;役割&lt;/h2&gt;
 
 &lt;ul&gt;
 &lt;li&gt;何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す&lt;/li&gt;
@@ -1400,7 +1400,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;CBVやFBVをどこでどうやって使うべきか、という話は、&lt;a href=&quot;http://pydanny.com/announcing-two-scoops-of-django-1.6.html&quot;&gt;Two Scoops of Django&lt;/a&gt;に非常に詳しく書いてあり、とても参考になった。この本は本当に素晴らしい。&lt;/p&gt;
 
-&lt;h1&gt;Django全体通して&lt;/h1&gt;
+&lt;h1 id=&quot;django全体通して&quot;&gt;Django全体通して&lt;/h1&gt;
 
 &lt;p&gt;最後に、Django全体を通した思想っぽいものを紹介して、Djangoに対する感想など述べながら締めます。&lt;/p&gt;
 
@@ -1434,7 +1434,7 @@ P12に記載あり&lt;/li&gt;
 
 &lt;p&gt;もちろん工夫しだいで複雑にもできる作りになってる。&lt;/p&gt;
 
-&lt;h1&gt;まとめ&lt;/h1&gt;
+&lt;h1 id=&quot;まとめ&quot;&gt;まとめ&lt;/h1&gt;
 
 &lt;p&gt;ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)&lt;/p&gt;
 

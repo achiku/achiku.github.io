@@ -82,7 +82,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <div>
     <p>さる2014/07/08、Hadoop Conference Japan 2014が開催されました。1ヶ月以上もアウトプットできなかった理由はおいといて、基調講演には出れていないのだけれど、いくつか回ったセッションを総合して、感じた事をまとめておきたいと思います。前提として、自分はHadoopの素人且つエンジニア1年目なので、鋭いマサカリ投げられると失禁したまま気絶する事が予想されますが、事実と異なる事書いてしまっていたり、それちがうんじゃねーのか、的な指摘は是非コメントください！間違ってる事書いておくの嫌ですし、他の人達がどう考えているのか知りたいです。</p>
 
-<h2>見て回ったセッション</h2>
+<h2 id="見て回ったセッション">見て回ったセッション</h2>
 
 <ul>
 <li>SQLによるバッチ処理とストリーム処理 <a href="http://www.slideshare.net/tagomoris/hcj2014-sql">資料</a></li>
@@ -92,7 +92,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>並列SQLエンジンPresto - 大規模データセットを高速にグラフ化する方法 <a href="http://www.slideshare.net/frsyuki/presto-hadoop-conference-japan-2014">資料</a></li>
 </ul>
 
-<h2>思ったこと</h2>
+<h2 id="思ったこと">思ったこと</h2>
 
 <p>このカンファレンスに出て思ったことが3つある。</p>
 
@@ -104,7 +104,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>これら思ったことについて順にまとめていく。</p>
 
-<h2>「大規模データ処理」という言葉の細分化</h2>
+<h2 id="「大規模データ処理」という言葉の細分化">「大規模データ処理」という言葉の細分化</h2>
 
 <p>今回一連のセッションを聞いていて一番深く感じ入ったのは、タゴモリさんの公演「SQLによるバッチ処理とストリーム処理」に出てきた分類表。</p>
 
@@ -112,11 +112,11 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>大規模なデータを処理している人たちにとってみたらもはやあたりまえの事なのかもしれないですが、自分の中でこのような分類がなされていなかったため、今後何をどこで使っていくのか、ということを考える際に凄い参考になりました。</p>
 
-<h4>Batch</h4>
+<h4 id="batch">Batch</h4>
 
 <p>少し前の時代、大量のデータに対して実行される高いレイテンシを持つ処理(週単位、月単位とか)を、安全確実/自動リカバリ付きでコモディティHW上でも実行できるYARNベースの夜間バッチが「所謂大規模データ処理」のメインストリームだったように思えます。(YARNベース、ちょっと言葉おかしいかもしれないけど、リソース管理、スケジューリング、投機的実行を管理しているのがYARNなのでHiveもJavaやその他言語で書いたMapReduceも含む)。そこで集計されたサマリ値をRDBMSに投入し、日別の実績推移を確認できる。これで今までRDBMSで処理していたバッチ処理というものを、より速く確実にスケールする構成で実行できるようになっていった。これが表のBatch部分。</p>
 
-<h4>Short Batch (Interactive Query)</h4>
+<h4 id="short-batch-(interactive-query)">Short Batch (Interactive Query)</h4>
 
 <p>次はShort Batch部分。時代は移り変わり「既存RDBMSで捌ききれなかったような大量データを安全確実に集計処理できる」から一歩進んで「既存RDBMSで捌ききれなかったような大量データを、軽快に、エンジニア以外の人が分析したい」という要望が発生してきている。至極当然な流れで、結局大量のデータを処理するのは、膨大なファクトから商売に対する示唆を得て実際の施策成功精度向上/仮説検証プロセスの高速化であり、事実から示唆を絞り出すのはエンジニアよりも現場で商売を回している人達の方がその商売独自の勘所もある。こういった要望に対して、Hadoopで集計してRDBMSに入れて、というプロセスで対応出来ないことも無い。対応出来ないことも無いけど、ちょっと想定と異なる軸で見ようとすると新規集計バッチを作らなければいけなくなったり、例えばささっと作ったHiveQLを作って流さないといけなかったりする(流石にアドホックにMapReduceを書く事はあまり無いような気がする)。そうなると、Hiveはもともと高いレイテンシ向けの処理用に作られており、JVMの起動、リソース確保、スケジューリング、MapReduceアルゴリズムへの変換、等の処理で起動/実行のオーバーヘッド大きいため、インタラクティブに示唆を！という要望にはあんまりマッチしなかったりするように思う。shibとかがこの領域で頑張っていた雰囲気。</p>
 
@@ -128,7 +128,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/">MPP on Hadoop, Redshift, BigQuery</a></p>
 
-<h4>Stream Processing</h4>
+<h4 id="stream-processing">Stream Processing</h4>
 
 <p>最後に表のStream部分。これはInteractive Queryより更に踏み込んでおり、自分もまだ手元に環境作って試せていないのですが、Streamとして送られてくるデータをストレージに書き込む前に集計してしまう代物らしい。ニアリアルタイムとか、5分毎のバッチ、そういう甘い話ではなく、流れてくるデータがストレージに書き込まれる前に集計されて記録される。そしてタゴモリさんが作っているNorikraは、集計の記述にSQLライクな言語を利用できるという。</p>
 
@@ -142,7 +142,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>次。</p>
 
-<h2>SQL系のDSLが支配的になってきてる背景</h2>
+<h2 id="sql系のdslが支配的になってきてる背景">SQL系のDSLが支配的になってきてる背景</h2>
 
 <p>コレはやっぱり感じた。Norikraもそうだけど、ImpalaもPrestoもSQL。Sparkも今までのプログラミングモデル(メソッドチェーン的なヤツ)からSQL系のDSLに乗り換えていく、という話をされていた。<a href="http://www.infoq.com/jp/news/2014/04/databricks-spark-sql">DataBricks，Sparkで構造化データを操作するSpark SQLを発表</a></p>
 
@@ -156,7 +156,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>自分はSQLかなり好きなのでこの流れは個人的に嬉しいです。</p>
 
-<h2>リアルタイムデータ処理の先にあるもの</h2>
+<h2 id="リアルタイムデータ処理の先にあるもの">リアルタイムデータ処理の先にあるもの</h2>
 
 <p>ココは本当に未来な感じだし、自分もまだよく考えが練れていない。</p>
 
@@ -172,7 +172,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>「人間の意思決定」を挟まないところには非常に有効だが、リアルタイムに集計されるグラフを見て人がその場で値千金の意思決定を秒速でする、というのは、どうもあまりしっくり来てない。しっくりきてないんだけど、この領域はまだ見ぬ応用方法が色々ありそうでとっても面白そうだなーー、と思いながら新橋から帰りました。</p>
 
-<h2>まとめ</h2>
+<h2 id="まとめ">まとめ</h2>
 
 <p>最後になりますが、一ヶ月も経ってなんだよ、という感じではありますが、会場の準備をしてくださった方々、公演してくださった方々、本当にありがとうございました！あの大規模なカンファレンスが無料という奇跡、本当に凄いです。</p>
 

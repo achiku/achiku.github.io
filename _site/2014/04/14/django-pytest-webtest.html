@@ -88,7 +88,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>分解していきます。</p>
 
-<h2>Djangoのテストにpy.testを使う</h2>
+<h2 id="djangoのテストにpy.testを使う">Djangoのテストにpy.testを使う</h2>
 
 <p>以下のライブラリを利用する。
 (なぜpy.testを選択したかは<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">コチラ</a>)</p>
@@ -99,7 +99,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。</p>
 
-<h2>DjangoのテストにWebTestを使う</h2>
+<h2 id="djangoのテストにwebtestを使う">DjangoのテストにWebTestを使う</h2>
 
 <p>以下のライブラリを利用する。</p>
 
@@ -115,7 +115,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
 </ul>
 
-<h2>unittest形式が嫌</h2>
+<h2 id="unittest形式が嫌">unittest形式が嫌</h2>
 
 <p>そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。</p>
 
@@ -123,7 +123,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py">django-webtest/django_webtest/__init__.py</a></p>
 
-<p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango<em>webtest.WebTestMixinというクラスに切りだされ、django</em>webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
+<p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
 
 <p>ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。</p>
 
@@ -199,7 +199,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
 </ul>
 
-<h2>おまけ</h2>
+<h2 id="おまけ">おまけ</h2>
 
 <p>django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。</p>
 
@@ -210,7 +210,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 P12に記載あり</li>
 </ul>
 
-<h2>まとめ</h2>
+<h2 id="まとめ">まとめ</h2>
 
 <p>py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。</p>
 

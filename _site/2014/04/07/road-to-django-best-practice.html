@@ -89,13 +89,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li><a href="http://achiku.github.io/2014/04/07/road-to-django-best-practice.html">#3 Django Model/View/From/Template戦術</a></li>
 </ul>
 
-<h2>書くこと</h2>
+<h2 id="書くこと">書くこと</h2>
 
 <p>Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。</p>
 
 <p>あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。</p>
 
-<h1>前提</h1>
+<h1 id="前提">前提</h1>
 
 <ul>
 <li>既に本番リリースされてる</li>
@@ -109,9 +109,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>インフラはAWS(VPC + ELB + EC2 + RDS)</li>
 </ul>
 
-<h1>urls.py</h1>
+<h1 id="urls.py">urls.py</h1>
 
-<h2>役割</h2>
+<h2 id="役割">役割</h2>
 
 <ul>
 <li>URLとViewの紐付け</li>
@@ -144,9 +144,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  <a href="https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design">Django Design Philosophies: URL</a></p>
 </blockquote>
 
-<h1>forms.py</h1>
+<h1 id="forms.py">forms.py</h1>
 
-<h2>役割</h2>
+<h2 id="役割">役割</h2>
 
 <p>いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。</p>
 
@@ -162,7 +162,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>データ登録/編集のロジック(複数モデルを扱いながら)を記述する </li>
 </ul>
 
-<h2>担うべき役割</h2>
+<h2 id="担うべき役割">担うべき役割</h2>
 
 <p>まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。</p>
 
@@ -171,7 +171,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)</li>
 </ol>
 
-<p>1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose<em>name, help</em>textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。</p>
+<p>1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。</p>
 
 <p>「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。</p>
 
@@ -199,7 +199,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="https://docs.djangoproject.com/en/dev/topics/forms/">Working with forms</a></p>
 
-<h2>担わない方がいいと思う役割</h2>
+<h2 id="担わない方がいいと思う役割">担わない方がいいと思う役割</h2>
 
 <p><strong>models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)</strong></p>
 
@@ -221,13 +221,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。</p>
 
-<h2>Form関連のオススメライブラリ</h2>
+<h2 id="form関連のオススメライブラリ">Form関連のオススメライブラリ</h2>
 
 <ul>
 <li><a href="https://github.com/maraujop/django-crispy-forms">django-crispy-forms</a></li>
 </ul>
 
-<h2>Form関連のオススメしないライブラリ</h2>
+<h2 id="form関連のオススメしないライブラリ">Form関連のオススメしないライブラリ</h2>
 
 <ul>
 <li><a href="https://github.com/maraujop/django-crispy-forms">django-bootstrap-toolkit</a></li>
@@ -236,9 +236,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。
 <a href="https://github.com/dyve/django-bootstrap-toolkit/issues/103">Performance issue : to many get_template</a></p>
 
-<h1>models.py</h1>
+<h1 id="models.py">models.py</h1>
 
-<h2>役割</h2>
+<h2 id="役割">役割</h2>
 
 <p>ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。</p>
 
@@ -256,7 +256,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="http://www.martinfowler.com/eaaCatalog/activeRecord.html">Active Record by Martin Fowler</a></p>
 
-<h2>担うべき役割</h2>
+<h2 id="担うべき役割">担うべき役割</h2>
 
 <ul>
 <li>1モデルが表現する1テーブルの各属性について責任を持って更新管理する</li>
@@ -276,7 +276,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><strong>1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ</strong></p>
 
-<p>大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose<em>name, help</em>text, Metaクラスは省略してます)。このmodelの属性である、author<em>checkとapprover</em>checkがTrueになれば公開可能な状態という意味とする。</p>
+<p>大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。</p>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
@@ -287,7 +287,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="n">date_created</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">()</span>
     <span class="n">date_published</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code></pre></div>
 
-<p>このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover<em>checkとauthor</em>checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。</p>
+<p>このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。</p>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
@@ -302,7 +302,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="k">def</span> <span class="nf">is_ready_to_publish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_check</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">approver_check</span></code></pre></div>
 
-<p>実際にis<em>ready</em>to<em>publishがTrueならば公開する(≒published属性をTrueに設定、date</em>publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。</p>
+<p>実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。</p>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
@@ -332,7 +332,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p><a href="http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/">Fat Models - A Django Code Organization Strategy</a></p>
 
-<h2>担わない方がいいと思う役割</h2>
+<h2 id="担わない方がいいと思う役割">担わない方がいいと思う役割</h2>
 
 <ul>
 <li>複数モデルが絡み合うロジック</li>
@@ -349,9 +349,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li><a href="http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738">肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)</a></li>
 </ul>
 
-<h1>views.py</h1>
+<h1 id="views.py">views.py</h1>
 
-<h2>役割</h2>
+<h2 id="役割">役割</h2>
 
 <ul>
 <li>何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す</li>
@@ -363,7 +363,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>CBVやFBVをどこでどうやって使うべきか、という話は、<a href="http://pydanny.com/announcing-two-scoops-of-django-1.6.html">Two Scoops of Django</a>に非常に詳しく書いてあり、とても参考になった。この本は本当に素晴らしい。</p>
 
-<h1>Django全体通して</h1>
+<h1 id="django全体通して">Django全体通して</h1>
 
 <p>最後に、Django全体を通した思想っぽいものを紹介して、Djangoに対する感想など述べながら締めます。</p>
 
@@ -397,7 +397,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>もちろん工夫しだいで複雑にもできる作りになってる。</p>
 
-<h1>まとめ</h1>
+<h1 id="まとめ">まとめ</h1>
 
 <p>ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)</p>
 

@@ -84,13 +84,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>キャプチャは取らない方式でまとめます。</p>
 
-<h2>アカウント作成</h2>
+<h2 id="アカウント作成">アカウント作成</h2>
 
 <p>まずはAWS用のアカウントを作成する。既にAmazonのアカウント持っている人はそのアカウントにAWSアカウントをひもづける事が可能。アカウント作成時に必要なものは住所、電話（アカウント作成時に電話で認証をとっている）、クレジットカード情報。</p>
 
 <p><a href="http://aws.amazon.com/jp/">Amazon Web Service</a></p>
 
-<h2>VPC</h2>
+<h2 id="vpc">VPC</h2>
 
 <p>Amazon Virtual Private Cloudの略。要はいつもオンプレミスでやっているようなNWレイヤでのセキュリティコントロールや、ルーティングやサブネットの分割がAWS上でもできるということ。設定したVPC上にEC2等のAWSオブジェクトを作成していく。また、今回はやらないけど、既存のデータセンターとの間にHardware VPN(IPsec VPN)を使って接続することもできる。うーむ。便利。以下VPCのサイトから引用。</p>
 
@@ -115,7 +115,7 @@ VPC with Public and Private Subnetsを選択。デフォルトの選択のまま
 
 <p>更に先輩は、2つ作ったサブネットの内、一つのデフォゲをInternet Gateway、もう一つのサブネットのデフォゲを自動的に作成したNATに設定してくれる。これでInternet Gatewayがデフォゲに指定されている方がパブリックサブネット、いわゆるDMZ的なものになる。一方で、NATがデフォゲに指定されている方がプライベートサブネット、というくくりになる。</p>
 
-<h2>Bastion Server(EC2)</h2>
+<h2 id="bastion-server(ec2)">Bastion Server(EC2)</h2>
 
 <p>EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。
 この際、踏み台サーバはPublicサブネットに配置する。というか踏み台サーバの事をBastion Host/Serverという事を今日始めて知りました。ばすちょん。</p>
@@ -126,7 +126,7 @@ VPC with Public and Private Subnetsを選択。デフォルトの選択のまま
 
 <div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com</code></pre></div>
 
-<h2>AP Server(EC2)</h2>
+<h2 id="ap-server(ec2)">AP Server(EC2)</h2>
 
 <p>EC2のマネジメントコンソールから新規にEC2インスタンスを作成する。
 この際、APサーバはPrivateサブネットに配置する。VPCをウィザードで作成すると、自動的に10.0.1.0/24がプライベートなサブネット（Default GawtewayがNATインスタンスになってるやつ）になっているっぽい。逆に、10.0.0.0/24がパブリックになっており、Default GatewayにはInternet Gatewayが指定されている。よって、Configuration Instance Detailsから以下の設定を実施する。それ以外はデフォルトで問題なし。プライベートなサブネットに配置するので、Public IPとかは設定しないでよし。ちなみに今回はUbuntu Server 13.10 - ami-b945ddb8を利用。</p>
@@ -136,7 +136,7 @@ VPC with Public and Private Subnetsを選択。デフォルトの選択のまま
 <li>Subnet: subnet-xxxxx(10.0.1.0/24)</li>
 </ul>
 
-<h2>Load Balancer(EC2, ELB)</h2>
+<h2 id="load-balancer(ec2,-elb)">Load Balancer(EC2, ELB)</h2>
 
 <p>EC2ダッシュボードに行くと、左側のNETWORK&amp;SECURITYタグの中にLoad Balancerという項目があるので、ここから新規作成する。</p>
 

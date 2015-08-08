@@ -82,11 +82,11 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <div>
     <p><a href="http://qiita.com/advent-calendar/2014/distributedcomputing">Spark, SQL on Hadoop etc. Advent Calendar 2014</a>の最終日です。</p>
 
-<h2>書くこと</h2>
+<h2 id="書くこと">書くこと</h2>
 
 <p>AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。</p>
 
-<h2>Prestoについて</h2>
+<h2 id="prestoについて">Prestoについて</h2>
 
 <p>Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。</p>
 
@@ -100,7 +100,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。</p>
 
-<h2>shibについて</h2>
+<h2 id="shibについて">shibについて</h2>
 
 <p>PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。</p>
 
@@ -109,7 +109,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>なぜnodeか: <a href="http://d.hatena.ne.jp/tagomoris/20110805/1312536706">Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行</a></li>
 </ul>
 
-<h2>AWS EMRについて</h2>
+<h2 id="aws-emrについて">AWS EMRについて</h2>
 
 <p>AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。</p>
 
@@ -120,7 +120,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>前置きが長くなるとアレなので早速awscliを利用し環境を構築。</p>
 
-<h2>環境概要</h2>
+<h2 id="環境概要">環境概要</h2>
 
 <ul>
 <li>HadoopはEMRを使ってクラスタ起動</li>
@@ -134,9 +134,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる</li>
 </ul>
 
-<h2>構築方法</h2>
+<h2 id="構築方法">構築方法</h2>
 
-<h3>AWS CLIの準備</h3>
+<h3 id="aws-cliの準備">AWS CLIの準備</h3>
 
 <p>CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下</p>
 
@@ -163,7 +163,7 @@ export AWS_DEFAULT_PROFILE=development
 source aws_zsh_completer.sh
 EOF
 </code></pre></div>
-<h3>S3に必要なプログラムを配置</h3>
+<h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
 
 <p>2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。</p>
 
@@ -185,7 +185,7 @@ $ unzip v0.3.8.zip &amp;&amp; mv shib-0.3.8 shib
 $ tar cvfz shib.tar.gz shib
 $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 </code></pre></div>
-<h3>S3に必要な設定ファイルを配置</h3>
+<h3 id="s3に必要な設定ファイルを配置">S3に必要な設定ファイルを配置</h3>
 
 <p>shibがPrestoにクエリするための設定ファイル。</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">var servers = exports.servers = {
@@ -212,11 +212,11 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 };
 </code></pre></div><div class="highlight"><pre><code class="language-text" data-lang="text">$ aws s3 cp shib-config.js s3://yourbucket/libs/
 </code></pre></div>
-<h3>S3に必要なBootstrap Actionを配置</h3>
+<h3 id="s3に必要なbootstrap-actionを配置">S3に必要なBootstrap Actionを配置</h3>
 
 <p>Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。</p>
 
-<h4>PrestoのBootstrap Action</h4>
+<h4 id="prestoのbootstrap-action">PrestoのBootstrap Action</h4>
 
 <p>こちらのAWS Labリポジトリにあるので流用します。</p>
 
@@ -229,7 +229,7 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 <div class="highlight"><pre><code class="language-text" data-lang="text">$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
 $ aws s3 cp install-presto.rb s3://yourbucket/libs/
 </code></pre></div>
-<h4>shibのBootstrap Action</h4>
+<h4 id="shibのbootstrap-action">shibのBootstrap Action</h4>
 
 <p>shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。</p>
 
@@ -258,7 +258,7 @@ aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
 <p>これも同様にS3にあげる。</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">$ aws s3 cp install-shib.sh s3://yourbucket/libs/
 </code></pre></div>
-<h3>AWS CLIでクラスタ立ち上げ</h3>
+<h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
 
 <ul>
 <li>create-cluster.sh</li>
@@ -321,9 +321,9 @@ aws emr create-cluster --ami-version 3.3.1 \
   }
 ]
 </code></pre></div>
-<h2>Shib/Hueアクセス方法</h2>
+<h2 id="shib/hueアクセス方法">Shib/Hueアクセス方法</h2>
 
-<h3>FoxyProxyとSSHトネリングを利用</h3>
+<h3 id="foxyproxyとsshトネリングを利用">FoxyProxyとSSHトネリングを利用</h3>
 
 <p>FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。</p>
 
@@ -349,24 +349,24 @@ aws emr create-cluster --ami-version 3.3.1 \
 <p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
 
 <ul>
-<li>http://youremrhost.compute.amazonaws.com:3000</li>
+<li><a href="http://youremrhost.compute.amazonaws.com:3000">http://youremrhost.compute.amazonaws.com:3000</a></li>
 </ul>
 
 <p>また、以下のURLにアクセスするとHueにアクセスできます。</p>
 
 <ul>
-<li>http://youremrhost.compute.amazonaws.com:8888</li>
+<li><a href="http://youremrhost.compute.amazonaws.com:8888">http://youremrhost.compute.amazonaws.com:8888</a></li>
 </ul>
 
-<h3>AWS SecurityGroupを変更</h3>
+<h3 id="aws-securitygroupを変更">AWS SecurityGroupを変更</h3>
 
 <p>EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。</p>
 
-<h2>パフォーマンス</h2>
+<h2 id="パフォーマンス">パフォーマンス</h2>
 
 <p>パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。</p>
 
-<h2>終わりに</h2>
+<h2 id="終わりに">終わりに</h2>
 
 <p>いかがでしたでしょうか。
 PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。

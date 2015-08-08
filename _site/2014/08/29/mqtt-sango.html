@@ -91,7 +91,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。</p>
 
-<h3>sub.py</h3>
+<h3 id="sub.py">sub.py</h3>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="kn">as</span> <span class="nn">mqtt</span>
@@ -121,7 +121,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">keepalive</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
     <span class="n">client</span><span class="o">.</span><span class="n">loop_forever</span><span class="p">()</span></code></pre></div>
 
-<h3>pub.py</h3>
+<h3 id="pub.py">pub.py</h3>
 
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="kn">as</span> <span class="nn">mqtt</span>

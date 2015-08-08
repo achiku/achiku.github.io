@@ -89,15 +89,15 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li><a href="http://achiku.github.io/2014/04/07/road-to-django-best-practice.html">#3 Django Model/View/From/Template戦術</a></li>
 </ul>
 
-<h2>書くこと</h2>
+<h2 id="書くこと">書くこと</h2>
 
 <p>Django Best Practiceへの道の続きで、Djangoテスト戦術について書きます。Djangoでテストをする際に、どうしたら効率的に書けるか、メンテナンスしやすくなるか、ということに焦点を置いて書きます。</p>
 
-<h2>書かないこと</h2>
+<h2 id="書かないこと">書かないこと</h2>
 
 <p>テストをするべき、テストはいらない、どこまではするべき、といった類の話は書きません。する、しない、いまはしない、どこまではする、は各チームや開発者がその時置かれているコンテクストに非常に強く依存している為、閾値的なものや考え方を書くのは非常に難儀だなぁ、というのが素直なところです。それよりもテストするのが少しでも楽になり、どのようなコンテクストでも、取れる選択肢の幅が広がる方法を書きたいです。</p>
 
-<h1>前提</h1>
+<h1 id="前提">前提</h1>
 
 <ul>
 <li>既に本番リリースされてる</li>
@@ -111,47 +111,47 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <li>インフラはAWS(VPC + ELB + EC2 + RDS)</li>
 </ul>
 
-<h1>何をテストすべきか</h1>
+<h1 id="何をテストすべきか">何をテストすべきか</h1>
 
 <p>作っているのはDjango前提のWebサービスという前提で、テストすべきものをいくつかのグループに分けて考えてみました。テスト対象を明確にすることで、「どこにテストを書けばいいのか」、「何をテストすればいいのか」と迷わずにテストに着手できるようになるかなと思います。テスト対象の構成が上の方ほど単純で下に行くほど複雑になります(下に行くほどテストするまでにリクエスト/レスポンスが通るレイヤーが多い)</p>
 
-<h2>関数レベル(Python)</h2>
+<h2 id="関数レベル(python)">関数レベル(Python)</h2>
 
 <p>可能な限り少ないブランチの関数レベルテスト。テストするのは各クラスのメソッドor関数内分岐レベル。最小粒度のテスト。</p>
 
-<h3>テスト用ファイル名</h3>
+<h3 id="テスト用ファイル名">テスト用ファイル名</h3>
 
-<p>test<em>models.py, test</em>forms.py, etc</p>
+<p>test_models.py, test_forms.py, etc</p>
 
-<h2>関数レベル(JS)</h2>
+<h2 id="関数レベル(js)">関数レベル(JS)</h2>
 
 <p>JSの関数レベルテスト。自分が担当している範囲ではココをテストしなければならない部分は存在しないため、特に対応はしていないのであまり書ける事がない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です。BusterJS、JsTestDriver利用か。</p>
 
-<h3>テスト用ファイル名</h3>
+<h3 id="テスト用ファイル名">テスト用ファイル名</h3>
 
 <p>未定</p>
 
-<h2>URLルーティングレベル</h2>
+<h2 id="urlルーティングレベル">URLルーティングレベル</h2>
 
 <p>URLのルーティング、ステータスコード、HTTPレスポンス内の文字列をテスト。正直2軍感はあるけど一応書いとくか、くらい。業界ではsmoke testと呼ばれることもあるらしい。テスト書く時間がない場合に、一応動いてる事だけ保証する時に使ったりする。Djangoについてる権限モジュール(django.contrib.auth.decorators, django.contrib.admin.views.decorators)をそのまま使うと権限ない場合に403が返らずに、Adminのログイン画面にリダイレクトされるので注意が必要。</p>
 
-<h3>テスト用ファイル名</h3>
+<h3 id="テスト用ファイル名">テスト用ファイル名</h3>
 
 <p>test_urls.py</p>
 
-<h2>機能レベル</h2>
+<h2 id="機能レベル">機能レベル</h2>
 
 <p>複数の関数を集めて、URLでルーティングさせた先が機能、と考えてる。例えば、「ブログ記事編集」、「コメンツ追加」、みたいな粒度のもの。各機能別テストデータセット別のテストを書く。</p>
 
-<h3>テスト用ファイル名</h3>
+<h3 id="テスト用ファイル名">テスト用ファイル名</h3>
 
-<p>test<em>[app</em>name].py</p>
+<p>test_[app_name].py</p>
 
-<h2>ブラウザレベル</h2>
+<h2 id="ブラウザレベル">ブラウザレベル</h2>
 
 <p>JS経由でリクエストされる際の機能テスト。seleniumを利用して実際にブラウザからテストする。現在自分が担当している部分ではほぼ存在しない。moquada氏担当の部分はココがかなり肝になっているので、テストリファクタが終わったら何かまとめておいて貰う予定です(大事な事なので2度言いました)。</p>
 
-<h3>テスト用ファイル名</h3>
+<h3 id="テスト用ファイル名">テスト用ファイル名</h3>
 
 <p>test_browser.py</p>
 
@@ -189,13 +189,13 @@ One assert/action per test case method.
 <li><a href="https://pycon-2012-notes.readthedocs.org/en/latest/fast_tests_slow_tests.html">Faste test, slow test Note</a></li>
 </ul>
 
-<h1>どうテストするのか</h1>
+<h1 id="どうテストするのか">どうテストするのか</h1>
 
 <p>「何を」テストするのか、が明確にした後、次は「どうやって」テストするのかの話をします。その為にまず、テストに求めるものを洗い出し、テストに利用するツールとテストの書き方が、それらの要件を満たすように設計していきました。</p>
 
 <p>一旦今Djangoアプリのツールとして何を利用しているか列挙。</p>
 
-<h2>全レベル共通</h2>
+<h2 id="全レベル共通">全レベル共通</h2>
 
 <ul>
 <li>py.test</li>
@@ -207,21 +207,21 @@ One assert/action per test case method.
 <li>PyHamcrest</li>
 </ul>
 
-<h2>機能レベル</h2>
+<h2 id="機能レベル">機能レベル</h2>
 
 <ul>
 <li>WebTest</li>
 <li>django-webtest</li>
 </ul>
 
-<h2>ブラウザレベル</h2>
+<h2 id="ブラウザレベル">ブラウザレベル</h2>
 
 <ul>
 <li>selenium</li>
 <li>django-selenium</li>
 </ul>
 
-<h1>テストに求めるもの</h1>
+<h1 id="テストに求めるもの">テストに求めるもの</h1>
 
 <ul>
 <li>テスト実行スピードが速い</li>
@@ -233,11 +233,11 @@ One assert/action per test case method.
 
 <p>順に解説していきます。</p>
 
-<h2>テスト実行スピードが速い</h2>
+<h2 id="テスト実行スピードが速い">テスト実行スピードが速い</h2>
 
 <p>細かくテストを実行する習慣をつけるには、テスト開始から終了までの時間が短ければ短い程いいです。1回ファイル編集して全てのテスト通すまでに数十分とかかかるのはやめたい。それだと誰もテスト実行しなくなってしまう。一応弊社ではGitHubにプッシュした際にCIサーバで全テストを流すようにしているので大きな問題にはならないはずですが、今後テストが増えてきた時のためにも、ローカルで全テストを流してもなるべく早く終わるようにしておきたい。</p>
 
-<h3>設定的工夫</h3>
+<h3 id="設定的工夫">設定的工夫</h3>
 
 <p>ローカルマシンでテスト実行する場合はローカルテスト専用設定を使うようにしています。
 <a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">詳細はコチラ</a></p>
@@ -258,7 +258,7 @@ One assert/action per test case method.
 <li><a href="http://carljm.github.io/django-testing-slides/#1">Testing and Django</a></li>
 </ul>
 
-<h3>コード的工夫</h3>
+<h3 id="コード的工夫">コード的工夫</h3>
 
 <ul>
 <li>兎に角I/Oを避ける。DBに触れないcustom filters/forms/utils等のテストはDBを作らない。
@@ -282,7 +282,7 @@ One assert/action per test case method.
 <li><a href="http://carljm.github.io/django-testing-slides/#1">Testing and Django</a></li>
 </ul>
 
-<h2>同一処理別データパターンのテストを効率良く書ける</h2>
+<h2 id="同一処理別データパターンのテストを効率良く書ける">同一処理別データパターンのテストを効率良く書ける</h2>
 
 <p>以下箇条書きでなぜコレを求めているのかを列挙します。</p>
 
@@ -294,7 +294,7 @@ One assert/action per test case method.
 
 <p>結構データだけ変えて同じ処理を流したいというケースって多い気がします。例えばバッチのコミット件数の閾値や、UIからの入力項目、URLのルーティングで200が返ってくることを確認したいだけのテスト等。そんな時にはコピペで対応、という事もできますし、コンテクストによってはそれも許容する場合はあると思いますが、正直めんどくさくて嫌です。</p>
 
-<h3>工夫</h3>
+<h3 id="工夫">工夫</h3>
 
 <ul>
 <li>py.testのparametrizeアノテーションを利用</li>
@@ -382,7 +382,7 @@ parametrized-testcase by Austin Bingham
 
 <p><a href="http://achiku.github.io/2014/04/14/django-pytest-webtest.html">補足編書きました</a></p>
 
-<h2>プログラム本体のコードが変更された際にも追従しやすい</h2>
+<h2 id="プログラム本体のコードが変更された際にも追従しやすい">プログラム本体のコードが変更された際にも追従しやすい</h2>
 
 <ul>
 <li>データセットアップの際にfixtureではなくfactory_boyを利用</li>
@@ -390,7 +390,7 @@ parametrized-testcase by Austin Bingham
 
 <p>Djangoのfixture遅いしメンテナンスめんどくさいのでfactory_boyを利用して各テストケースに必要な分だけレコードを作成してテスト実行しています。この部分は正直まだまだ工夫の余地があるなぁという印象。もう少し時間がたったら書いてきたテストを見なおしてリファクタして行く際にまた工夫が生まれればいいなと思ってます。</p>
 
-<h2>debugしやすい</h2>
+<h2 id="debugしやすい">debugしやすい</h2>
 
 <ul>
 <li>py.testを利用</li>
@@ -405,7 +405,7 @@ parametrized-testcase by Austin Bingham
 <li><a href="http://blog.comutt.jp/entry/2013/12/03/230000">TDD Advent Calendar 2013 3日目: vim と py.test で TDD</a></li>
 </ul>
 
-<h2>テストカバレッジが見れる</h2>
+<h2 id="テストカバレッジが見れる">テストカバレッジが見れる</h2>
 
 <ul>
 <li>py.testのカバレッジプラグインを利用</li>
@@ -417,7 +417,7 @@ parametrized-testcase by Austin Bingham
 <li><a href="http://www.sakito.com/2012/09/pytest-pep8-coverage.html">py.test で pep8 と coverage を同時にチェックする</a></li>
 </ul>
 
-<h1>まとめ</h1>
+<h1 id="まとめ">まとめ</h1>
 
 <p>今回はだいぶ概念的な話がおおくなってしまいました。。本当はもっとゴリッとしたテストセットアップ方法の工夫や、WebTestとpy.testの連携や、conftest.pyの配置と役割、とかを書きたかったのですが、今回は一旦ココまでとします。</p>
 
