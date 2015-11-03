@@ -69,7 +69,7 @@
 
 &lt;p&gt;それぞれ、Golangが持っている&lt;code&gt;goroutine&lt;/code&gt;、&lt;code&gt;channel&lt;/code&gt;、&lt;code&gt;select&lt;/code&gt;という機能で実現できるようになっているので、以下それぞれ詳細について書く。&lt;/p&gt;
 
-&lt;h3 id=&quot;独立して処理を動かす仕組み(gorutine)&quot;&gt;独立して処理を動かす仕組み(Gorutine)&lt;/h3&gt;
+&lt;h3 id=&quot;独立して処理を動かす仕組み(goroutine)&quot;&gt;独立して処理を動かす仕組み(Goroutine)&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://talks.golang.org/2012/waza.slide#31&quot;&gt;Concurrency is not Parallelism p.31&lt;/a&gt;&lt;/p&gt;
 
