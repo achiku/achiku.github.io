@@ -20,8 +20,8 @@ comments : True
 source:      .
 excerpt_separator: "。"
 destination: ./_site
-plugins:     ./_plugins
-layouts:     ./_layouts
+plugins_dir: ./_plugins
+layouts_dir: ./_layouts
 include:     ['.htaccess']
 exclude:     []
 gems:        []
@@ -31,8 +31,6 @@ encoding:    nil
 future:      true
 show_drafts: nil
 limit_posts: 0
-
-relative_permalinks: true
 
 permalink:     date
 paginate_path: 'page:num'

@@ -86,7 +86,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。</p>
 
-<div class="highlight"><pre><code class="language-basemake" data-lang="basemake"><span class="nv">ORAHOME</span> <span class="o">=</span> <span class="k">${</span><span class="nv">ORACLE_HOME</span><span class="k">}</span>
+<figure class="highlight"><pre><code class="language-basemake" data-lang="basemake"><span class="nv">ORAHOME</span> <span class="o">=</span> <span class="k">${</span><span class="nv">ORACLE_HOME</span><span class="k">}</span>
 <span class="nv">OBJS</span> <span class="o">=</span> chcsv.o sqlda.o Option.o OutPut.o Signal.o
 
 <span class="nf">build </span><span class="o">:</span> <span class="n">chcsv</span>
@@ -112,7 +112,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
   proc <span class="nv">$&lt;</span>
 
 <span class="nf">clean</span><span class="o">:</span>
-  /bin/rm -f *.o *.c *.lis chcsv</code></pre></div>
+  /bin/rm -f *.o *.c *.lis chcsv</code></pre></figure>
 
 </div>
 <div class="post-sharing">

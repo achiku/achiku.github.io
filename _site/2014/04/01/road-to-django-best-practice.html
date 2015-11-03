@@ -286,7 +286,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>common.py以外は大体以下のような形になってます。</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">core.settings.common</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 
 <span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
@@ -306,7 +306,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">core.settings.local</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c"># NOQA</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">pass</span></code></pre></div>
+    <span class="k">pass</span></code></pre></figure>
 
 <p>以下若干わかりにくそうな部分を解説します。</p>
 
@@ -334,7 +334,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 <li><a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</li>
 </ul>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c">#!/usr/bin/env python</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
@@ -343,7 +343,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 
     <span class="kn">from</span> <span class="nn">django.core.management</span> <span class="kn">import</span> <span class="n">execute_from_command_line</span>
 
-    <span class="n">execute_from_command_line</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span></code></pre></div>
+    <span class="n">execute_from_command_line</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span></code></pre></figure>
 
 <p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。</p>
 <div class="highlight"><pre><code class="language-text" data-lang="text">export DJANGO_SETTINGS_MODULE=core.config.staging

@@ -90,7 +90,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>おおおおおお。シェルでも関数プログラミング的に書けるんだ。</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#! /bin/bash</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#! /bin/bash</span>
 
 <span class="k">function</span> rec <span class="o">{</span>
     <span class="k">for</span> FILE in <span class="sb">`</span>ls <span class="k">${</span><span class="nv">2</span><span class="k">}</span><span class="sb">`</span>
@@ -102,7 +102,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
         <span class="k">done</span>
 <span class="o">}</span>
 
-rec <span class="nv">$1</span> <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/<span class="k">${</span><span class="nv">2</span><span class="k">}</span></code></pre></div>
+rec <span class="nv">$1</span> <span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/<span class="k">${</span><span class="nv">2</span><span class="k">}</span></code></pre></figure>
 
 <p>これを読んで一人感動した。関数プログラミングをもう少し深く理解した気分になった。上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。「関数プログラミングは拡張性・再利用性の高いものが書きやすい」ってのをほんの少し（たぶん自分が思っているよりもだいぶほんの少し）体感した気がする。</p>
 

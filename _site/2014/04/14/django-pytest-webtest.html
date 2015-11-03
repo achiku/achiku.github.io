@@ -127,7 +127,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">django_webtest</span> <span class="kn">import</span> <span class="n">WebTestMixin</span>
 
 
@@ -135,13 +135,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="n">wt</span> <span class="o">=</span> <span class="n">WebTestMixin</span><span class="p">()</span>
     <span class="n">wt</span><span class="o">.</span><span class="n">_patch_settings</span><span class="p">()</span>
     <span class="n">wt</span><span class="o">.</span><span class="n">renew_app</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">wt</span><span class="o">.</span><span class="n">app</span></code></pre></div>
+    <span class="k">return</span> <span class="n">wt</span><span class="o">.</span><span class="n">app</span></code></pre></figure>
 
 <p>前回掲載したURLに対するGETのスモークテストのサンプルでいくと、</p>
 
 <p><em>apps/appA/tests/conftest.py</em></p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">from</span> <span class="nn">django_webtest</span> <span class="kn">import</span> <span class="n">WebTestMixin</span>
 <span class="kn">from</span> <span class="nn">tests.factories</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AdminUserFactory</span><span class="p">,</span> <span class="n">NormalUserFactory</span><span class="p">,</span>
@@ -160,11 +160,11 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="k">return</span> <span class="p">{</span>
         <span class="s">&#39;admin&#39;</span><span class="p">:</span> <span class="n">admin</span><span class="p">,</span>
         <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">user</span>
-    <span class="p">}</span></code></pre></div>
+    <span class="p">}</span></code></pre></figure>
 
 <p><em>apps/appA/tests/test_url.py</em></p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">pytest</span>
 <span class="kn">from</span> <span class="nn">hamcrest</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">assert_that</span><span class="p">,</span> <span class="n">contains_string</span><span class="p">,</span> <span class="n">equal_to</span><span class="p">,</span>
@@ -189,7 +189,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <span class="k">def</span> <span class="nf">test_coupon_urls</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">users</span><span class="p">,</span> <span class="n">login_user</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="p">):</span>
     <span class="n">resp</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">users</span><span class="p">[</span><span class="n">login_user</span><span class="p">])</span>
     <span class="n">assert_that</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="n">equal_to</span><span class="p">(</span><span class="n">status_code</span><span class="p">))</span>
-    <span class="n">assert_that</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">contains_string</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></code></pre></div>
+    <span class="n">assert_that</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="n">contains_string</span><span class="p">(</span><span class="n">message</span><span class="p">))</span></code></pre></figure>
 
 <p>シンプル！</p>
 

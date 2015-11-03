@@ -106,9 +106,9 @@ error: command &#39;cc&#39; failed with exit status 1
 
 <p>結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>brew install freetype
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>brew install freetype
 <span class="nv">$ </span>ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
-<span class="nv">$ </span>pip install PIL</code></pre></div>
+<span class="nv">$ </span>pip install PIL</code></pre></figure>
 
 <h2 id="参考/こんなになった経緯等">参考/こんなになった経緯等</h2>
 

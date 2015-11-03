@@ -278,18 +278,18 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
     <span class="n">author</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_lenght</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">author_check</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">()</span>
     <span class="n">approver_check</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">()</span>
     <span class="n">published</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">()</span>
     <span class="n">date_created</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">()</span>
-    <span class="n">date_published</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code></pre></div>
+    <span class="n">date_published</span> <span class="o">=</span> <span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code></pre></figure>
 
 <p>このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
     <span class="n">author</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_lenght</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">author_check</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">()</span>
@@ -300,11 +300,11 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_ready_to_publish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_check</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">approver_check</span></code></pre></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_check</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">approver_check</span></code></pre></figure>
 
 <p>実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Article</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">body</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">()</span>
     <span class="n">author</span> <span class="o">=</span> <span class="n">CharField</span><span class="p">(</span><span class="n">max_lenght</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="n">author_check</span> <span class="o">=</span> <span class="n">BooleanField</span><span class="p">()</span>
@@ -324,7 +324,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
             <span class="bp">self</span><span class="o">.</span><span class="n">published</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">date_published</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NotPublishableException</span><span class="p">()</span></code></pre></div>
+            <span class="k">raise</span> <span class="n">NotPublishableException</span><span class="p">()</span></code></pre></figure>
 
 <p>色々いじってみて、Django ORMにおいては1モデル1テーブル、1インスタンス1レコードという概念を念頭に置いた方がいい気がしている。各レコード毎の属性はmodelに、各レコード毎に既存レコードから導出できる属性はmodelに、各レコード毎の属性の値によって処理が変わり、且つその処理がタッチするのが当該モデルに閉じる場合はmodelのメソッドに、といった感じ。</p>
 

@@ -7,6 +7,283 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Golangへの道 #2</title>
+				<description>&lt;p&gt;前回から大分時間が経ってしまったけど書く。もはやイマサラ感ありまくりだけど、今回は以前勉強したGolangの並行(concurrency)と並列(parallelism)について。&lt;/p&gt;
+
+&lt;h2 id=&quot;tl;dr&quot;&gt;TL;DR&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;並行と並列は別物だよ&lt;/li&gt;
+&lt;li&gt;Golangは標準機能で処理に並行性を持たせるように組み、且つ並列で実行しやすいよ&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;並行と並列は別物&quot;&gt;並行と並列は別物&lt;/h2&gt;
+
+&lt;p&gt;とにかく以下の資料が最強に分かりやすい。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.golang.org/concurrency-is-not-parallelism&quot;&gt;Concurrency is not parallelism&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://talks.golang.org/2012/concurrency.slide#1&quot;&gt;Go Concurrency Patterns&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;自分で咀嚼できているか確認する為、以下簡単に説明をしてみる。間違ってるかもしれないのでコメント歓迎。&lt;/p&gt;
+
+&lt;p&gt;「並行性がある」というのはどういう状態かというと、各々独立して実行できる処理群が互いにコミュニケーションしながら処理を実行可能な状態、と言える。以下資料の中で一番しっくりきた言葉。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Concurrency is a way to structure a program by breaking it into pieces that can be executed independently.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;並行性とは、各処理を分割し独立に実行可能なプログラムの構造の事、とでも訳せば良いのか。大切なのは「プログラムの構造」の話であって、実際の処理が同時に行えているかどうか(並列性)とは異なるという事。以下のGopherが本を運んで炉で燃やすという処理の例がとてもわかりやすかった。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://talks.golang.org/2012/waza.slide#12&quot;&gt;Gopher moving obsolete language manuals to the incinerator p.12&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;1匹(?)のGopherがカートを使って本を炉に運んで燃やす、という処理にどうやったら「並行性」を持たせれるか、という観点で例が進んでいく。この例を辿って行くと確かに並行性というのは「問題をどうやって解くか」という事に近く、なんとなく同時に実行できるって事なんだろ的な雑い感じからは遠ざかる。そして上手い問題の解き方を構築することができれば(例えば複数のGopher達で役割分担すれば)、そしてそれらを独立してで実行できる計算リソースがあれば、本をカートで運んで炉で燃やすという処理をより早く行う事ができる。&lt;/p&gt;
+
+&lt;p&gt;今回のGopherが本を処分していく例をWebのシステムに当てはめてみると、GopherがCPUで本の山がウェブコンテンツ、カートがマーシャリングやレンダリングもしくはネットワーキングで炉がプロキシやらブラウザやら他のコンシューマー、といった形。&lt;/p&gt;
+
+&lt;p&gt;並行性を持たせるようにプログラムを構築することができたのならば、それぞれの処理を独立して並列に走らす事で目指す結果を素早く達成できる、って事らしい。以下の一文がとても良くサマリされていて、「並行と並列ってどっちがどっちだっけな」と迷った時に思い出す事にしている。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Concurrency is about structure, parallelism is about execution.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;意訳すると、「並行性とは構造/デザインであり、並列性とは実行の事である」的な感じか。英語だとconcurrencyとparallelismとなり、明確に単語が異なるので分かりやすいけど、日本語にすると平行と並列ってなるので覚えにくい。&lt;/p&gt;
+
+&lt;h2 id=&quot;golangで並行と並列を実現する仕組み&quot;&gt;Golangで並行と並列を実現する仕組み&lt;/h2&gt;
+
+&lt;p&gt;上は結構抽象的な話になってしまっているので、ここから具体的にコードを書きながらGolangのどのような機能が並行と並列を実現しやすくしているのか説明してみる。一番最初に並行性を持つということはどういうことか、という事を書いたけど以下再掲。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;「並行性がある」というのはどういう状態かというと、各々独立して実行できる処理群が互いにコミュニケーションしながら処理を実行可能な状態、と言える。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;つまり、これらを行うためには少なくとも以下の機能が必要になる。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;独立した処理を複数実行できる&lt;/li&gt;
+&lt;li&gt;独立した処理群が互いに連携できる&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;それぞれ、Golangが持っている&lt;code&gt;goroutine&lt;/code&gt;、&lt;code&gt;channel&lt;/code&gt;、&lt;code&gt;select&lt;/code&gt;という機能で実現できるようになっているので、以下それぞれ詳細について書く。&lt;/p&gt;
+
+&lt;h3 id=&quot;独立して処理を動かす仕組み(gorutine)&quot;&gt;独立して処理を動かす仕組み(Gorutine)&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://talks.golang.org/2012/waza.slide#31&quot;&gt;Concurrency is not Parallelism p.31&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A goroutine is a function running independently in the same address space as other goroutines&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Goroutineはスレッドとは違う。リソースもそんなに食わずに1スレッドの中に数百から数千のGoroutineを走らせる事もできるとの事。詳細な内部構造についてはあまり理解していないのだけど、一旦コードを書きながら話を進める。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;fmt&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;math/rand&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Intn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Millisecond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello, &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;!&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;UnixNano&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;8maki&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;moqada&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ide&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;range&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;done!&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;上のコードでは&lt;code&gt;helloAPI&lt;/code&gt;という英語で軽く挨拶をしてくれるAPIのモックが定義されており、これを&lt;code&gt;main&lt;/code&gt;関数内で上から順番に実行する。&lt;code&gt;helloAPI&lt;/code&gt;の中にはレスポンスタイムのブレを表現するためにランダムにsleepしてから文字列を返すようにしてある。実行結果は以下。確かに順番に挨拶してくれている。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Hello, 8maki!
+Hello, moqada!
+Hello, ide!
+done!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;APIのコールは互いに独立なので並列(parallel)に実行したいのでここでgoroutineを使う。&lt;code&gt;helloAPI&lt;/code&gt;を呼び出す前に&lt;code&gt;go&lt;/code&gt;を付けるだけ。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;UnixNano&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;8maki&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;moqada&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ide&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;range&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;done!&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;以下実行結果。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;done!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;なんかおかしいのもその通り、&lt;code&gt;go&lt;/code&gt;を付けることで&lt;code&gt;helloAPI&lt;/code&gt;はメインスレッドとは切り離されて実行されているので、&lt;code&gt;helloAPI&lt;/code&gt;が結果を表示する前にメインスレッドが完了してしまっている。強引に&lt;code&gt;helloAPI&lt;/code&gt;の結果を標準出力に出そうとするのならば&lt;code&gt;main&lt;/code&gt;の中でsleepしてやるしかない。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;UnixNano&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;8maki&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;moqada&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ide&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;range&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Second&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;done!&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実行結果は以下の通りで&lt;code&gt;helloAPI&lt;/code&gt;の結果を出力できた。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Hello, 8maki!
+Hello, moqada!
+Hello, ide!
+done!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;このように&lt;code&gt;go&lt;/code&gt;を関数の前に付けることで処理を独立に実行できる。&lt;code&gt;go&lt;/code&gt;は関数だけじゃなくてコードのブロックや無名関数にも適用できる便利な道具だ。ただし、上で見たように「処理を独立して実行する」仕組みであるだけであり、雑に例えるならばシェルにアンパサンド付けて実行するのと同じような感じでしかない。&lt;/p&gt;
+
+&lt;p&gt;見ての通り上のプログラムはあまりにもナイーブだ。&lt;code&gt;helloAPI&lt;/code&gt;が過負荷でレスポンス返すのに時間がかかっていたらどうするのか、挨拶する対象のユーザが増えたらどうするのか、とにかく処理に1秒以上かかったら正しく動作しない。かと言って30秒待つのはあまりに非効率だし、そうなるとどこかで足切りの基準を設けてそれ以上時間がかかったらエラー通知して処理を進める、とかになるがまぁわかりにくい。&lt;/p&gt;
+
+&lt;p&gt;そんなわけで、プログラムに並行性を持たせ独立な処理を組み合わせて処理を進めるには、独立した処理がお互いに(今回の場合は&lt;code&gt;main&lt;/code&gt;と&lt;code&gt;helloAPI&lt;/code&gt;)連携できる仕組みが必要になってくる。それが次に紹介する&lt;code&gt;channel&lt;/code&gt;という仕組み。&lt;/p&gt;
+
+&lt;h3 id=&quot;独立して動く処理が互いに連携する仕組み(channel)&quot;&gt;独立して動く処理が互いに連携する仕組み(Channel)&lt;/h3&gt;
+
+&lt;p&gt;&lt;code&gt;channel&lt;/code&gt;はGolangの中で「独立して動く処理が互いに連携する仕組み」という立ち位置だと認識している。どうやって独立した処理を連携させるかというと、イメージとしては処理同士がデータを受け渡しする経路を作ってやる、という感じ。ちょっと長いけどとりあえずコード。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;fmt&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;math/rand&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Intn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Millisecond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello, &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;!&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;8maki&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;moqada&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ide&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;range&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;You say: %q\n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;done!&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実行結果。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;You say: &amp;quot;Hello, 8maki!&amp;quot;
+You say: &amp;quot;Hello, moqada!&amp;quot;
+You say: &amp;quot;Hello, achiku!&amp;quot;
+You say: &amp;quot;Hello, ide!&amp;quot;
+done!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;最初に&lt;code&gt;main&lt;/code&gt;の中で&lt;code&gt;channel&lt;/code&gt;を作ってやる。Golangが提供する&lt;code&gt;channel&lt;/code&gt;はファーストクラスオブジェクトで型を持っている。メインはこのチャネルを使って独立実行する&lt;code&gt;helloAPI&lt;/code&gt;とデータのやり取りをする。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;    &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;肝は以下の部分。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;You say: %q\n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;ここでメインは&lt;code&gt;&amp;lt;-c&lt;/code&gt;を使って&lt;code&gt;go&lt;/code&gt;で独立実行した処理がchannelを経由してデータを渡してくれるのを待っている。&lt;code&gt;helloAPI&lt;/code&gt;が処理を完了して文字列を自身が引数で受け取ったチャネルに渡した瞬間に上記コードの&lt;code&gt;fmt.Println&lt;/code&gt;が実行される。今回のケースではユーザの数分&lt;code&gt;helloAPI&lt;/code&gt;を実行しているのでユーザの数分待ち合わせる事になる。チャネルは「データの受け渡し」と「処理の待ち合わせ」の両方の役割を担っている感じ。以下最強の資料から抜粋。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;When the main function executes &amp;lt;–c, it will wait for a value to be sent.
+Similarly, when the boring function executes c &amp;lt;– value, it waits for a receiver to be ready.
+A sender and receiver must both be ready to play their part in the communication. Otherwise we wait until they are.
+Thus channels both communicate and synchronize.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://talks.golang.org/2012/concurrency.slide#21&quot;&gt;Go Concurrency Patterns p.21&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;この&lt;code&gt;channel&lt;/code&gt;の仕組みを導入することで、メインスレッドと&lt;code&gt;go&lt;/code&gt;で独立実行させた処理が「処理の待ち合わせ」と「データの受け渡し」ができるようになった。&lt;code&gt;goroutine&lt;/code&gt;と&lt;code&gt;channel&lt;/code&gt;の仕組みを使うことで「独立した処理実行」と「独立した処理同士の連携」ができるようになっており、それらが言語にデフォルトで組み込まれてる且つリソース効率が良いっていう事実こそ、Golangが並行と並列を強く意識した言語だと言われる所以なのかなと思う。&lt;/p&gt;
+
+&lt;p&gt;最強の資料には&lt;code&gt;channel&lt;/code&gt;のよくある使い方パターンも実際のコード含めて解説されているので本当に最強としか言いようがない。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://talks.golang.org/2012/concurrency.slide#24&quot;&gt;Go Concurrency Patterns p.24&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;独立して動く複数の処理同士の連携をコントロールする仕組み(select)&quot;&gt;独立して動く複数の処理同士の連携をコントロールする仕組み(Select)&lt;/h3&gt;
+
+&lt;p&gt;Golangには更に便利な仕組みがある。&lt;code&gt;select&lt;/code&gt;は&lt;code&gt;switch&lt;/code&gt;文みたいなものだけど、値が同じだったらこの処理を実行、というのではなく、チャネルからデータが取得できたらこの処理を実行、という感じのもの。以下コード。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;fmt&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;math/rand&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&amp;quot;time&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Intn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Millisecond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Hello, &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;!&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;greeting&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profileAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Duration&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Intn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Millisecond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;#39;s profile&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Seed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;UnixNano&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;helloChan&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;profChan&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;chan&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;8maki&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;moqada&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ide&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;achiku&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;range&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;helloChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profileAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;u&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;numAPI&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;numAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;select&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;hello&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;helloChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;profChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;done!&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;実行結果。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Hello, moqada!
+Hello, 8maki!
+ide&amp;#39;s profile
+Hello, achiku!
+moqada&amp;#39;s profile
+achiku&amp;#39;s profile
+Hello, ide!
+8maki&amp;#39;s profile
+done!
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;肝は以下の部分。forループを何回回すかの部分が大分ナイーブだけど一旦説明の為に勘弁してほしい。&lt;/p&gt;
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;    &lt;span class=&quot;nx&quot;&gt;numAPI&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;numAPI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;select&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;hello&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;helloChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;profChan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;profile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;これはユーザの数xそのユーザに対して実行するAPIの数分&lt;code&gt;select&lt;/code&gt;を実行している。&lt;code&gt;helloChan&lt;/code&gt;と&lt;code&gt;profChan&lt;/code&gt;どちらに先にデータが届いても、届いたものから実行していく(同時に届いた場合はランダムに実行する処理を選択)。このように複数のチャネルを取り回して行く時&lt;code&gt;select&lt;/code&gt;があると綺麗に書ける。&lt;/p&gt;
+
+&lt;h2 id=&quot;まとめ&quot;&gt;まとめ&lt;/h2&gt;
+
+&lt;p&gt;Golang楽しい。次回はもう少し&lt;code&gt;channel&lt;/code&gt;を使った処理パターンにも踏み込んで書く。&lt;/p&gt;
+</description>
+				<pubDate>Tue, 03 Nov 2015 00:00:00 +0000</pubDate>
+				<link>http://achiku.github.io//2015/11/03/golang-02.html</link>
+				<guid isPermaLink="true">http://achiku.github.io//2015/11/03/golang-02.html</guid>
+			</item>
+		
+			<item>
 				<title>チクメキメモリアル</title>
 				<description>&lt;p&gt;万歩遅れてのエンジニア開始、約1年間の軌跡。&lt;/p&gt;
 
@@ -1152,13 +1429,13 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 &lt;p&gt;GitHubアカウントを利用して上記サイトから無料登録する。ログインするとユーザ名、パスワードが出てくるのでメモる。
 次にMQTTのPythonクライアントライブラリである&lt;a href=&quot;https://pypi.python.org/pypi/paho-mqtt&quot;&gt;phao-mqtt&lt;/a&gt;を準備。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip install phao-mqtt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;pip install phao-mqtt&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。&lt;/p&gt;
 
 &lt;h3 id=&quot;sub.py&quot;&gt;sub.py&lt;/h3&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
 
 
@@ -1184,11 +1461,11 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 
     &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username_pw_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keepalive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loop_forever&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loop_forever&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h3 id=&quot;pub.py&quot;&gt;pub.py&lt;/h3&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;
 
@@ -1208,18 +1485,18 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
     &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;[{}] Sending message to sango.&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;#39;[{}] message from pub coming through sango!&amp;#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;0.5秒おきにsango MQTT brokerにメッセージをPublishするpub.pyと、sangoが受けているメッセージをSubscribeし続けるsub.pyという形。
 まずはsub.pyを起動しておく。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python sub.py
-Connected with result code 0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python sub.py
+Connected with result code 0&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;上のような表示が出れば適切にサービスに繋がり、Subscribeできてる。
 次にpub.pyでメッセージをsangoに送る。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python pub.py
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;python pub.py
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;2&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
@@ -1229,11 +1506,11 @@ Connected with result code 0&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;6&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;7&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;8&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; Sending message to sango.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;sub.py側で以下のような表示が確認できるはず。&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;2&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;3&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
@@ -1242,7 +1519,7 @@ achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;5&lt;span
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;6&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;7&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
 achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;8&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; message from pub coming through sango!&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;それでは新宿であいましょう！！(時間がやばい)&lt;/p&gt;
 </description>
@@ -1481,33 +1758,6 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 				<pubDate>Mon, 11 Aug 2014 00:00:00 +0000</pubDate>
 				<link>http://achiku.github.io//2014/08/11/hcj.html</link>
 				<guid isPermaLink="true">http://achiku.github.io//2014/08/11/hcj.html</guid>
-			</item>
-		
-			<item>
-				<title>PyCon US 2014 後で見るもの一覧</title>
-				<description>&lt;p&gt;個人的に興味を持ったセッションを抜粋。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://pyvideo.org/category/50/pycon-us-2014&quot;&gt;セッション一覧&lt;/a&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2660/advanced-techniques-for-web-functional-testing&quot;&gt;Advanced techniques for Web functional testing&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2630/designing-djangos-migrations&quot;&gt;Designing Django&amp;#39;s Migrations&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2657/diving-into-open-data-with-ipython-notebook-pan-0&quot;&gt;Diving into Open Data with IPython Notebook &amp;amp; Pandas&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2652/django-the-good-parts&quot;&gt;Django: The good parts&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2674/getting-started-testing&quot;&gt;Getting Started Testing&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2564/mrjob-snakes-on-a-hadoop&quot;&gt;mrjob: Snakes on a Hadoop&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2580/tdd-for-web-applications-from-scratch&quot;&gt;TDD for web applications, from scratch&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2584/straightening-out-angularjs-with-python&quot;&gt;Straightening Out AngularJS with Python&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2593/python-scraping-showdown-a-performance-and-accur&quot;&gt;Python Scraping Showdown: A performance and accuracy review&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://pyvideo.org/video/2615/python-32-web-development-with-pyramid&quot;&gt;Python 3/2 Web Development with Pyramid&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;カンファレンス行かなくても全然知識は得れる。カンファレンス行くのはやっぱ人に直接会ってお礼とか言う為なんだろうなぁ。
-とにかくPyCon USはセッション沢山あって楽しげ。今週末は引きこもってビデオみよっと。USでも台北でもいいから行きたい(遊びに)。&lt;/p&gt;
-</description>
-				<pubDate>Tue, 15 Apr 2014 00:00:00 +0000</pubDate>
-				<link>http://achiku.github.io//2014/04/15/pycon-us-2014.html</link>
-				<guid isPermaLink="true">http://achiku.github.io//2014/04/15/pycon-us-2014.html</guid>
 			</item>
 		
 	</channel>

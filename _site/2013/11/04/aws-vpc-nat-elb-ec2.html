@@ -124,7 +124,7 @@ VPC with Public and Private Subnetsを選択。デフォルトの選択のまま
 
 <p>作成が完了すると、pem形式のキーの名前を聞かれるので適当に命名。ダウンロードしたpem keyをローカルに配置し、以下のコマンドを実行してBastionサーバに接続できることを確認する。pem keyを何単位で分けるのが適切かは、セキュリティと運用の容易さのトレードオフで決めるのかな。今回は一つのpem keyで全てのサーバにアクセスできるようにしておく。本当は本番/ステージング別とか、プライベート/パブリックサブネット別とかに分けるのだろう。</p>
 
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com</code></pre></div>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">    <span class="nv">$ </span>ssh -i tokyoPemKey.pem ubuntu@your-ec2-domain.compute.amazonaws.com</code></pre></figure>
 
 <h2 id="ap-server(ec2)">AP Server(EC2)</h2>
 
