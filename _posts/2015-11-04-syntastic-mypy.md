@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'syntasticとmypyでvimからPython関数アノテーション確認'
+title: 'syntasticとmypyでvimからPython型アノテーション確認'
 ---
 
 vim + syntastic + mypyを使ってPython 3.5から正式に入った型アノテーションを実感する。環境はOSX 10.10.5。

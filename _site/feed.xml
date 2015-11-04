@@ -7,7 +7,7 @@
 		<atom:link href="http://achiku.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
-				<title>syntasticとmypyでvimからPython関数アノテーション確認</title>
+				<title>syntasticとmypyでvimからPython型アノテーション確認</title>
 				<description>&lt;p&gt;vim + syntastic + mypyを使ってPython 3.5から正式に入った型アノテーションを実感する。環境はOSX 10.10.5。&lt;/p&gt;
 
 &lt;h3 id=&quot;python-3.5の準備&quot;&gt;Python 3.5の準備&lt;/h3&gt;
