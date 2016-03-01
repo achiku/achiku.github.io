@@ -82,37 +82,38 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <div>
     <p>このツール超便利だ。Oracle DBを標準入出力で操れる。Linux/GNU最高。</p>
 
-<p><a href="http://www.asahi-net.or.jp/%7Enq7t-kwbt/">ORACLEの部屋</a></p>
+<p><a href="http://www.asahi-net.or.jp/~nq7t-kwbt/">ORACLEの部屋</a></p>
 
 <p>tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。</p>
 
-<figure class="highlight"><pre><code class="language-basemake" data-lang="basemake"><span class="nv">ORAHOME</span> <span class="o">=</span> <span class="k">${</span><span class="nv">ORACLE_HOME</span><span class="k">}</span>
-<span class="nv">OBJS</span> <span class="o">=</span> chcsv.o sqlda.o Option.o OutPut.o Signal.o
+<figure class="highlight"><pre><code class="language-basemake" data-lang="basemake">ORAHOME = ${ORACLE_HOME}
+OBJS = chcsv.o sqlda.o Option.o OutPut.o Signal.o
 
-<span class="nf">build </span><span class="o">:</span> <span class="n">chcsv</span>
+build : chcsv
 
-<span class="nf">chcsv </span><span class="o">:</span> <span class="k">$(</span><span class="nv">OBJS</span><span class="k">)</span>
-  gcc -o chcsv <span class="k">$(</span>OBJS<span class="k">)</span> -L<span class="k">$(</span>ORAHOME<span class="k">)</span>/lib/   -lclntsh -lclntst11 <span class="sb">`</span>cat <span class="k">$(</span>ORAHOME<span class="k">)</span>/lib/ldflags<span class="sb">`</span>   <span class="sb">`</span>cat <span class="k">$(</span>ORAHOME<span class="k">)</span>lib/sysliblist<span class="sb">`</span> -ldl -lm
+chcsv : $(OBJS)
+  gcc -o chcsv $(OBJS) -L$(ORAHOME)/lib/   -lclntsh -lclntst11 `cat $(ORAHOME)/lib/ldflags`   `cat $(ORAHOME)lib/sysliblist` -ldl -lm
 
-<span class="nf">chcsv.c</span><span class="o">:</span>  <span class="n">chcsv</span>.<span class="n">pc</span>
-<span class="nf">chcsv.o</span><span class="o">:</span>  <span class="n">chcsv</span>.<span class="n">c</span>
-<span class="nf">Option.c</span><span class="o">:</span> <span class="n">Option</span>.<span class="n">pc</span>
-<span class="nf">Option.o</span><span class="o">:</span> <span class="n">Option</span>.<span class="n">c</span>
-<span class="nf">OutPut.c</span><span class="o">:</span> <span class="n">OutPut</span>.<span class="n">pc</span>
-<span class="nf">OutPut.o</span><span class="o">:</span> <span class="n">OutPut</span>.<span class="n">c</span>
-<span class="nf">Signal.c</span><span class="o">:</span> <span class="n">Signal</span>.<span class="n">pc</span>
-<span class="nf">Signal.o</span><span class="o">:</span> <span class="n">Signal</span>.<span class="n">c</span>
-<span class="nf">sqlda.c</span><span class="o">:</span>  <span class="n">sqlda</span>.<span class="n">pc</span>
-<span class="nf">sqlda.o</span><span class="o">:</span>  <span class="n">sqlda</span>.<span class="n">c</span>
+chcsv.c:  chcsv.pc
+chcsv.o:  chcsv.c
+Option.c: Option.pc
+Option.o: Option.c
+OutPut.c: OutPut.pc
+OutPut.o: OutPut.c
+Signal.c: Signal.pc
+Signal.o: Signal.c
+sqlda.c:  sqlda.pc
+sqlda.o:  sqlda.c
 
-<span class="nf">%.o</span><span class="o">:</span> %.<span class="n">c</span> 
-  gcc -O -c <span class="nv">$&lt;</span> -o <span class="nv">$@</span>
+%.o: %.c 
+  gcc -O -c $&lt; -o $@
 
-<span class="nf">%.c</span><span class="o">:</span> %.<span class="n">pc</span>
-  proc <span class="nv">$&lt;</span>
+%.c: %.pc
+  proc $&lt;
 
-<span class="nf">clean</span><span class="o">:</span>
+clean:
   /bin/rm -f *.o *.c *.lis chcsv</code></pre></figure>
+
 
 </div>
 <div class="post-sharing">

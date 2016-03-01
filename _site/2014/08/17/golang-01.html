@@ -82,26 +82,27 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <div>
     <p>ちょっと書いてみたくなった。</p>
 
-<h2 id="目標">目標</h2>
+<h2 id="section">目標</h2>
 
 <ul>
-<li>VimでGolang書けるように環境を設定する(一旦ライブラリ管理等のベストプラクティスは無視)</li>
-<li>Golangの基礎基本を覚える</li>
-<li>最終的にGETリクエストに対して何かJSON返すサーバーを作る</li>
+  <li>VimでGolang書けるように環境を設定する(一旦ライブラリ管理等のベストプラクティスは無視)</li>
+  <li>Golangの基礎基本を覚える</li>
+  <li>最終的にGETリクエストに対して何かJSON返すサーバーを作る</li>
 </ul>
 
-<h2 id="前提">前提</h2>
+<h2 id="section-1">前提</h2>
 
 <ul>
-<li>環境はMac OS X 10.9.4。homebrewインストール済み</li>
-<li>学習者はPython歴9ヶ月、ポインタに関する理解はポインタ演算手前まで</li>
-<li>学習者は平行/並列処理の知識無し</li>
+  <li>環境はMac OS X 10.9.4。homebrewインストール済み</li>
+  <li>学習者はPython歴9ヶ月、ポインタに関する理解はポインタ演算手前まで</li>
+  <li>学習者は平行/並列処理の知識無し</li>
 </ul>
 
-<h2 id="インストール">インストール</h2>
+<h2 id="section-2">インストール</h2>
 
 <p>既に入ってるのでアップグレード。</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ brew upgrade go 
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew upgrade go 
 ==&gt; Upgrading 1 outdated package, with result:
 go 1.2.2
 ==&gt; Upgrading go
@@ -121,11 +122,16 @@ To get `go vet` and `go doc` run:
 
 You may wish to add the GOROOT-based install location to your PATH:
   export PATH=$PATH:/usr/local/opt/go/libex
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>インストール後の確認</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ go version
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ go version
 go version go1.2.2 darwin/amd64
-</code></pre></div>
+</code></pre>
+</div>
+
 <h2 id="vim-plugin">Vim Plugin</h2>
 
 <p>ざっと見てコレが一番良さそうだったので入れる。</p>
@@ -133,38 +139,50 @@ go version go1.2.2 darwin/amd64
 <p><a href="https://github.com/fatih/vim-go">https://github.com/fatih/vim-go</a></p>
 
 <p>以下の設定を.zshrcに入れる</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#for golang</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c">#for golang</span>
 <span class="nb">export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/.go
 <span class="nb">export </span><span class="nv">GOROOT</span><span class="o">=</span><span class="k">$(</span> go env GOROOT <span class="k">)</span>
 <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$GOPATH</span>/bin:<span class="nv">$PATH</span>
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>.vimrcに以下を追加。</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">set rtp+=$GOROOT/misc/vim
-exe &quot;set rtp+=&quot;.globpath($GOPATH, &quot;src/github.com/nsf/gocode/vim”)
-</code></pre></div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>set rtp+=$GOROOT/misc/vim
+exe "set rtp+=".globpath($GOPATH, "src/github.com/nsf/gocode/vim”)
+</code></pre>
+</div>
+
 <p>vim開くと色々インストールされる</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">vim-go: gocode not found. Installing github.com/nsf/gocode to folder /Users/achiku/.vim-go/
+
+<div class="highlighter-rouge"><pre class="highlight"><code>vim-go: gocode not found. Installing github.com/nsf/gocode to folder /Users/achiku/.vim-go/
 vim-go: goimports not found. Installing code.google.com/p/go.tools/cmd/goimports to folder /Users/achiku/.vim-go/
 vim-go: godef not found. Installing code.google.com/p/rog-go/exp/cmd/godef to folder /Users/achiku/.vim-go/
 vim-go: oracle not found. Installing code.google.com/p/go.tools/cmd/oracle to folder /Users/achiku/.vim-go/
 vim-go: golint not found. Installing github.com/golang/lint/golint to folder /Users/achiku/.vim-go/
 vim-go: errcheck not found. Installing github.com/kisielk/errcheck to folder /Users/achiku/.vim-go/
 vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users/achiku/.vim-go/
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>おなじみのHello, Worldからはじまる。</p>
-<div class="highlight"><pre><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
 
-<span class="kn">import</span> <span class="s">&quot;fmt&quot;</span>
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">package</span><span class="x"> </span><span class="n">main</span><span class="x">
 
-<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
-    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Hello, World!\n&quot;</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></div>
-<p>Vimで編集してて、import &quot;fmt&quot;書いた後に:wでファイル保存したらその部分だけ削除されて、なんじゃこりゃってなってたけど、どうやら先ほど入れたVimプラグインが使ってるパッケージを自動検出してソースをフォーマットしてくれているらしい。逆にimport文ナシで上のソースを書いて保存したらimport &quot;fmt&quot;の部分は自動で追記された。IDEみたい。</p>
+</span><span class="k">import</span><span class="x"> </span><span class="s">"fmt"</span><span class="x">
+
+</span><span class="k">func</span><span class="x"> </span><span class="n">main</span><span class="p">()</span><span class="x"> </span><span class="p">{</span><span class="x">
+    </span><span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Hello, World!</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+</div>
+
+<p>Vimで編集してて、import “fmt”書いた後に:wでファイル保存したらその部分だけ削除されて、なんじゃこりゃってなってたけど、どうやら先ほど入れたVimプラグインが使ってるパッケージを自動検出してソースをフォーマットしてくれているらしい。逆にimport文ナシで上のソースを書いて保存したらimport “fmt”の部分は自動で追記された。IDEみたい。</p>
 
 <p>書いた後に、:GoBuildでビルド。:GoRunでビルドして実行。便利。</p>
 
-<h2 id="おまけ">おまけ</h2>
+<h2 id="section-3">おまけ</h2>
 
 <p>Pythonに比べるとカッコが多い気がするので以下のVimプラグインを入れておく事をオススメ。設定はデフォルトでも十分。</p>
 
@@ -174,7 +192,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 <p><a href="https://github.com/Raimondi/delimitMate">https://github.com/Raimondi/delimitMate</a></p>
 
-<h2 id="基礎基本">基礎基本</h2>
+<h2 id="section-4">基礎基本</h2>
 
 <p>とりあえず以下を全部写経して覚える。</p>
 
@@ -184,7 +202,7 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 <p><a href="https://github.com/achiku/syakyou/tree/master/golang/gobyexample">https://github.com/achiku/syakyou/tree/master/golang/gobyexample</a></p>
 
-<h2 id="golangっぽいところ1">Golangっぽいところ1</h2>
+<h2 id="golang1">Golangっぽいところ1</h2>
 
 <p>先述のGo By Example、goroutine、channel、selectあたりからGolangっぽいところが出てくる気がする。自分自身平行/並列処理系はまったく分かってないので、多分この辺りを読んで実際書いていかないと難しい。</p>
 
@@ -192,11 +210,11 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 <p>あとエラーの扱い方もJavaやPythonのExceptionに慣れている身からすると面白かった。Golangに関しての記述はなかったけど、「エラーハンドリング」という領域に関しては「コーディングを支える技術」で語られていたので再度読み直したいと思う。</p>
 
-<h2 id="golangっぽいところ2">Golangっぽいところ2</h2>
+<h2 id="golang2">Golangっぽいところ2</h2>
 
 <p>型、型推論が非常に便利な気がする。どこか小さく領域を見つけて実戦に投入してみようと決意した。</p>
 
-<h2 id="新しい言語を学ぶということに関して">新しい言語を学ぶということに関して</h2>
+<h2 id="section-5">新しい言語を学ぶということに関して</h2>
 
 <p>新しい言語を学ぶ際は、「やりたい事も挙動も確定している何か」ってのを題材に、ガッツリ作るのがやっぱりいい気がする。言語を使う事だけに集中できる。Vの方はRFCを何個か暗記してるからソレを実装するって言ってたし、「コーディングを支える技術」には新言語を学ぶときは特定のアルゴリズムを新しい言語で実装する、という事が書いてあった。</p>
 

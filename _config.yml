@@ -1,6 +1,6 @@
 title : "包丁一本さらしに巻いて"
 description: "Python + Data"
-url: http://achiku.github.io
+url: http://akirachiku.com
 tagline: 
 author :
   name : Akira Chiku
@@ -9,12 +9,10 @@ author :
   twitter : _achiku
 
 exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
-highlighter: pygments
-markdown: redcarpet
-redcarpet:
-  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "tables", "with_toc_data"]
+highlighter: rouge
+markdown: kramdown
 
-production_url : http://achiku.github.io
+production_url : http://akirachiku.com
 comments : True
 
 source:      .

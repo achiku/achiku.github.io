@@ -82,43 +82,56 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <div>
     <p>vim + syntastic + mypyを使ってPython 3.5から正式に入った型アノテーションを実感する。環境はOSX 10.10.5。</p>
 
-<h3 id="python-3.5の準備">Python 3.5の準備</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ brew update
+<h3 id="python-35">Python 3.5の準備</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ brew update
 $ brew install python3
 $ ls -l $(which python3)
 lrwxr-xr-x  1 achiku  staff  35  6  9 17:10 /usr/local/bin/python3@ -&gt; ../Cellar/python3/3.5.0/bin/python3
 $ ls -l $(which pyvenv3.5)
 lrwxr-xr-x  1 achiku  staff  38 10 19 01:35 /usr/local/bin/pyvenv3.5@ -&gt; ../Cellar/python3/3.5.0/bin/pyvenv-3.5
-</code></pre></div>
-<h3 id="virtualenv環境の作成">virtualenv環境の作成</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ pyvenv3.5 mypy
+</code></pre>
+</div>
+
+<h3 id="virtualenv">virtualenv環境の作成</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ pyvenv3.5 mypy
 $ source ./mypy/bin/activate
 $ python --version
 Python 3.5.0
-</code></pre></div>
-<h3 id="必要なライブラリをインストール">必要なライブラリをインストール</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ cat requirements.txt
+</code></pre>
+</div>
+
+<h3 id="section">必要なライブラリをインストール</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ cat requirements.txt
 git+https://github.com/JukkaL/mypy.git@master
 $ pip install -r requirements.txt
 $ pip freeze
 mypy-lang==0.2.0.dev0
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>mypy-langをpip installで入れると0.2.0が入るのだけど、これはPython 3.5では上手く動かなかった。なので上の例ではリポジトリのmasterから入れてる。</p>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ python --version
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ python --version
 Python 3.5.0
 $ pip install mypy-lang
 $ pip freeze
 mypy-lang==0.2.0
 $ mypy
 Traceback (most recent call last):
-  File &quot;/Users/achiku/.virtualenvs/py3/bin/mypy&quot;, line 14, in &lt;module&gt;
+  File "/Users/achiku/.virtualenvs/py3/bin/mypy", line 14, in &lt;module&gt;
     from mypy import build
-  File &quot;/Users/achiku/.virtualenvs/py3/lib/python3.5/site-packages/mypy/build.py&quot;, line 19, in &lt;module&gt;
+  File "/Users/achiku/.virtualenvs/py3/lib/python3.5/site-packages/mypy/build.py", line 19, in &lt;module&gt;
     from typing import Undefined, Dict, List, Tuple, cast, Set, Union
-ImportError: cannot import name &#39;Undefined&#39;
-</code></pre></div>
-<h3 id="mypyが動く事を確認">mypyが動く事を確認</h3>
-<div class="highlight"><pre><code class="language-text" data-lang="text">$ mypy -h
+ImportError: cannot import name 'Undefined'
+</code></pre>
+</div>
+
+<h3 id="mypy">mypyが動く事を確認</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ mypy -h
 usage: mypy [option ...] [-m mod | file]
 
 Optional arguments:
@@ -133,34 +146,45 @@ Optional arguments:
 
 Environment variables:
   MYPYPATH     additional module search path
-</code></pre></div>
-<h3 id="syntasticの準備">syntasticの準備</h3>
-<div class="highlight"><pre><code class="language-vim" data-lang="vim">NeoBundle <span class="s1">&#39;scrooloose/syntastic&#39;</span>
-</code></pre></div><div class="highlight"><pre><code class="language-vim" data-lang="vim"><span class="k">let</span> <span class="k">g</span>:syntastic_check_on_open <span class="p">=</span> <span class="m">1</span>
-<span class="k">let</span> <span class="k">g</span>:syntastic_python_checkers <span class="p">=</span> [<span class="s1">&#39;flake8&#39;</span><span class="p">,</span> <span class="s1">&#39;pep257&#39;</span><span class="p">,</span> <span class="s1">&#39;mypy&#39;</span>]
-<span class="k">let</span> <span class="k">g</span>:syntastic_python_flake8_args <span class="p">=</span> <span class="s1">&#39;--max-line-length=120&#39;</span>
-</code></pre></div>
-<h3 id="型アノテーション付きpythonのコードを書いてみる">型アノテーション付きPythonのコードを書いてみる</h3>
+</code></pre>
+</div>
+
+<h3 id="syntastic">syntasticの準備</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>NeoBundle <span class="s1">'scrooloose/syntastic'</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">let</span> <span class="nv">g:syntastic_check_on_open</span> <span class="p">=</span> <span class="m">1</span>
+<span class="k">let</span> <span class="nv">g:syntastic_python_checkers</span> <span class="p">=</span> <span class="p">[</span><span class="s1">'flake8'</span><span class="p">,</span> <span class="s1">'pep257'</span><span class="p">,</span> <span class="s1">'mypy'</span><span class="p">]</span>
+<span class="k">let</span> <span class="nv">g:syntastic_python_flake8_args</span> <span class="p">=</span> <span class="s1">'--max-line-length=120'</span>
+</code></pre>
+</div>
+
+<h3 id="python">型アノテーション付きPythonのコードを書いてみる</h3>
 
 <p>さっき作ったmypyというvirtualenvをactivateした状態でvimを開き以下のコードを書く。</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c"># -*- coding: utf-8 -*-</span>
 
 
 <span class="k">def</span> <span class="nf">greeting</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;greeting function&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;Hello &#39;</span> <span class="o">+</span> <span class="n">name</span>
+    <span class="s">"""greeting function"""</span>
+    <span class="k">return</span> <span class="s">'Hello '</span> <span class="o">+</span> <span class="n">name</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">greeting</span><span class="p">(</span><span class="s">&#39;moqada&#39;</span><span class="p">))</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">greeting</span><span class="p">(</span><span class="s">'moqada'</span><span class="p">))</span>
     <span class="n">greeting</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
-    <span class="n">greeting</span><span class="p">(</span><span class="s">&#39;achiku&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-</code></pre></div>
+    <span class="n">greeting</span><span class="p">(</span><span class="s">'achiku'</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</code></pre>
+</div>
+
 <p>これを書いて保存したタイミングで下の用に警告してくれる。これはgreeting関数が引数としてstr型を受け取るのにintを渡しているので警告してくれてるのと、greeting関数が返すstr型とint型を+演算子を使って処理しようとしているので出る警告。</p>
 
-<p><img src="http://achiku.github.io/images/syntastic-vim.png" alt=""></p>
+<p><img src="http://akirachiku.com/images/syntastic-vim.png" alt="" /></p>
 
-<h3 id="まとめ">まとめ</h3>
+<h3 id="section-1">まとめ</h3>
 
 <p>自分が使ってるツールには結構気軽に組み込めた。ただmypy自体まだ挙動が怪しい部分があったり、issueの処理速度があがらなかったりするので継続的にウォッチしていきたい。</p>
 

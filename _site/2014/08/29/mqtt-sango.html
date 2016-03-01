@@ -87,30 +87,30 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>GitHubアカウントを利用して上記サイトから無料登録する。ログインするとユーザ名、パスワードが出てくるのでメモる。
 次にMQTTのPythonクライアントライブラリである<a href="https://pypi.python.org/pypi/paho-mqtt">phao-mqtt</a>を準備。</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>pip install phao-mqtt</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>pip install phao-mqtt</code></pre></figure>
 
 <p>これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。</p>
 
-<h3 id="sub.py">sub.py</h3>
+<h3 id="subpy">sub.py</h3>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="kn">as</span> <span class="nn">mqtt</span>
 
 
 <span class="k">def</span> <span class="nf">on_connect</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">rc</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&#39;Connected with result code &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">rc</span><span class="p">))</span>
-    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s">&quot;achiku@github/#&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'Connected with result code '</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">rc</span><span class="p">))</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s">"achiku@github/#"</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">userdata</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">topic</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">payload</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">topic</span> <span class="o">+</span> <span class="s">' '</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">payload</span><span class="p">))</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
 
-    <span class="n">username</span> <span class="o">=</span> <span class="s">&#39;yourname@github&#39;</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="s">&#39;yourpass&#39;</span>
-    <span class="n">host</span> <span class="o">=</span> <span class="s">&#39;free.mqtt.shiguredo.jp&#39;</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="s">'yourname@github'</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s">'yourpass'</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="s">'free.mqtt.shiguredo.jp'</span>
     <span class="n">port</span> <span class="o">=</span> <span class="mi">1883</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
@@ -121,19 +121,19 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">keepalive</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
     <span class="n">client</span><span class="o">.</span><span class="n">loop_forever</span><span class="p">()</span></code></pre></figure>
 
-<h3 id="pub.py">pub.py</h3>
+<h3 id="pubpy">pub.py</h3>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">paho.mqtt.client</span> <span class="kn">as</span> <span class="nn">mqtt</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
 
-    <span class="n">username</span> <span class="o">=</span> <span class="s">&#39;yourname@github&#39;</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="s">&#39;yourpass&#39;</span>
-    <span class="n">host</span> <span class="o">=</span> <span class="s">&#39;free.mqtt.shiguredo.jp&#39;</span>
-    <span class="n">topic</span> <span class="o">=</span> <span class="s">&#39;achiku@github/test_topic&#39;</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="s">'yourname@github'</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="s">'yourpass'</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="s">'free.mqtt.shiguredo.jp'</span>
+    <span class="n">topic</span> <span class="o">=</span> <span class="s">'achiku@github/test_topic'</span>
     <span class="n">port</span> <span class="o">=</span> <span class="mi">1883</span>
 
     <span class="n">client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
@@ -141,45 +141,46 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
     <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">keepalive</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-        <span class="k">print</span> <span class="s">&#39;[{}] Sending message to sango.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="s">&#39;[{}] message from pub coming through sango!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">print</span> <span class="s">'[{}] Sending message to sango.'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="s">'[{}] message from pub coming through sango!'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
         <span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span></code></pre></figure>
 
 <p>0.5秒おきにsango MQTT brokerにメッセージをPublishするpub.pyと、sangoが受けているメッセージをSubscribeし続けるsub.pyという形。
 まずはsub.pyを起動しておく。</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>python sub.py
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>python sub.py
 Connected with result code 0</code></pre></figure>
 
 <p>上のような表示が出れば適切にサービスに繋がり、Subscribeできてる。
 次にpub.pyでメッセージをsangoに送る。</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>python pub.py
-<span class="o">[</span>0<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>1<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>2<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>3<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>4<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>5<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>6<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>7<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>8<span class="o">]</span> Sending message to sango.
-<span class="o">[</span>9<span class="o">]</span> Sending message to sango.</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="gp">$ </span>python pub.py
+<span class="o">[</span>0] Sending message to sango.
+<span class="o">[</span>1] Sending message to sango.
+<span class="o">[</span>2] Sending message to sango.
+<span class="o">[</span>3] Sending message to sango.
+<span class="o">[</span>4] Sending message to sango.
+<span class="o">[</span>5] Sending message to sango.
+<span class="o">[</span>6] Sending message to sango.
+<span class="o">[</span>7] Sending message to sango.
+<span class="o">[</span>8] Sending message to sango.
+<span class="o">[</span>9] Sending message to sango.</code></pre></figure>
 
 <p>sub.py側で以下のような表示が確認できるはず。</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">achiku@github/test_topic <span class="o">[</span>0<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>1<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>2<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>3<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>4<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>5<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>6<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>7<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>8<span class="o">]</span> message from pub coming through sango!
-achiku@github/test_topic <span class="o">[</span>9<span class="o">]</span> message from pub coming through sango!</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">achiku@github/test_topic <span class="o">[</span>0] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>1] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>2] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>3] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>4] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>5] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>6] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>7] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>8] message from pub coming through sango!
+achiku@github/test_topic <span class="o">[</span>9] message from pub coming through sango!</code></pre></figure>
 
 <p>それでは新宿であいましょう！！(時間がやばい)</p>
+
 
 </div>
 <div class="post-sharing">
