@@ -54,7 +54,7 @@ Go 1.6からデフォルトでGo公式各コマンド(go buildとかgo testと�
 
 この2点、意外にその他シンプルなvendoring toolは無視しがちだと思うんだけどグローバルに特定プロジェクトの開発にだけ使いたいツールいれるの嫌だなぁと思う人には嬉しい。
 
-gomにvendorディレクトリを意識させるには以下の設定が必要。Go 1.6でGO15VENDOREXPERIMENTがデフォルトでオンになっていてもgom自体は以下の環境変数見てるので設定しないといけない。
+gomにvendorディレクトリを意識させるには以下の設定が必要。Go 1.6でGO15VENDOREXPERIMENTがデフォルトでオンになっていてもgom自体は以下の環境変数見てるので設定しないといけない。(追記: この設定は不要になりました。Go 1.6以上であれば設定不要です。[mattn/gom/pull/74](https://github.com/mattn/gom/pull/74))
 
 ```bash
 export GO15VENDOREXPERIMENT=1   # for gom
