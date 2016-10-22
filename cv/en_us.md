@@ -1,18 +1,20 @@
-### About
-![achiku](/images/profile_img.jpg)
+## Akira Chiku 
+[achiku@GitHub](https://github.com/achiku) / akira.chiku@gmail.com / Tokyo, Japan
 
-Akira Chiku
 
-Birthday: 1985/08/18
+## QUALIFICATIONS
 
-- [GitHub](https://github.com/achiku)
-- [Twitter](https://twitter.com/_achiku)
-- [Facebook](https://www.facebook.com/akira.chiku)
+- Python, Django, Golnag, AWS, ansible, PostgreSQL
 
-### Work and Education
+
+## EXPERIENCE
 
 - Kanmu, Inc. (2013/11 - present)
-- Accenture (2008/08 - 2013/11)
-- The University of Texas at Austin B.A. Economics, Minor in Mathmatics (2006 - 2008)
-- The Midwestern State University (2004 - 2006)
-- Kariya High School, Aichi (2000 - 2004)
+    * Tokyo based startup providing app based prepaid card service + card-linked offer (CLO)
+- Accenture Japan (2008/08 - 2013/11)
+    * Leading global professional services company, providing a broad range of services and solutions in strategy, consulting, digital, technology and operations.
+
+
+## EDUCATION
+
+- Bachelor of Arts Economics, Minor in Mathematics The University of Texas at Austin (2008)
