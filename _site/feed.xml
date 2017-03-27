@@ -7,6 +7,41 @@
 		<atom:link href="http://akirachiku.com/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>GoCon 2017で発表してきた</title>
+				<description>&lt;p&gt;今週末、GoCon 2017 Springに参加して発表してきた。タイムマネージメントができてなかったり、資料をTwitterに上げ忘れてたり、最後ドタバタしてしまい、ご迷惑をおかけしました。&lt;/p&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;感謝&lt;/h3&gt;
+
+&lt;p&gt;GoCon運営をしてくださったみなさま、休日というのに会場運営を行ってくださったYahoo Japanのみなさま、このような場を提供してくださり、本当にありがとうございました！発表も全て刺激的で、今後もガシガシと良いコードを書いていこうと思えるものばかりでした。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;資料&lt;/h3&gt;
+
+&lt;script async=&quot;&quot; class=&quot;speakerdeck-embed&quot; data-id=&quot;9c6e284d996840b1a542b2beaf5ca30e&quot; data-ratio=&quot;1.33333333333333&quot; src=&quot;//speakerdeck.com/assets/embed.js&quot;&gt;&lt;/script&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;感想&lt;/h3&gt;
+
+&lt;p&gt;発表で話したいことが多すぎてとっちらかってしまったのが反省点です。もう少し話題を絞る(例えば&lt;code class=&quot;highlighter-rouge&quot;&gt;model&lt;/code&gt;パッケージのテストだけにしぼる)等すればよかったなぁというのが正直なところです。&lt;/p&gt;
+
+&lt;p&gt;また、haya14busaさんの&lt;a href=&quot;https://docs.google.com/presentation/d/1oIVK_mZYoS7mIVq4DCkJKDU4vDNyPd8AJ70zOC7peBU/pub?slide=id.g1f224d448c_0_71&quot;&gt;ちいさくはじめるGoコントリビューション@haya14busa&lt;/a&gt;がだいぶ響きました。困ると標準ライブラリのコード/GoDocを読をむけどけどそれ以外のタイミングではあまり見ないので、興味ある部分を上から読んで動かしてみるというのは確かにおもしろそうだと思いました。あと、”no nit is too small”という言葉、すごい良いなと思いました。自分もいくつかOSSを公開していてたまにPRを貰ったりするんですが、テストケースの追加やドキュメント修正でも確かにありがたい。もちろんコアコントリビューターの邪魔にならないよう、ドキュメントにそって丁寧に議論する/修正をする必要はあるんだけど、お世話になってるので何某か返せたらなぁと思い今日さっそく&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;読んで動かしてます。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;GoCon直前にこの修正を見たりしてたので、まだ読めば改善できるポイントは存在しているのでは？というところもある。
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;https://go-review.googlesource.com/c/38057/7/src/net/http/server.go&quot;&gt;net/http/server.go&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;また、登壇して発表する事で、日頃からブログ記事経由でお世話になっているdeeeetさん(初対面)にお礼が言えたので、だいぶ満足してGoCon会場を後にしました。&lt;/p&gt;
+
+&lt;p&gt;また何か発表できるような工夫をモリモリこさえて、次回はスマートに発表しにいきたいと思います。&lt;/p&gt;
+</description>
+				<pubDate>Mon, 27 Mar 2017 00:00:00 +0000</pubDate>
+				<link>http://akirachiku.com//2017/03/27/go-con.html</link>
+				<guid isPermaLink="true">http://akirachiku.com//2017/03/27/go-con.html</guid>
+			</item>
+		
+			<item>
 				<title>Go 1.6開発環境整備</title>
 				<description>&lt;p&gt;しっくり来る所まで来たのでまとめ。&lt;/p&gt;
 
@@ -1779,115 +1814,6 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 				<pubDate>Mon, 15 Sep 2014 00:00:00 +0000</pubDate>
 				<link>http://akirachiku.com//2014/09/15/pyconjp-2014.html</link>
 				<guid isPermaLink="true">http://akirachiku.com//2014/09/15/pyconjp-2014.html</guid>
-			</item>
-		
-			<item>
-				<title>MQTT as a Service sango + paho-mqtt Python</title>
-				<description>&lt;p&gt;本日のMQTT(もきゅっと)の会直前に時雨堂さんがMQTT as a Service, sangoをリリースしていたので触ってみた。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://sango.shiguredo.jp/&quot;&gt;sango&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;GitHubアカウントを利用して上記サイトから無料登録する。ログインするとユーザ名、パスワードが出てくるのでメモる。
-次にMQTTのPythonクライアントライブラリである&lt;a href=&quot;https://pypi.python.org/pypi/paho-mqtt&quot;&gt;phao-mqtt&lt;/a&gt;を準備。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;pip install phao-mqtt&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。&lt;/p&gt;
-
-&lt;h3 id=&quot;subpy&quot;&gt;sub.py&lt;/h3&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;on_connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userdata&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&#39;Connected with result code &#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subscribe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;achiku@github/#&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;on_message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userdata&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39; &#39;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;payload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;__main__&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;username&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;yourname@github&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;yourpass&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;free.mqtt.shiguredo.jp&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1883&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mqtt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;on_connect&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on_connect&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;on_message&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;on_message&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username_pw_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keepalive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loop_forever&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h3 id=&quot;pubpy&quot;&gt;pub.py&lt;/h3&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;paho.mqtt.client&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mqtt&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__name__&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;__main__&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;username&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;yourname@github&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;yourpass&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;free.mqtt.shiguredo.jp&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;achiku@github/test_topic&#39;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1883&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mqtt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username_pw_set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keepalive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;[{}] Sending message to sango.&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publish&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;topic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&#39;[{}] message from pub coming through sango!&#39;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;0.5秒おきにsango MQTT brokerにメッセージをPublishするpub.pyと、sangoが受けているメッセージをSubscribeし続けるsub.pyという形。
-まずはsub.pyを起動しておく。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;python sub.py
-Connected with result code 0&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;上のような表示が出れば適切にサービスに繋がり、Subscribeできてる。
-次にpub.pyでメッセージをsangoに送る。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;python pub.py
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;2] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;3] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;4] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;5] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;6] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;7] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;8] Sending message to sango.
-&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9] Sending message to sango.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;sub.py側で以下のような表示が確認できるはず。&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;0] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;1] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;2] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;3] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;4] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;5] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;6] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;7] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;8] message from pub coming through sango!
-achiku@github/test_topic &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;9] message from pub coming through sango!&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;それでは新宿であいましょう！！(時間がやばい)&lt;/p&gt;
-
-</description>
-				<pubDate>Fri, 29 Aug 2014 00:00:00 +0000</pubDate>
-				<link>http://akirachiku.com//2014/08/29/mqtt-sango.html</link>
-				<guid isPermaLink="true">http://akirachiku.com//2014/08/29/mqtt-sango.html</guid>
 			</item>
 		
 	</channel>
