@@ -14,6 +14,11 @@ Birthday: 1985/08/18
 - [Twitter](https://twitter.com/_achiku)
 - [Facebook](https://www.facebook.com/akira.chiku)
 
+### CV
+
+- [English](https://github.com/achiku/achiku.github.io/blob/master/cv/en_us.md)
+- [Japanese](https://github.com/achiku/achiku.github.io/blob/master/cv/ja_jp.md)
+
 ### Work and Education
 
 - Kanmu, Inc. (2013/11 - present)

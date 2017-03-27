@@ -1,3 +1,8 @@
+---
+layout: default
+title: "cv-en"
+---
+
 ## Akira Chiku 
 [achiku@GitHub](https://github.com/achiku) / akira.chiku@gmail.com / Tokyo, Japan
 
