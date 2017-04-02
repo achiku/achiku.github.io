@@ -136,10 +136,12 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 			</span><span class="n">Code</span><span class="o">:</span><span class="x">    </span><span class="n">http</span><span class="o">.</span><span class="n">StatusInternalServerError</span><span class="p">,</span><span class="x">
 			</span><span class="n">Message</span><span class="o">:</span><span class="x"> </span><span class="s">"something went wrong"</span><span class="p">,</span><span class="x">
 		</span><span class="p">})</span><span class="x">
+		</span><span class="k">return</span><span class="x">
 	</span><span class="p">}</span><span class="x">
 	</span><span class="n">app</span><span class="o">.</span><span class="n">Logger</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"ok: %v"</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="p">)</span><span class="x">
 	</span><span class="n">w</span><span class="o">.</span><span class="n">WriteHeader</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">StatusOK</span><span class="p">)</span><span class="x">
 	</span><span class="n">encoder</span><span class="o">.</span><span class="n">Encode</span><span class="p">(</span><span class="n">res</span><span class="p">)</span><span class="x">
+	</span><span class="k">return</span><span class="x">
 </span><span class="p">}</span><span class="x">
 </span></code></pre>
 </div>
