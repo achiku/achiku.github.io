@@ -40,6 +40,9 @@ footer {
 
  pre {
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 13px;
     background-color: #eeeeee;
  }
 
