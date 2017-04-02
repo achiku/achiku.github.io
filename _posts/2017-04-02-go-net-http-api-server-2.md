@@ -7,7 +7,7 @@ title: 'net/httpで作るGo APIサーバー #2'
 
 - [net/httpで作るGo APIサーバー #1](http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html)
 
-今日は`http.Handler`インターフェースについて書く。このインターフェースを上手く利用する事が`het/http`でAPIサーバーを作る時にとても重要になると思ってる。
+今回は`http.Handler`インターフェースについて書く。このインターフェースを上手く利用する事が`het/http`でAPIサーバーを作る時にとても重要になると思ってる。
 
 
 ### Goのインターフェース

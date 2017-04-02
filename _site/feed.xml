@@ -7,6 +7,160 @@
 		<atom:link href="http://akirachiku.com/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>net/httpで作るGo APIサーバー #3</title>
+				<description>&lt;p&gt;この一連の記事では&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;今回は&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;を使い、HTTPリクエストの共通処理を記述するミドルウェアについて書く。&lt;/p&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;ミドルウェアとは&lt;/h3&gt;
+
+&lt;p&gt;特にそういった構造体や関数が標準ライブラリの中にあるわけではない。Goではミドルウェアを連鎖させていくことでHTTPリクエストを処理する際に必要な共通処理(e.g. ロギング、認証、panicリカバリ、etc)を記述していく。&lt;/p&gt;
+
+&lt;p&gt;ミドルウェアとは実際に何かというと、&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;というシグネチャを持ち、引数として渡ってきた&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;の&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP(http.ResponseWriter, *http.Request)&lt;/code&gt;を内部で実行する&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;インターフェースを満たすオブジェクトを返す関数、という感じ。&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;とは何か、何が便利なのかは&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;を読んで欲しい。&lt;/p&gt;
+
+&lt;p&gt;言葉で書くと長いのでロギング用のミドルウェアとpanicリカバリ用ミドルウェアのコードを書いた。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go&quot;&gt;サンプルコード&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HandlerFunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResponseWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t1&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ServeHTTP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t2&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[%s] %s %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recoverMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HandlerFunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResponseWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;defer&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;recover&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+				&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PrintStack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+				&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;panic: %+v&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+				&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;m&quot;&gt;500&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ServeHTTP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;をチェインさせていくことで、ミドルウェアA-&amp;gt;ミドルウェアB-&amp;gt;ミドルウェアC-&amp;gt;アプリケーションの処理、という形で書けるようになっている。矢印で表現するより本来は順序を持ってネストしていくイメージ。以下のような形でアプリケーションの処理とURLとの紐付けに利用する。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recoverMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;一点注意としては、ミドルウェアは必ず並べられた順に実行されるので、例えば認証ミドルウェアで作成したユーザー情報を利用するミドルウェアは必ず認証ミドルウェアの後に書かないと正常に動かない。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;さらに見通しの良いミドルウェア&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;というシグネチャのシンプルな形は良いのだけど、標準ライブラリだけだと&lt;code class=&quot;highlighter-rouge&quot;&gt;middlewareA(middlewareB(middlewareC(handler)))&lt;/code&gt;という形になってしまいmiddlewareをグループ化して使いまわしにくいし、何より不格好で視認性が低い。そこで、ミドルウェアのグルーピングやその他細かい事を良い感じに埋めてくれる薄い&lt;a href=&quot;https://github.com/justinas/alice&quot;&gt;Alice&lt;/a&gt;というライブラリをお勧めしたい。Aliceを使うと以下のように書ける。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;x&quot;&gt;	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// middleware chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alice&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;New&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recoverMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// for gorilla/mux&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewRouter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PathPrefix&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/api&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Subrouter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;だいぶ見通しがよくなった。また、Aliceはミドルウェア連鎖をグループ化しておけるので、例えば共通のミドルウェアチェーンはあるんだけど、publicなエンドポイントだけ別のミドルウェア群を挟みたい、privateなエンドポイントは認証を入れたい、みたいなことも綺麗に書ける。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;x&quot;&gt;	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// middleware chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alice&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;New&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recoverMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publicChain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publicMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;privateChain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;authMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;db&quot;&gt;ミドルウェア内でDBやアプリケーション設定を使いたい&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;で説明したアプリケーショングローバルな値をミドルウェア内部で使いたくなることがある。特にDBにアクセスする認証や、アプリケーション設定内に記述した特定IPアドレスからのアクセスを拒否する、といった類のもの。&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;だからそういう値を持ったミドルウェアは書けないのか、と自分は最初思ったが、特定の値(e.g. DBのコネクションやlogger)を取って&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;を返すクロージャーを使えば簡単に書ける。&lt;/p&gt;
+
+&lt;p&gt;以下のはアプリケーショングローバルなloggerをミドルウェア内で利用する例。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go&quot;&gt;サンプルコード&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appLoggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HandlerFunc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResponseWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t1&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ServeHTTP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t2&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[%s] %s %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;*log.Logger&lt;/code&gt;を取って&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;を返す関数になってる。これを以下のように使う。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/go-http-api-server/blob/master/ch04/server.go&quot;&gt;サンプルコード&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;x&quot;&gt;	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// middleware chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alice&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;New&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;recoverMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appLoggingMiddleware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;こうすることで柔軟なミドルウェアを作成する事ができ、それらをグループ化して管理することで、どのエンドポイントはどのミドルウェアチェーンで処理されるのか明確になった。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;ライブラリとしてのミドルウェア&lt;/h3&gt;
+
+&lt;p&gt;このように&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;シグネチャを守りながらミドルウェアチェーンを構築すると、同じインターフェースに対応しているサードパーティ製のライブラリを組み込みやすくなる。例えば、以下に一覧がある。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/avelino/awesome-go#actual-middlewares&quot;&gt;Awesome Go - actual middleware&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;便利なミドルウェアを書いてライブラリとして公開する場合も&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.Handler) http.Handler&lt;/code&gt;を守るのが良いと思う。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;参考資料&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://justinas.org/alice-painless-middleware-chaining-for-go/&quot;&gt;Alice –Painless Middleware Chaining for Go&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.alexedwards.net/blog/making-and-using-middleware&quot;&gt;Making and Using HTTP Middleware&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.nicolasmerouze.com/middlewares-golang-best-practices-examples/&quot;&gt;Middlewares in Go: Best practices and examples&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+				<pubDate>Mon, 03 Apr 2017 00:00:00 +0000</pubDate>
+				<link>http://akirachiku.com//2017/04/03/go-net-http-api-server-3.html</link>
+				<guid isPermaLink="true">http://akirachiku.com//2017/04/03/go-net-http-api-server-3.html</guid>
+			</item>
+		
+			<item>
 				<title>net/httpで作るGo APIサーバー #2</title>
 				<description>&lt;p&gt;この一連の記事では&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
 
@@ -14,7 +168,7 @@
   &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;今日は&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;インターフェースについて書く。このインターフェースを上手く利用する事が&lt;code class=&quot;highlighter-rouge&quot;&gt;het/http&lt;/code&gt;でAPIサーバーを作る時にとても重要になると思ってる。&lt;/p&gt;
+&lt;p&gt;今回は&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;インターフェースについて書く。このインターフェースを上手く利用する事が&lt;code class=&quot;highlighter-rouge&quot;&gt;het/http&lt;/code&gt;でAPIサーバーを作る時にとても重要になると思ってる。&lt;/p&gt;
 
 &lt;h3 id=&quot;go&quot;&gt;Goのインターフェース&lt;/h3&gt;
 
@@ -1715,337 +1869,6 @@ EC2やELBやASGとかだってCLIっぽく軽く扱えたらいいな、と。
 				<pubDate>Mon, 02 Feb 2015 00:00:00 +0000</pubDate>
 				<link>http://akirachiku.com//2015/02/02/hubot-piptools.html</link>
 				<guid isPermaLink="true">http://akirachiku.com//2015/02/02/hubot-piptools.html</guid>
-			</item>
-		
-			<item>
-				<title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
-				<description>&lt;p&gt;&lt;a href=&quot;http://qiita.com/advent-calendar/2014/distributedcomputing&quot;&gt;Spark, SQL on Hadoop etc. Advent Calendar 2014&lt;/a&gt;の最終日です。&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;書くこと&lt;/h2&gt;
-&lt;p&gt;AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。&lt;/p&gt;
-
-&lt;h2 id=&quot;presto&quot;&gt;Prestoについて&lt;/h2&gt;
-&lt;p&gt;Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;本家: &lt;a href=&quot;http://prestodb.io/&quot;&gt;Presto - Distributed SQL Query Engine for Big Data&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;TDさんのわかりやすい解説: &lt;a href=&quot;http://treasure-data.hateblo.jp/entry/2014/07/10/150250&quot;&gt;『Prestoとは何か，Prestoで何ができるか』&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;同じ系統のクエリエンジン括りだとImpalaやApache DrillがOSSとして開発されている。MPPクエリエンジン/データベースの大まかな流れや種類、それぞれの使いドコロについてははコチラの記事が最高にまとまっていて参考になる。
-&lt;a href=&quot;http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/&quot;&gt;MPP on Hadoop, Redshift, BigQuery&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。&lt;/p&gt;
-
-&lt;h2 id=&quot;shib&quot;&gt;shibについて&lt;/h2&gt;
-&lt;p&gt;PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;本家: &lt;a href=&quot;https://github.com/tagomoris/shib&quot;&gt;shib -WebUI for query engines: Hive and Presto&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;なぜnodeか: &lt;a href=&quot;http://d.hatena.ne.jp/tagomoris/20110805/1312536706&quot;&gt;Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;aws-emr&quot;&gt;AWS EMRについて&lt;/h2&gt;
-
-&lt;p&gt;AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;本家: &lt;a href=&quot;http://aws.amazon.com/jp/elasticmapreduce/&quot;&gt;AWS Elastic MapReduce&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;知る限り最強のEMR資料: &lt;a href=&quot;https://media.amazonwebservices.com/AWS_Amazon_EMR_Best_Practices.pdf&quot;&gt;Best Practices for Amazon EMR&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;前置きが長くなるとアレなので早速awscliを利用し環境を構築。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;環境概要&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;HadoopはEMRを使ってクラスタ起動&lt;/li&gt;
-  &lt;li&gt;AMI 3.3.1 (Hadoop Amazon 2.4.0, Hive 0.13.1)&lt;/li&gt;
-  &lt;li&gt;Hive/HueはEMRデフォルトの機能を使ってインストール&lt;/li&gt;
-  &lt;li&gt;Hiveメタストアは一旦ローカルで&lt;/li&gt;
-  &lt;li&gt;PrestoはEMRのBootstrap Actionを使ってインストール(v0.85)&lt;/li&gt;
-  &lt;li&gt;ShibはEMRのBootstrap Actionを使ってインストール(v0.3.8)&lt;/li&gt;
-  &lt;li&gt;S3上にあるファイルにPrestoからクエリを投げる&lt;/li&gt;
-  &lt;li&gt;S3からHDFS上にフラットファイルで持ってきてPrestoからクエリを投げる&lt;/li&gt;
-  &lt;li&gt;S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;構築方法&lt;/h2&gt;
-
-&lt;h3 id=&quot;aws-cli&quot;&gt;AWS CLIの準備&lt;/h3&gt;
-
-&lt;p&gt;CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Python 2.7.5&lt;/li&gt;
-  &lt;li&gt;virtualenv==1.10.1&lt;/li&gt;
-  &lt;li&gt;virtualenvwrapper==4.1.1&lt;/li&gt;
-  &lt;li&gt;awscli==1.6.10&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ mkvirtualenv emr
-(emr)$ pip install awscli
-(emr)$ pip freeze | grep awscli
-awscli==1.6.10
-(emr)$ mkdir ~/.awscli
-(emr)$ cat &amp;lt;&amp;lt;-EOF &amp;gt;&amp;gt;  ~/.awscli/config
-[profile development]
-aws_access_key_id=&amp;lt;development_access_key&amp;gt;
-aws_secret_access_key=&amp;lt;development_secret_key&amp;gt;
-region=ap-northeast-1
-EOF
-(emr)$ cat &amp;lt;&amp;lt;-EOF &amp;gt;&amp;gt;  $VIRTUAL_ENV/bin/activate
-export AWS_CONFIG_FILE=~/.awscli/config
-export AWS_DEFAULT_PROFILE=development
-source aws_zsh_completer.sh
-EOF
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;s3&quot;&gt;S3に必要なプログラムを配置&lt;/h3&gt;
-
-&lt;p&gt;2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。&lt;/p&gt;
-
-&lt;p&gt;今回使ったソースは以下&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz&quot;&gt;presto-server-0.85.tar.gz&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar&quot;&gt;presto-cli-0.85-executable.jar&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/tagomoris/shib/tree/v0.3.8&quot;&gt;shib v0.3.8&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;上記をダウンロードし、適当なS3キーに配置しておきます。以下例。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
-$ aws s3 cp presto-server-0.85.tar.gz s3://yourbucket/libs/
-$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar
-$ aws s3 cp presto-cli-0.85-executable.jar s3://yourbucket/libs/
-$ wget https://github.com/tagomoris/shib/archive/v0.3.8.zip
-$ unzip v0.3.8.zip &amp;amp;&amp;amp; mv shib-0.3.8 shib
-$ tar cvfz shib.tar.gz shib
-$ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;s3-1&quot;&gt;S3に必要な設定ファイルを配置&lt;/h3&gt;
-
-&lt;p&gt;shibがPrestoにクエリするための設定ファイル。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;var servers = exports.servers = {
-  listen: 3000,
-  fetch_lines: 1000,   // lines per fetch in shib
-  query_timeout: null, // shib waits queries forever
-  setup_queries: [],
-  storage: {
-    datadir: &#39;./var&#39;
-  },
-  engines: [
-    { label: &#39;PrestoCluster&#39;,
-      executer: {
-        name: &#39;presto&#39;,
-        host: &#39;localhost&#39;,
-        port: 8080,
-        catalog: &#39;hive&#39;,  // required configuration argument
-        support_database: true,
-        default_database: &#39;default&#39;
-      },
-      monitor: null
-    },
-  ],
-};
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ aws s3 cp shib-config.js s3://yourbucket/libs/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;s3bootstrap-action&quot;&gt;S3に必要なBootstrap Actionを配置&lt;/h3&gt;
-
-&lt;p&gt;Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。&lt;/p&gt;
-
-&lt;h4 id=&quot;prestobootstrap-action&quot;&gt;PrestoのBootstrap Action&lt;/h4&gt;
-&lt;p&gt;こちらのAWS Labリポジトリにあるので流用します。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/awslabs/emr-bootstrap-actions&quot;&gt;awslabs/emr-bootstrap-actions&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/awslabs/emr-bootstrap-actions/tree/master/presto&quot;&gt;Presto BootstrapAction&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;PrestoのBootstrap Actionはそんなオフィシャルにサポートしてはいないですが、READMEもちゃんと書いてあるし、そこまで複雑ではないので要件によっては自作も有りかなと思います。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
-$ aws s3 cp install-presto.rb s3://yourbucket/libs/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;shibbootstrap-action&quot;&gt;shibのBootstrap Action&lt;/h4&gt;
-
-&lt;p&gt;shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;install-shib.sh&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;shib_tarball_path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;config_file_path&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$2&lt;/span&gt;
-
-sudo yum -y update
-sudo yum install -y git
-sudo yum install -y nodejs npm --enablerepo&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;epel
-
-aws s3 cp &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;shib_tarball_path&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; /home/hadoop/shib.tar.gz
-&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /home/hadoop &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; tar xvfz /home/hadoop/shib.tar.gz
-  &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /home/hadoop/shib &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm install
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-aws s3 cp &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;config_file_path&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; /home/hadoop/shib/config.js
-&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /home/hadoop/shib &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; nohup npm start &amp;amp;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;これも同様にS3にあげる。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ aws s3 cp install-shib.sh s3://yourbucket/libs/
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h3 id=&quot;aws-cli-1&quot;&gt;AWS CLIでクラスタ立ち上げ&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;create-cluster.sh&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-
-aws emr create-cluster --ami-version 3.3.1 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --name &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$USER&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; (AMI 3.3.1 Hive + Hue + Presto + shib) &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; date &lt;span class=&quot;s1&quot;&gt;&#39;+%Y%m%d%H%M&#39;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --tags &lt;span class=&quot;nv&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;presto-on-emr &lt;span class=&quot;nv&quot;&gt;environment&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;development &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --ec2-attributes &lt;span class=&quot;nv&quot;&gt;KeyName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;yourkey &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --applications &lt;span class=&quot;nv&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hive &lt;span class=&quot;nv&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;hue &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --instance-groups file://./large-instance-setup.json &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --bootstrap-actions file://./bootstrap-presto.json &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --log-uri &lt;span class=&quot;s1&quot;&gt;&#39;s3://yourbucket/jobflow_logs/&#39;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --no-auto-terminate &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --use-default-roles &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-    --visible-to-all-users
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-&lt;p&gt;※AWSアカウントによっては–use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。&lt;/p&gt;
-
-&lt;p&gt;instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;large-instance-setup.json&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[
-  {
-     &quot;Name&quot;: &quot;emr-master-production&quot;,
-     &quot;InstanceGroupType&quot;: &quot;MASTER&quot;,
-     &quot;InstanceCount&quot;: 1,
-     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
-  },
-  {
-     &quot;Name&quot;: &quot;emr-core-production&quot;,
-     &quot;InstanceGroupType&quot;: &quot;CORE&quot;,
-     &quot;InstanceCount&quot;: 2 ,
-     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
-  }
-]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;bootstrap-presto.json&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[
-  {
-    &quot;Name&quot;: &quot;Install/Setup Shib&quot;,
-    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-shib.sh&quot;,
-    &quot;Args&quot;: [
-        &quot;s3://yourbucket/libs/shib.tar.gz&quot;,
-        &quot;s3://yourbucket/libs/shib-config.js&quot;
-    ]
-  },
-  {
-    &quot;Name&quot;: &quot;Install/Setup Presto&quot;,
-    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-presto.rb&quot;,
-    &quot;Args&quot;: [
-        &quot;--s3-path-to-presto-server-bin&quot;,&quot;s3://yourbucket/libs/presto-server-0.85.tar.gz&quot;,
-        &quot;--s3-path-to-presto-cli&quot;, &quot;s3://yourbucket/libs/presto-cli-0.85-executable.jar&quot;
-    ]
-  }
-]
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h2 id=&quot;shibhue&quot;&gt;Shib/Hueアクセス方法&lt;/h2&gt;
-
-&lt;h3 id=&quot;foxyproxyssh&quot;&gt;FoxyProxyとSSHトネリングを利用&lt;/h3&gt;
-&lt;p&gt;FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;http://getfoxyproxy.org/&quot;&gt;FoxyProxy - Firefox/Chrome&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;sample-emr-proxy.xml&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;foxyproxy&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;proxies&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;proxy&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;emr-socks-proxy&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;id=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2322596116&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;notes=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;fromSubscription=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;enabled=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;mode=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;manual&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;selectedTabIndex=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lastresort=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;animatedIcons=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;includeInCycle=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;color=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;#0055E5&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;proxyDNS=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;noInternalIPs=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;autoconfMode=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;pac&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;clearCacheBeforeUse=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;disableCache=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;clearCookiesBeforeUse=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rejectCookies=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;matches&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;match&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;enabled=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;*ec2*.amazonaws.com*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;pattern=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;*ec2*.amazonaws.com*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isRegEx=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isBlackList=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isMultiLine=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;caseSensitive=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;fromSubscription=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;match&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;enabled=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;*ec2*.compute*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;pattern=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;*ec2*.compute*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isRegEx=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isBlackList=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isMultiLine=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;caseSensitive=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;fromSubscription=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;match&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;enabled=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;10.*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;pattern=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://10.*&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isRegEx=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isBlackList=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isMultiLine=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;caseSensitive=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;fromSubscription=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;false&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/matches&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;manualconf&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;host=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;localhost&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;port=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;8157&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;socksversion=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;5&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;isSocks=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;true&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;username=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;password=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;domain=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/proxy&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/proxies&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/foxyproxy&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;http://youremrhost.compute.amazonaws.com:3000&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;また、以下のURLにアクセスするとHueにアクセスできます。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;http://youremrhost.compute.amazonaws.com:8888&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;aws-securitygroup&quot;&gt;AWS SecurityGroupを変更&lt;/h3&gt;
-&lt;p&gt;EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;パフォーマンス&lt;/h2&gt;
-&lt;p&gt;パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;終わりに&lt;/h2&gt;
-&lt;p&gt;いかがでしたでしょうか。
-PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
-もうあと25日は2時間しか残ってませんがハッピーメリークリスマス！&lt;/p&gt;
-
-</description>
-				<pubDate>Thu, 25 Dec 2014 00:00:00 +0000</pubDate>
-				<link>http://akirachiku.com//2014/12/25/presto-hue-shib-on-awsemr.html</link>
-				<guid isPermaLink="true">http://akirachiku.com//2014/12/25/presto-hue-shib-on-awsemr.html</guid>
 			</item>
 		
 	</channel>
