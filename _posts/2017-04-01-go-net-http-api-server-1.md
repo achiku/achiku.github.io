@@ -43,7 +43,10 @@ func main() {
 }
 ```
 
+(本来なら`NewApp()`的な関数を定義しておくべきだけど、今回は省略)
+
 この`App`にメソッドを付与して各処理を記述していくことで、アプリケーション内で必要となる値には各処理から簡単にアクセスできるようになる。また、このメソッドのシグネチャを`func(http.ResponseWriter, *http.Request)`にして`http.HandlerFunc`の型に合うようにする事で、ある程度の規模まではその他標準ライブラリと連携しやすくなる。
+
 
 ```golang
 // Greeting greeting
@@ -67,6 +70,8 @@ func (app *App) Greeting(w http.ResponseWriter, r *http.Request) {
 ```
 
 サンプルコード見て「同じような処理(主にhttp.ResponseWriterとエラーハンドリング周辺)が何回も出てきて微妙だな」と思う人もいるかと思うし、自分もちょっとこれは微妙かなと思う部分が多い。後ほど書く予定の記事でこの部分は改善してみようと思うので、一旦このまま進む。
+
+(書いた->[net/httpで作るGo APIサーバー #2](http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html))
 
 1点気をつけなければいけない事がある。この`App`は各httpリクエストに対応するgoroutineから同時にアクセスされる為、中に入れておく値は読み出すだけのものか、concurrent safeなものに限定しておくのが良い。例えば`log.Logger`はドキュメントにもあるようにconcurrent safeなstructだ([godoc](https://golang.org/pkg/log/#Logger))。
 
@@ -120,3 +125,9 @@ func TestGreeting(t *testing.T) {
 今回のケースでは`go test -v`の`-v`が渡されていた場合、loggerの出力先を変更している。自分は`go test`の成功すると何も出力されない、という仕様がとても好きなんだけど、時にはテストしたい関数の中にデバッグログを仕込んで出力を見たい、という場合がある。そのような場合に、Appが持つLoggerの属性をパラメタを渡すことで変更している。
 
 Loggerに限らず、例えば後で詳細に書くけど外部のAPI ClientやDBのMockをこの部分で初期化する事で、実際にサーバーとして走らすAppとは異なるAppを作り、テストしたい関数(今回の場合はApp.Greeting)に集中してテストが書けるようになっている。
+
+
+### 合わせて読みたい
+
+- [net/httpで作るGo APIサーバー #2](http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html)
+- [net/httpで作るGo APIサーバー #3](http://akirachiku.com/2017/04/03/go-net-http-api-server-3.html)

@@ -123,6 +123,8 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
+<p>(本来なら<code class="highlighter-rouge">NewApp()</code>的な関数を定義しておくべきだけど、今回は省略)</p>
+
 <p>この<code class="highlighter-rouge">App</code>にメソッドを付与して各処理を記述していくことで、アプリケーション内で必要となる値には各処理から簡単にアクセスできるようになる。また、このメソッドのシグネチャを<code class="highlighter-rouge">func(http.ResponseWriter, *http.Request)</code>にして<code class="highlighter-rouge">http.HandlerFunc</code>の型に合うようにする事で、ある程度の規模まではその他標準ライブラリと連携しやすくなる。</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="c">// Greeting greeting</span><span class="x">
@@ -147,6 +149,8 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </div>
 
 <p>サンプルコード見て「同じような処理(主にhttp.ResponseWriterとエラーハンドリング周辺)が何回も出てきて微妙だな」と思う人もいるかと思うし、自分もちょっとこれは微妙かなと思う部分が多い。後ほど書く予定の記事でこの部分は改善してみようと思うので、一旦このまま進む。</p>
+
+<p>(書いた-&gt;<a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a>)</p>
 
 <p>1点気をつけなければいけない事がある。この<code class="highlighter-rouge">App</code>は各httpリクエストに対応するgoroutineから同時にアクセスされる為、中に入れておく値は読み出すだけのものか、concurrent safeなものに限定しておくのが良い。例えば<code class="highlighter-rouge">log.Logger</code>はドキュメントにもあるようにconcurrent safeなstructだ(<a href="https://golang.org/pkg/log/#Logger">godoc</a>)。</p>
 
@@ -201,6 +205,13 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 <p>今回のケースでは<code class="highlighter-rouge">go test -v</code>の<code class="highlighter-rouge">-v</code>が渡されていた場合、loggerの出力先を変更している。自分は<code class="highlighter-rouge">go test</code>の成功すると何も出力されない、という仕様がとても好きなんだけど、時にはテストしたい関数の中にデバッグログを仕込んで出力を見たい、という場合がある。そのような場合に、Appが持つLoggerの属性をパラメタを渡すことで変更している。</p>
 
 <p>Loggerに限らず、例えば後で詳細に書くけど外部のAPI ClientやDBのMockをこの部分で初期化する事で、実際にサーバーとして走らすAppとは異なるAppを作り、テストしたい関数(今回の場合はApp.Greeting)に集中してテストが書けるようになっている。</p>
+
+<h3 id="section-2">合わせて読みたい</h3>
+
+<ul>
+  <li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+  <li><a href="http://akirachiku.com/2017/04/03/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+</ul>
 
 </div>
 <div class="post-sharing">

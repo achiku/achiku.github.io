@@ -499,6 +499,8 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
+&lt;p&gt;(本来なら&lt;code class=&quot;highlighter-rouge&quot;&gt;NewApp()&lt;/code&gt;的な関数を定義しておくべきだけど、今回は省略)&lt;/p&gt;
+
 &lt;p&gt;この&lt;code class=&quot;highlighter-rouge&quot;&gt;App&lt;/code&gt;にメソッドを付与して各処理を記述していくことで、アプリケーション内で必要となる値には各処理から簡単にアクセスできるようになる。また、このメソッドのシグネチャを&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.ResponseWriter, *http.Request)&lt;/code&gt;にして&lt;code class=&quot;highlighter-rouge&quot;&gt;http.HandlerFunc&lt;/code&gt;の型に合うようにする事で、ある程度の規模まではその他標準ライブラリと連携しやすくなる。&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;// Greeting greeting&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
@@ -523,6 +525,8 @@
 &lt;/div&gt;
 
 &lt;p&gt;サンプルコード見て「同じような処理(主にhttp.ResponseWriterとエラーハンドリング周辺)が何回も出てきて微妙だな」と思う人もいるかと思うし、自分もちょっとこれは微妙かなと思う部分が多い。後ほど書く予定の記事でこの部分は改善してみようと思うので、一旦このまま進む。&lt;/p&gt;
+
+&lt;p&gt;(書いた-&amp;gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;1点気をつけなければいけない事がある。この&lt;code class=&quot;highlighter-rouge&quot;&gt;App&lt;/code&gt;は各httpリクエストに対応するgoroutineから同時にアクセスされる為、中に入れておく値は読み出すだけのものか、concurrent safeなものに限定しておくのが良い。例えば&lt;code class=&quot;highlighter-rouge&quot;&gt;log.Logger&lt;/code&gt;はドキュメントにもあるようにconcurrent safeなstructだ(&lt;a href=&quot;https://golang.org/pkg/log/#Logger&quot;&gt;godoc&lt;/a&gt;)。&lt;/p&gt;
 
@@ -577,6 +581,13 @@
 &lt;p&gt;今回のケースでは&lt;code class=&quot;highlighter-rouge&quot;&gt;go test -v&lt;/code&gt;の&lt;code class=&quot;highlighter-rouge&quot;&gt;-v&lt;/code&gt;が渡されていた場合、loggerの出力先を変更している。自分は&lt;code class=&quot;highlighter-rouge&quot;&gt;go test&lt;/code&gt;の成功すると何も出力されない、という仕様がとても好きなんだけど、時にはテストしたい関数の中にデバッグログを仕込んで出力を見たい、という場合がある。そのような場合に、Appが持つLoggerの属性をパラメタを渡すことで変更している。&lt;/p&gt;
 
 &lt;p&gt;Loggerに限らず、例えば後で詳細に書くけど外部のAPI ClientやDBのMockをこの部分で初期化する事で、実際にサーバーとして走らすAppとは異なるAppを作り、テストしたい関数(今回の場合はApp.Greeting)に集中してテストが書けるようになっている。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;合わせて読みたい&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/03/go-net-http-api-server-3.html&quot;&gt;net/httpで作るGo APIサーバー #3&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 </description>
 				<pubDate>Sat, 01 Apr 2017 00:00:00 +0000</pubDate>
 				<link>http://akirachiku.com//2017/04/01/go-net-http-api-server-1.html</link>
