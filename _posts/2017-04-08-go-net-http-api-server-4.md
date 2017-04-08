@@ -63,7 +63,7 @@ xmuxは元は[httprouter](https://github.com/julienschmidt/httprouter)というr
 	}
 ```
 
-`PathPrefix`を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で`{name}`の用にパラメタを設定でき、`http.Handler`の中で以下のようにして取得することができる。注意点1として、取得できるのは`map[string]string`なので適切な型にキャストして利用する必要がある。
+`PathPrefix`を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で`{name}`の用にパラメタを設定でき、`http.Handler`の中で以下のようにして取得することができる。注意点1として、`mux.Vars`で取得できるURLパラメタは`map[string]string`なのでその後の処理に応じて適切な型にキャストして利用する必要がある。
 
 
 ```golang
@@ -92,8 +92,65 @@ func (app *App) GreetingWithName(w http.ResponseWriter, r *http.Request) (int, i
 	r.Methods("GET").Path("/hello/{name}").Handler(chain.Then(AppHandler{h: app.GreetingWithName}))
 ```
 
+### テストを書く
 
-### あわせて読みたい
+これが若干悩ましい。何が悩ましいかというと「muxの中でURLパラメタをパースして`context.Context`に値をセットするAPIが開発者には公開されていない」という事。パッケージ作成者としてはgorilla/muxが管理する`context.Context`のキーを外部に公開しないというのは非常に分かるし、推奨される方法だ(意図せず同一のキーで上書きされるのを防ぐため)。しかし[このIssue](https://github.com/gorilla/mux/issues/167)で提案されているコードはやっぱり冗長だし、何よりテストコードの中に本質的でないURLと`http.Handler`を書かなければいけないのが良くないのではと思う。URL書き間違えたらテストの意味が無いし、URLのルーティング含めたテストは`http.Handler`単体のテスト(アプリケーション固有ロジックのテスト)とは別途書かれるべきなのではないか、という思いがある。まだ正直この部分は悩み中。
+
+```golang
+    r := mux.NewRouter()
+    r.HandleFunc("/hello/{name}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintln(w, "Hello, client")
+    }))
+
+    ts := httptest.NewServer(r)
+    defer ts.Close()
+
+    // Table driven test
+    names := []string{"kate", "matt", "emma"}
+    for _, name := range names {
+        url := ts.URL + "/hello/" + name
+        resp, err := http.Get(url)
+        if err != nil {
+            t.Fatal(err)
+        }
+
+        if status := resp.Code; status != http.StatusOK {
+            t.Fatalf("wrong status code: got %d want %d", status, http.StatusOK)
+        }
+    }
+```
+
+一応自分でも「`context.Context`に値をセットできるようなPublic Test APIを作成したら良いのでは？」と[このIssue](https://github.com/gorilla/mux/issues/233)で提案してみたが、作者は上記の方法には興味無さそう(もう少しPushしてみるのはありかもしれない)。
+
+なのでこんな感じのPublic Test APIを付けたforkを現在は利用している。
+
+- [achiku/mux](https://github.com/achiku/mux/commit/f8f4828232971c798713d8c4f7bb9739f9950dc4)
+
+これを使うとどのように書けるかというと、以下。
+
+```golang
+func TestGreetingWithName(t *testing.T) {
+	app := testNewApp(t)
+	data := []struct {
+		Name            string
+		ExpectedMessage string
+		ExpectedName    string
+	}{
+		{Name: "achiku", ExpectedMessage: "hello", ExpectedName: "achiku"},
+		{Name: "moqada", ExpectedMessage: "sup", ExpectedName: "my man"},
+	}
+	for _, d := range data {
+		req := httptest.NewRequest(http.MethodGet, "/api/hello/"+d.Name, nil)
+		r := mux.TestSetURLParam(req, map[string]string{"name": d.Name})
+		status, res, err := app.GreetingWithName(httptest.NewRecorder(), r)
+        ...
+}
+```
+
+このように`mux.TestSetURLParam(*http.Request, map[string]string)`を使うことで`http.Request`の中の`context.Context`にテスト用の値を注入してテストを流せる。まぁ書いてみて思ったけどこれもまだ`http.Request`を作る時にURL書いてるし微妙な気がしてきた。この辺みんなどうやってテストしてるのか聞いてみたい。
+
+
+### 合わせて読みたい
 
 - [net/httpで作るGo APIサーバー #1](http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html)
 - [net/httpで作るGo APIサーバー #2](http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html)

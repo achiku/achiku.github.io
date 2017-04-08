@@ -153,7 +153,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<p><code class="highlighter-rouge">PathPrefix</code>を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で<code class="highlighter-rouge"><span class="p">{</span><span class="err">name</span><span class="p">}</span></code>の用にパラメタを設定でき、<code class="highlighter-rouge">http.Handler</code>の中で以下のようにして取得することができる。注意点1として、取得できるのは<code class="highlighter-rouge">map[string]string</code>なので適切な型にキャストして利用する必要がある。</p>
+<p><code class="highlighter-rouge">PathPrefix</code>を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で<code class="highlighter-rouge"><span class="p">{</span><span class="err">name</span><span class="p">}</span></code>の用にパラメタを設定でき、<code class="highlighter-rouge">http.Handler</code>の中で以下のようにして取得することができる。注意点1として、<code class="highlighter-rouge">mux.Vars</code>で取得できるURLパラメタは<code class="highlighter-rouge">map[string]string</code>なのでその後の処理に応じて適切な型にキャストして利用する必要がある。</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="c">// GreetingWithName greeting with name</span><span class="x">
 </span><span class="k">func</span><span class="x"> </span><span class="p">(</span><span class="n">app</span><span class="x"> </span><span class="o">*</span><span class="n">App</span><span class="p">)</span><span class="x"> </span><span class="n">GreetingWithName</span><span class="p">(</span><span class="n">w</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">ResponseWriter</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="x"> </span><span class="o">*</span><span class="n">http</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span><span class="x"> </span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="x"> </span><span class="k">interface</span><span class="p">{},</span><span class="x"> </span><span class="kt">error</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
@@ -181,7 +181,66 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<h3 id="section">あわせて読みたい</h3>
+<h3 id="section">テストを書く</h3>
+
+<p>これが若干悩ましい。何が悩ましいかというと「muxの中でURLパラメタをパースして<code class="highlighter-rouge">context.Context</code>に値をセットするAPIが開発者には公開されていない」という事。パッケージ作成者としてはgorilla/muxが管理する<code class="highlighter-rouge">context.Context</code>のキーを外部に公開しないというのは非常に分かるし、推奨される方法だ(意図せず同一のキーで上書きされるのを防ぐため)。しかし<a href="https://github.com/gorilla/mux/issues/167">このIssue</a>で提案されているコードはやっぱり冗長だし、何よりテストコードの中に本質的でないURLと<code class="highlighter-rouge">http.Handler</code>を書かなければいけないのが良くないのではと思う。URL書き間違えたらテストの意味が無いし、URLのルーティング含めたテストは<code class="highlighter-rouge">http.Handler</code>単体のテスト(アプリケーション固有ロジックのテスト)とは別途書かれるべきなのではないか、という思いがある。まだ正直この部分は悩み中。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="x">    </span><span class="n">r</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">mux</span><span class="o">.</span><span class="n">NewRouter</span><span class="p">()</span><span class="x">
+    </span><span class="n">r</span><span class="o">.</span><span class="n">HandleFunc</span><span class="p">(</span><span class="s">"/hello/{name}"</span><span class="p">,</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">HandlerFunc</span><span class="p">(</span><span class="k">func</span><span class="p">(</span><span class="n">w</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">ResponseWriter</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="x"> </span><span class="o">*</span><span class="n">http</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+        </span><span class="n">fmt</span><span class="o">.</span><span class="n">Fprintln</span><span class="p">(</span><span class="n">w</span><span class="p">,</span><span class="x"> </span><span class="s">"Hello, client"</span><span class="p">)</span><span class="x">
+    </span><span class="p">}))</span><span class="x">
+
+    </span><span class="n">ts</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">httptest</span><span class="o">.</span><span class="n">NewServer</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="x">
+    </span><span class="k">defer</span><span class="x"> </span><span class="n">ts</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span><span class="x">
+
+    </span><span class="c">// Table driven test</span><span class="x">
+    </span><span class="n">names</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">"kate"</span><span class="p">,</span><span class="x"> </span><span class="s">"matt"</span><span class="p">,</span><span class="x"> </span><span class="s">"emma"</span><span class="p">}</span><span class="x">
+    </span><span class="k">for</span><span class="x"> </span><span class="n">_</span><span class="p">,</span><span class="x"> </span><span class="n">name</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="k">range</span><span class="x"> </span><span class="n">names</span><span class="x"> </span><span class="p">{</span><span class="x">
+        </span><span class="n">url</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">ts</span><span class="o">.</span><span class="n">URL</span><span class="x"> </span><span class="o">+</span><span class="x"> </span><span class="s">"/hello/"</span><span class="x"> </span><span class="o">+</span><span class="x"> </span><span class="n">name</span><span class="x">
+        </span><span class="n">resp</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="x">
+        </span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+            </span><span class="n">t</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="x">
+        </span><span class="p">}</span><span class="x">
+
+        </span><span class="k">if</span><span class="x"> </span><span class="n">status</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">resp</span><span class="o">.</span><span class="n">Code</span><span class="p">;</span><span class="x"> </span><span class="n">status</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">StatusOK</span><span class="x"> </span><span class="p">{</span><span class="x">
+            </span><span class="n">t</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"wrong status code: got %d want %d"</span><span class="p">,</span><span class="x"> </span><span class="n">status</span><span class="p">,</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">StatusOK</span><span class="p">)</span><span class="x">
+        </span><span class="p">}</span><span class="x">
+    </span><span class="p">}</span><span class="x">
+</span></code></pre>
+</div>
+
+<p>一応自分でも「<code class="highlighter-rouge">context.Context</code>に値をセットできるようなPublic Test APIを作成したら良いのでは？」と<a href="https://github.com/gorilla/mux/issues/233">このIssue</a>で提案してみたが、作者は上記の方法には興味無さそう(もう少しPushしてみるのはありかもしれない)。</p>
+
+<p>なのでこんな感じのPublic Test APIを付けたforkを現在は利用している。</p>
+
+<ul>
+  <li><a href="https://github.com/achiku/mux/commit/f8f4828232971c798713d8c4f7bb9739f9950dc4">achiku/mux</a></li>
+</ul>
+
+<p>これを使うとどのように書けるかというと、以下。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">func</span><span class="x"> </span><span class="n">TestGreetingWithName</span><span class="p">(</span><span class="n">t</span><span class="x"> </span><span class="o">*</span><span class="n">testing</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+	</span><span class="n">app</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">testNewApp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="x">
+	</span><span class="n">data</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="p">[]</span><span class="k">struct</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="n">Name</span><span class="x">            </span><span class="kt">string</span><span class="x">
+		</span><span class="n">ExpectedMessage</span><span class="x"> </span><span class="kt">string</span><span class="x">
+		</span><span class="n">ExpectedName</span><span class="x">    </span><span class="kt">string</span><span class="x">
+	</span><span class="p">}{</span><span class="x">
+		</span><span class="p">{</span><span class="n">Name</span><span class="o">:</span><span class="x"> </span><span class="s">"achiku"</span><span class="p">,</span><span class="x"> </span><span class="n">ExpectedMessage</span><span class="o">:</span><span class="x"> </span><span class="s">"hello"</span><span class="p">,</span><span class="x"> </span><span class="n">ExpectedName</span><span class="o">:</span><span class="x"> </span><span class="s">"achiku"</span><span class="p">},</span><span class="x">
+		</span><span class="p">{</span><span class="n">Name</span><span class="o">:</span><span class="x"> </span><span class="s">"moqada"</span><span class="p">,</span><span class="x"> </span><span class="n">ExpectedMessage</span><span class="o">:</span><span class="x"> </span><span class="s">"sup"</span><span class="p">,</span><span class="x"> </span><span class="n">ExpectedName</span><span class="o">:</span><span class="x"> </span><span class="s">"my man"</span><span class="p">},</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="k">for</span><span class="x"> </span><span class="n">_</span><span class="p">,</span><span class="x"> </span><span class="n">d</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="k">range</span><span class="x"> </span><span class="n">data</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="n">req</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">httptest</span><span class="o">.</span><span class="n">NewRequest</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">MethodGet</span><span class="p">,</span><span class="x"> </span><span class="s">"/api/hello/"</span><span class="o">+</span><span class="n">d</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="p">)</span><span class="x">
+		</span><span class="n">r</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">mux</span><span class="o">.</span><span class="n">TestSetURLParam</span><span class="p">(</span><span class="n">req</span><span class="p">,</span><span class="x"> </span><span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">{</span><span class="s">"name"</span><span class="o">:</span><span class="x"> </span><span class="n">d</span><span class="o">.</span><span class="n">Name</span><span class="p">})</span><span class="x">
+		</span><span class="n">status</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">app</span><span class="o">.</span><span class="n">GreetingWithName</span><span class="p">(</span><span class="n">httptest</span><span class="o">.</span><span class="n">NewRecorder</span><span class="p">(),</span><span class="x"> </span><span class="n">r</span><span class="p">)</span><span class="x">
+        </span><span class="o">...</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre>
+</div>
+
+<p>このように<code class="highlighter-rouge">mux.TestSetURLParam(*http.Request, map[string]string)</code>を使うことで<code class="highlighter-rouge">http.Request</code>の中の<code class="highlighter-rouge">context.Context</code>にテスト用の値を注入してテストを流せる。まぁ書いてみて思ったけどこれもまだ<code class="highlighter-rouge">http.Request</code>を作る時にURL書いてるし微妙な気がしてきた。この辺みんなどうやってテストしてるのか聞いてみたい。</p>
+
+<h3 id="section-1">合わせて読みたい</h3>
 
 <ul>
   <li><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
