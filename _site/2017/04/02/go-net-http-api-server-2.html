@@ -164,7 +164,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<p>ここで示しているのは<code class="highlighter-rouge">animal</code>インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した<code class="highlighter-rouge">nameType</code>という実態は<code class="highlighter-rouge">string</code>の型に付与したメソッドでもインターフェースを満たしていれば<code class="highlighter-rouge">animal</code>として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。</p>
+<p>このコードの中で言いたいのは<code class="highlighter-rouge">animal</code>インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した<code class="highlighter-rouge">nameType</code>という実態は<code class="highlighter-rouge">string</code>の型に付与したメソッドでもインターフェースを満たしていれば<code class="highlighter-rouge">animal</code>として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。</p>
 
 <p>詳細は以下の記事がステップバイステップで解説していて面白い。</p>
 
@@ -213,7 +213,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<p><code class="highlighter-rouge">ServeHTTP</code>というメソッド一つ持っていればそれは全て<code class="highlighter-rouge">http.Handler</code>として扱う事ができる。なんとも小さくて頼りない感じがするが、<code class="highlighter-rouge">http.Request</code>と<code class="highlighter-rouge">http.ResponseWriter</code>と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。</p>
+<p><code class="highlighter-rouge">ServeHTTP(http.ResponseWriter, *http.Request)</code>というメソッド一つ持っていればそれは全て<code class="highlighter-rouge">http.Handler</code>として扱う事ができる。なんとも小さくて頼りない感じがするが、<code class="highlighter-rouge">http.Request</code>と<code class="highlighter-rouge">http.ResponseWriter</code>と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="k">package</span><span class="x"> </span><span class="n">main</span><span class="x">
 
@@ -244,7 +244,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<p><code class="highlighter-rouge">myString</code>型は<code class="highlighter-rouge">ServeHTP(http.ResponseWriter, *http.Request)</code>というシグネチャを満たすので<code class="highlighter-rouge">http.Handler</code>として利用できる。<code class="highlighter-rouge">http.Handler</code>として利用できるので、<code class="highlighter-rouge">mux.Handle(string, http.Handler)</code>に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。</p>
+<p><code class="highlighter-rouge">myString</code>型は<code class="highlighter-rouge">ServeHTTP(http.ResponseWriter, *http.Request)</code>というシグネチャを満たすので<code class="highlighter-rouge">http.Handler</code>として利用できる。<code class="highlighter-rouge">http.Handler</code>として利用できるので、<code class="highlighter-rouge">mux.Handle(string, http.Handler)</code>に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。</p>
 
 <p>以下は良くGoの<code class="highlighter-rouge">net/http</code>の例で見る<code class="highlighter-rouge">func(http.ResponseWriter, *http.Request)</code>とURLを紐付けるタイプのやつ。</p>
 
@@ -281,7 +281,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 </span></code></pre>
 </div>
 
-<p>これは関数<code class="highlighter-rouge">func(http.ResponseWriter, *http.Request)</code>に<code class="highlighter-rouge">ServeHTTP</code>メソッドを追加してただただその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと<code class="highlighter-rouge">http.Handler</code>が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで<code class="highlighter-rouge">http.HandlerFunc</code>しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の<code class="highlighter-rouge">http.Handler</code>を受けれないのはライブラリとしてはもったいないなという思いがある。</p>
+<p>これは関数<code class="highlighter-rouge">func(http.ResponseWriter, *http.Request)</code>を<code class="highlighter-rouge">http.HandlerFunc</code>に型変換し<code class="highlighter-rouge">ServeHTTP</code>メソッドを持つ形にして、<code class="highlighter-rouge">ServeHTTP</code>の中で型変換したその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと<code class="highlighter-rouge">http.Handler</code>が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで<code class="highlighter-rouge">http.HandlerFunc</code>しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の<code class="highlighter-rouge">http.Handler</code>を受けれないのはライブラリとしてはもったいないなという思いがある。</p>
 
 <h3 id="section">何が嬉しいのか</h3>
 

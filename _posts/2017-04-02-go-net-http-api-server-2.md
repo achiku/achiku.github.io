@@ -84,7 +84,7 @@ func main() {
 }
 ```
 
-ここで示しているのは`animal`インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した`nameType`という実態は`string`の型に付与したメソッドでもインターフェースを満たしていれば`animal`として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。
+このコードの中で言いたいのは`animal`インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した`nameType`という実態は`string`の型に付与したメソッドでもインターフェースを満たしていれば`animal`として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。
 
 詳細は以下の記事がステップバイステップで解説していて面白い。
 
@@ -133,7 +133,7 @@ type Handler interface {
 }
 ```
 
-`ServeHTTP`というメソッド一つ持っていればそれは全て`http.Handler`として扱う事ができる。なんとも小さくて頼りない感じがするが、`http.Request`と`http.ResponseWriter`と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。
+`ServeHTTP(http.ResponseWriter, *http.Request)`というメソッド一つ持っていればそれは全て`http.Handler`として扱う事ができる。なんとも小さくて頼りない感じがするが、`http.Request`と`http.ResponseWriter`と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。
 
 
 ```golang
@@ -165,7 +165,7 @@ func main() {
 }
 ```
 
-`myString`型は`ServeHTP(http.ResponseWriter, *http.Request)`というシグネチャを満たすので`http.Handler`として利用できる。`http.Handler`として利用できるので、`mux.Handle(string, http.Handler)`に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。
+`myString`型は`ServeHTTP(http.ResponseWriter, *http.Request)`というシグネチャを満たすので`http.Handler`として利用できる。`http.Handler`として利用できるので、`mux.Handle(string, http.Handler)`に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。
 
 以下は良くGoの`net/http`の例で見る`func(http.ResponseWriter, *http.Request)`とURLを紐付けるタイプのやつ。
 
@@ -202,7 +202,7 @@ func (f HandlerFunc) ServeHTTP(w ResponseWriter, r *Request) {
 }
 ```
 
-これは関数`func(http.ResponseWriter, *http.Request)`に`ServeHTTP`メソッドを追加してただただその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと`http.Handler`が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで`http.HandlerFunc`しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の`http.Handler`を受けれないのはライブラリとしてはもったいないなという思いがある。
+これは関数`func(http.ResponseWriter, *http.Request)`を`http.HandlerFunc`に型変換し`ServeHTTP`メソッドを持つ形にして、`ServeHTTP`の中で型変換したその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと`http.Handler`が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで`http.HandlerFunc`しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の`http.Handler`を受けれないのはライブラリとしてはもったいないなという思いがある。
 
 
 ### 何が嬉しいのか

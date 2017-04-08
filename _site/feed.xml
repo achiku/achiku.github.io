@@ -7,6 +7,122 @@
 		<atom:link href="http://akirachiku.com/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>net/httpで作るGo APIサーバー #4</title>
+				<description>&lt;p&gt;この一連の記事では&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-3.html&quot;&gt;net/httpで作るGo APIサーバー #3&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;上記3つの記事で&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;単体でもある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。但し、現代的なAPIサーバーを構築する上で必要になる部分が幾つか欠けている。今回の記事では欠けているポイントのうちの一つであるHTTPルーターの話を書く。&lt;/p&gt;
+
+&lt;h3 id=&quot;http&quot;&gt;HTTPルーター&lt;/h3&gt;
+
+&lt;p&gt;ここで言うHTTPルーターとは以下の事ができるものである事とする。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;HTTP Method+URLと&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;の紐付けができ、クライアントからのHTTPリクエストに対して適切な処理をディスパッチできる&lt;/li&gt;
+  &lt;li&gt;URLの一部として含まれるパラメタをパースし&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;側に渡す機能を持っている&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;context&quot;&gt;context導入以前&lt;/h3&gt;
+
+&lt;p&gt;上記のような事ができるHTTPルーターはいくつかあるが、もう一つ観点として「標準ライブラリと組み合わせて使えるか」というものがある。例えば、Goの標準ライブラリとして&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;が導入される以前は&lt;code class=&quot;highlighter-rouge&quot;&gt;x/net/context&lt;/code&gt;を組み込んだHTTPルーターがそれなりにあった。同様に&lt;code class=&quot;highlighter-rouge&quot;&gt;x/net/context&lt;/code&gt;は使わずに独自構造体でリクエストスコープな値を管理するライブラリもある。自分が良いなと思っていたのは以下のライブラリ(テストヘルパー関数だけどコントリビュートしたこともある)。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/rs/xmux&quot;&gt;xmux&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/rs/xhandler&quot;&gt;xhandler&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;xmuxは元は&lt;a href=&quot;https://github.com/julienschmidt/httprouter&quot;&gt;httprouter&lt;/a&gt;というradix treeを使った高速なディスパッチを売りにするライブラリをベースにして、&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTPC(context.Context, w http.ResponseWriter, r *http.Request)&lt;/code&gt;という独自のインターフェースを持ち、標準ライブラリとの間にはアダプタを挟んで良い感じでリクエストスコープの値を&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;的なインターフェースである&lt;code class=&quot;highlighter-rouge&quot;&gt;xhandler.HandlerC&lt;/code&gt;まで渡してくれる。詳細は以下の作者ブログが詳しい。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://engineering.dailymotion.com/our-way-to-go/&quot;&gt;Our way to Go&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ただしこの類の独自インターフェース拡張方式、独自リクエストスコープな値用の構造体を持つ方式は&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;が標準ライブラリである&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Request&lt;/code&gt;に追加された後にはもはや役目を終えている感がある。&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;に関しては誤解が多い領域なので予め明記しておくが、「goroutineのキャンセルをうまいことやる」という事を主眼に置いた仕組みであり「どんな値もぶち込める便利な場所」ではない。以下の議論/記事をよく読んで、それでもリクエストスコープな値、複数のgoroutineに渡していきたい値を精査した後に持たせる値を決めるのが良いと思う。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://deeeet.com/writing/2017/02/23/go-context-value/&quot;&gt;Golangのcontext.Valueの使い方&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://peter.bourgon.org/blog/2016/07/11/context.html&quot;&gt;Context&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://twitter.com/peterbourgon/status/752022730812317696&quot;&gt;peterborgon tweets&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ちなみに&lt;a href=&quot;https://github.com/julienschmidt/httprouter&quot;&gt;httprouter&lt;/a&gt;も「V2では&lt;code class=&quot;highlighter-rouge&quot;&gt;context&lt;/code&gt;対応するぜ！」と言っているが&lt;a href=&quot;https://github.com/julienschmidt/httprouter/pull/147&quot;&gt;このPR&lt;/a&gt;が一向にマージされないので自分は使うのを諦めた経緯がある。&lt;/p&gt;
+
+&lt;h3 id=&quot;context-1&quot;&gt;context導入以後&lt;/h3&gt;
+
+&lt;p&gt;今使っているのは以下のライブラリ。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/gorilla/mux&quot;&gt;gorilla/mux&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ビルドタグを使ってGo 1.6以前は独自構造体を使う、Go 1.7以降は標準ライブラリの&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Request&lt;/code&gt;の中に入っている&lt;code class=&quot;highlighter-rouge&quot;&gt;context.Context&lt;/code&gt;を使う、という形になっている。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/gorilla/mux/blob/master/context_native.go#L1&quot;&gt;mux/context_nativ.go&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下サンプルコード。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;x&quot;&gt;	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// for gorilla/mux&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewRouter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PathPrefix&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/api&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Subrouter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello/staticName&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publicChain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello/{name}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GreetingWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ListenAndServe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;:8080&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;router&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Fatal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;PathPrefix&lt;/code&gt;を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で&lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;の用にパラメタを設定でき、&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;の中で以下のようにして取得することができる。注意点1として、取得できるのは&lt;code class=&quot;highlighter-rouge&quot;&gt;map[string]string&lt;/code&gt;なので適切な型にキャストして利用する必要がある。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;// GreetingWithName greeting with name&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;App&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GreetingWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResponseWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{},&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;val&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Vars&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HelloService&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;val&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;error: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ErrorResponse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Code&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Message&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;something went wrong&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ok: %v&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusOK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注意点2としては、URLパラメタを含むURLと同じ階層で静的なURLを使いたい場合、静的なURLを先に登録する必要がある、という事。ちなみに&lt;a href=&quot;https://github.com/julienschmidt/httprouter&quot;&gt;httprouter&lt;/a&gt;は現時点でURLパラメタと同じ階層に静的なURLを登録できない(これもhttprouter使うのを諦めた理由の一つではある)。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;x&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// /hello/staticNameが先、/hello/{name}は後&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello/staticName&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;publicChain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Greeting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Methods&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GET&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/hello/{name}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GreetingWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}))&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;あわせて読みたい&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://akirachiku.com/2017/04/02/go-net-http-api-server-3.html&quot;&gt;net/httpで作るGo APIサーバー #3&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+				<pubDate>Sat, 08 Apr 2017 00:00:00 +0000</pubDate>
+				<link>http://akirachiku.com//2017/04/08/go-net-http-api-server-4.html</link>
+				<guid isPermaLink="true">http://akirachiku.com//2017/04/08/go-net-http-api-server-4.html</guid>
+			</item>
+		
+			<item>
 				<title>net/httpで作るGo APIサーバー #3</title>
 				<description>&lt;p&gt;この一連の記事では&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
 
@@ -246,7 +362,7 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;ここで示しているのは&lt;code class=&quot;highlighter-rouge&quot;&gt;animal&lt;/code&gt;インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した&lt;code class=&quot;highlighter-rouge&quot;&gt;nameType&lt;/code&gt;という実態は&lt;code class=&quot;highlighter-rouge&quot;&gt;string&lt;/code&gt;の型に付与したメソッドでもインターフェースを満たしていれば&lt;code class=&quot;highlighter-rouge&quot;&gt;animal&lt;/code&gt;として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。&lt;/p&gt;
+&lt;p&gt;このコードの中で言いたいのは&lt;code class=&quot;highlighter-rouge&quot;&gt;animal&lt;/code&gt;インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した&lt;code class=&quot;highlighter-rouge&quot;&gt;nameType&lt;/code&gt;という実態は&lt;code class=&quot;highlighter-rouge&quot;&gt;string&lt;/code&gt;の型に付与したメソッドでもインターフェースを満たしていれば&lt;code class=&quot;highlighter-rouge&quot;&gt;animal&lt;/code&gt;として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。&lt;/p&gt;
 
 &lt;p&gt;詳細は以下の記事がステップバイステップで解説していて面白い。&lt;/p&gt;
 
@@ -295,7 +411,7 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP&lt;/code&gt;というメソッド一つ持っていればそれは全て&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として扱う事ができる。なんとも小さくて頼りない感じがするが、&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Request&lt;/code&gt;と&lt;code class=&quot;highlighter-rouge&quot;&gt;http.ResponseWriter&lt;/code&gt;と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP(http.ResponseWriter, *http.Request)&lt;/code&gt;というメソッド一つ持っていればそれは全て&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として扱う事ができる。なんとも小さくて頼りない感じがするが、&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Request&lt;/code&gt;と&lt;code class=&quot;highlighter-rouge&quot;&gt;http.ResponseWriter&lt;/code&gt;と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
 
@@ -326,7 +442,7 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;myString&lt;/code&gt;型は&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTP(http.ResponseWriter, *http.Request)&lt;/code&gt;というシグネチャを満たすので&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として利用できる。&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として利用できるので、&lt;code class=&quot;highlighter-rouge&quot;&gt;mux.Handle(string, http.Handler)&lt;/code&gt;に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。&lt;/p&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;myString&lt;/code&gt;型は&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP(http.ResponseWriter, *http.Request)&lt;/code&gt;というシグネチャを満たすので&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として利用できる。&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;として利用できるので、&lt;code class=&quot;highlighter-rouge&quot;&gt;mux.Handle(string, http.Handler)&lt;/code&gt;に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。&lt;/p&gt;
 
 &lt;p&gt;以下は良くGoの&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;の例で見る&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.ResponseWriter, *http.Request)&lt;/code&gt;とURLを紐付けるタイプのやつ。&lt;/p&gt;
 
@@ -363,7 +479,7 @@
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;これは関数&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.ResponseWriter, *http.Request)&lt;/code&gt;に&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP&lt;/code&gt;メソッドを追加してただただその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで&lt;code class=&quot;highlighter-rouge&quot;&gt;http.HandlerFunc&lt;/code&gt;しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;を受けれないのはライブラリとしてはもったいないなという思いがある。&lt;/p&gt;
+&lt;p&gt;これは関数&lt;code class=&quot;highlighter-rouge&quot;&gt;func(http.ResponseWriter, *http.Request)&lt;/code&gt;を&lt;code class=&quot;highlighter-rouge&quot;&gt;http.HandlerFunc&lt;/code&gt;に型変換し&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP&lt;/code&gt;メソッドを持つ形にして、&lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP&lt;/code&gt;の中で型変換したその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで&lt;code class=&quot;highlighter-rouge&quot;&gt;http.HandlerFunc&lt;/code&gt;しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の&lt;code class=&quot;highlighter-rouge&quot;&gt;http.Handler&lt;/code&gt;を受けれないのはライブラリとしてはもったいないなという思いがある。&lt;/p&gt;
 
 &lt;h3 id=&quot;section&quot;&gt;何が嬉しいのか&lt;/h3&gt;
 
@@ -1768,118 +1884,6 @@ EC2やELBやASGとかだってCLIっぽく軽く扱えたらいいな、と。
 				<pubDate>Sun, 23 Aug 2015 00:00:00 +0000</pubDate>
 				<link>http://akirachiku.com//2015/08/23/amazon-with-jungle.html</link>
 				<guid isPermaLink="true">http://akirachiku.com//2015/08/23/amazon-with-jungle.html</guid>
-			</item>
-		
-			<item>
-				<title>Pythonライブラリを最新に保つ為に(hubot-piptools)</title>
-				<description>&lt;p&gt;休みの日を使ってhubot-piptoolsというツールを作った。初OSSなので作った経緯やらを書く。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/hubot-piptools&quot;&gt;https://github.com/achiku/hubot-piptools&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/hubot-piptools.png&quot; alt=&quot;hubot-piptools&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;section&quot;&gt;前提&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;提供しているサービスのバックエンドはPython&lt;/li&gt;
-  &lt;li&gt;開発チーム構成
-    &lt;ul&gt;
-      &lt;li&gt;企画(ideyuta)&lt;/li&gt;
-      &lt;li&gt;フロント/デザイン(moqada, ideyuta)&lt;/li&gt;
-      &lt;li&gt;バックエンド(moqada, achiku)&lt;/li&gt;
-      &lt;li&gt;インフラ/データ分析(achiku)&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;GitHub使って開発してる&lt;/li&gt;
-  &lt;li&gt;CircleCI使ってCIまわしてる&lt;/li&gt;
-  &lt;li&gt;大体HipChat使ってコミュニケーションしてる&lt;/li&gt;
-  &lt;li&gt;社内のコミュニケーションでメールは使ってない&lt;/li&gt;
-  &lt;li&gt;サービスモニタリング、ノーティフィケーションの類もHipChatに集約されてる&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-1&quot;&gt;解決しようとした課題&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;現在利用しているPythonのライブラリ更新確認、更新実施に使うコストがかかる&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;集約すると上記になるが、もう少し背景を書く。外部のライブラリはどんどん新しくなり、安定していき、機能が磨かれていっている。サービスを提供する側としては、ユーザが受け取る直接的価値である新規機能や機能改善に掛ける時間を最大化した上で、なおかつ眼に触れない部分の安定性も確保していきたい。&lt;/p&gt;
-
-&lt;p&gt;この「ユーザの眼に触れない部分の安定化/最新化」は、自分たちが作るサービスが直接ユーザに届けれる価値といったものからは若干の距離があり、コスト的に手をかけてやる事が難しい部分だ。前提に書いたように少人数で運営している場合などは特に難しいと感じる。とはいえ、中期的に、ふと気づいたら返済できないくらい溜まった負債を抱えない為に(大量且つ一度に実行されるライブラリアップデートはエラーの切り分けがダルい)、細かく簡単に返済していく何がしかの仕組みがあると便利だなと考えた。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;解決しようとした課題を分割した&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/li&gt;
-  &lt;li&gt;ライブラリ更新確認のコスト&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;ライブラリ更新実施/コード修正/テスト修正のコスト&lt;/h3&gt;
-
-&lt;p&gt;ライブラリを更新したらAPIが変更になってたり、新規に潜り込んだバグの為にこっちのコード修正したり、テスト直したりしなければならないコストは、正直不可避だなと思う。互換性は壊れる時は壊れるし、バグは無くならない。それをもってして余りあるメリットを外部ライブラリからは受けているので、この部分は受け入れるもんだと思ってる。寧ろ感謝の気持ちを込めて再現性のあるIssueを上げたりPR出したりしていきたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-4&quot;&gt;ライブラリ更新確認のコスト&lt;/h3&gt;
-
-&lt;p&gt;なので、達成すべきは「チームが簡単に更新を知って各自動き始める事」なのではないかと考えた。ポイントは「個人が簡単に更新を知って動き始める事」では無いところだと思う。チームメンバー内でも忙しさの波ってのは変わり得て、誰かが忙しいから更新が滞るってなってしまうと結局上手くいかない。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;課題に対する解決策&lt;/h2&gt;
-
-&lt;h3 id=&quot;pip-tools&quot;&gt;それ、pip-toolsで&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/nvie/pip-tools&quot;&gt;pip-tools&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;これ結構便利なんだけど、結局自分のローカルでしか動かせない。だから「チームが簡単に更新を知って動き始める事」ってのはちょっと達成できそうにないなと思った。これ実行してHipChatに毎日張るってのもありといえばありだけど俄然やりたくない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-6&quot;&gt;それ、外部サービスで&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://requires.io/&quot;&gt;requires.io&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;http://www.pypi-notifier.org/&quot;&gt;pypi-notifier&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;これ使えば普通にイケそうだなって思った。特にrequires.ioは複数のrequirements.txtにも対応してるし、見栄えも良い上に、Security updateをちゃんと知らせてくれる。ただチームの状況には若干マッチしないのではないかと思った。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Privateリポジトリに対応させる時に課金する必要がある&lt;/li&gt;
-  &lt;li&gt;ノーティフィケーションはメール&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;外部サービスに対してお金は全然払っても良いと思うしチームでは幾つかのサービスに課金もしている。ただ、これは別にちょっと落ちててもあまり大きな問題にはなんないんじゃないかと思いと、GitHubから指定ファイル取ってきてパースしてPyPiに問い合わせるだけっしょっていう思いから、いきなりお金払ってサービスを受けるのには若干抵抗があった。あと、極力社内の会話はチャットツールに寄せたいってのも大きく、一旦採用を見送った。&lt;/p&gt;
-
-&lt;h3 id=&quot;bot&quot;&gt;それ、Botで&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/achiku/hubot-piptools&quot;&gt;hubot-piptools&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;結局フィットするものが無かったので作った。弊社のチャットツールにはKanmukunというボットが住んでいる。コイツに以下の要件で機能を追加してみたら何となくいい感じになった。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;毎朝決まった時間に指定リポジトリのrequirementsファイルをパースしてPyPiに問い合わせ&lt;/li&gt;
-  &lt;li&gt;問い合わせた結果、最新じゃないライブラリが分かるようにルームに通知&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;チャットツール内でライブラリのアップデートが通知されて、そこから自然発生的に「あーこれいつアップグレードする？」「ChangeLogどうなってんの？」「これは俺やっとくわ」とかの会話が発生し、何となく細々と時間空いてる時にアップグレードして行くことはできるんじゃないかなと。&lt;/p&gt;
-
-&lt;p&gt;人間じゃないヤツから毎日通知されるのであれば嫌味も無いし、空いてる時に一つずつでもいいからサクッとアップグレードしてCI回せば良い。CI落ちたらChangeLog確認してテストとコード修正するなり、CI落ちてチャットツールに通知されて「やっぱ駄目だったから後回し」ってするなり、状況に合わせてチームで判断していけばいい。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-7&quot;&gt;おわり&lt;/h2&gt;
-
-&lt;p&gt;もっとチーム人数増えたりしたらもちろんこの解決策が有効じゃなくなってくることはあると思うけど、そんときはそんときで最適な形を考えます。実装に使った技術は全く新しくもなんともないですが、サーバサイドのCoffeeScript初めて書いたし、node周辺技術よく分かってないし、正直目的達成最優先でクッソ雑に書いてるのでマサカリ歓迎。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-8&quot;&gt;おまけ&lt;/h2&gt;
-
-&lt;p&gt;kanmukunは色々できるいい子です。&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/achiku_kc.png&quot; alt=&quot;kusokora&quot; /&gt;&lt;/p&gt;
-</description>
-				<pubDate>Mon, 02 Feb 2015 00:00:00 +0000</pubDate>
-				<link>http://akirachiku.com//2015/02/02/hubot-piptools.html</link>
-				<guid isPermaLink="true">http://akirachiku.com//2015/02/02/hubot-piptools.html</guid>
 			</item>
 		
 	</channel>
