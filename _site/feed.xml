@@ -7,6 +7,90 @@
 		<atom:link href="http://akirachiku.com/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>cnps イベントに来る人をよりよく知るツール</title>
+				<description>&lt;p&gt;はじめてイベントを企画してconnpassで募集したんだけど、ざっと見て「この人抽選で当たったとして、本当に来るのか…」みたいに感じる人がそれなりにいた。以下は「勉強会ゴロ」という言葉を生み出した記事で、分類に関してはまだ自分で実感したことないんだけど(あまり勉強会に行ったことがない)、まぁそういう風な人がいるんだろうな、という感じ。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://anond.hatelabo.jp/20160829192722&quot;&gt;勉強会ゴロについて語ってみる&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ただ、「意識高い系」や「会社の偉い人系」とか以前に「この人本当に来るのか…来るとしても素性が全くわからんし、不気味なぐらい勉強会参加数が多いしなんなら過去に同日イベントに登録してるな…」みたいな人が多かったので、さくっとツールを作ってそういう人達を一覧化できるようにした。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/achiku/cnps&quot;&gt;cnps - See who’s comming to your event through connpass&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Pythonで作ったCLIツールなので&lt;a href=&quot;https://github.com/mitsuhiko/pipsi&quot;&gt;pipsi&lt;/a&gt;と一緒に使うと便利だと思う。&lt;/p&gt;
+
+&lt;h3 id=&quot;cnps&quot;&gt;cnpsの使い方&lt;/h3&gt;
+
+&lt;p&gt;まずはイベントのURLを指定して参加希望者のデータをJSONに吐き出す。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cnps dump https://fintech-engineers-drink-up.connpass.com/event/56057/ &amp;gt; user.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;そうするとこういう感じのデータが取れる。(参加希望者のデータはスクレイピングしてるので、無茶はしないで)。参加希望者の直近参加申請したイベントの日付、ソーシャルリンク等が含まれてる。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;w&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;event_dates&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2017-05-30 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2017-05-26 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2017-05-16 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2017-05-11 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2017-03-28 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2016-11-16 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2016-11-01 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2016-08-01 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2016-06-02 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;2016-05-31 00:00:00&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;social_links&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+      &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;twitter&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://twitter.com/keysket&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+      &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+      &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;facebook&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://www.facebook.com/app_scoped_user_id/1431545096/&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+      &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;user_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;KeisukeKogure&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; 
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;user_url&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://connpass.com/user/KeisukeKogure/&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+  &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;あとは出力したファイルの中のデータを好きな条件でフィルタする。例えば直近10件のイベントで、同日に別イベントに登録してる人。(この辺はキャンセルしたとか時間帯が違うとかはあんまし考慮できてないので今後の課題です)&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cnps filter ./tests/data/user.json  --duplicate-event
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;例えばソーシャルリンクが一つも無い人。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cnps filter ./tests/data/user.json  --no-facebook-link --no-github-link --no-twitter-link
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;例えばGitHubのリンクはある人。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cnps filter ./tests/data/user.json --github-link
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;例えばソーシャルリンクが一つも無くて、直近10件のイベントの平均インターバルが3日以下の人。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cnps filter ./tests/data/user.json --avg-event-interval=3 --no-facebook-link --no-twitter-link --no-github-link
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;section&quot;&gt;結論&lt;/h3&gt;
+
+&lt;p&gt;はやく会社の知名度を上げて参加費300円とかにしても沢山人が来てくれるようにしたい。&lt;/p&gt;
+</description>
+				<pubDate>Mon, 22 May 2017 00:00:00 +0000</pubDate>
+				<link>http://akirachiku.com//2017/05/22/cnps.html</link>
+				<guid isPermaLink="true">http://akirachiku.com//2017/05/22/cnps.html</guid>
+			</item>
+		
+			<item>
 				<title>バンドルカードを作ってる</title>
 				<description>&lt;p&gt;今自分達は株式会社カンムで&lt;a href=&quot;https://vandle.jp/&quot;&gt;バンドルカード&lt;/a&gt;というサービスを作ってる。手前味噌だけど、こいつがなかなか良いサービスだと思ってるので、ちょっと書いてみる。&lt;/p&gt;
 
@@ -1519,396 +1603,6 @@ done!
 				<pubDate>Tue, 03 Nov 2015 00:00:00 +0000</pubDate>
 				<link>http://akirachiku.com//2015/11/03/golang-02.html</link>
 				<guid isPermaLink="true">http://akirachiku.com//2015/11/03/golang-02.html</guid>
-			</item>
-		
-			<item>
-				<title>チクメキメモリアル</title>
-				<description>&lt;p&gt;万歩遅れてのエンジニア開始、約1年間の軌跡。&lt;/p&gt;
-
-&lt;h2 id=&quot;haskell&quot;&gt;Haskellをやっておく&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/seizans&quot;&gt;@saizans&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;言語自体は仕事で使わないかもしれないけど、Haskellの考え方が後々非常に参考になった。
-「プログラミングHaskell」という本が非常に考え方の部分を重点的に書いていて参考になる。
-「すごいHaskell、ゆかいに学ぼう」はどちらかというと実践形式。&lt;/p&gt;
-
-&lt;h3 id=&quot;section&quot;&gt;[2014-07-07]&lt;/h3&gt;
-&lt;p&gt;プログラミングHaskellを購入して朝勉強会で読んでいる。
-ただし、これやっぱり書かないとだめだなという事で読むと書くを毎日交互にやるスタイルに変更。
-また、Preludeの写経も有効な気がしている。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-1&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;まだプログラミングHaskell終わってないので1回全部読み切って終わらせる。
-理解は2周目の俺に任せる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;プログラミングHaskell読み終わった。第9章くらいから理解までせずに適当に読んだ。
-書く事もはじめる為にLearn You Haskell for Great Goodを写経し始めた。&lt;/p&gt;
-
-&lt;p&gt;次は&lt;a href=&quot;http://book.realworldhaskell.org/read/&quot;&gt;Real World Haskell&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;これは難しそう、&lt;a href=&quot;http://chimera.labs.oreilly.com/books/1230000000929/index.html&quot;&gt;Parallel and Concurrent Programming in Haskell&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-3&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;実践関数型プログラミングの説明が非常にいい感じだと気づいた。
-何かガツッと作らないとおぼえれない可能性が非常に濃厚。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-4&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;最近全く触ってない。もはや忘れつつある。30分勉強会がほぼ無くなった。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-5&quot;&gt;[2015-03-08]&lt;/h3&gt;
-&lt;p&gt;30分勉強会復活させようかな。どうしようか悩むな。なんかあの朝の時間、ダラダラとFeedを追う時間になってる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-6&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;ダメです。完全に割く時間がGolangにうつってしまった。
-この&lt;a href=&quot;https://talks.golang.org/2012/waza.slide#1&quot;&gt;Concurrency and Parallelism&lt;/a&gt;というスライドとトークが最高にわかりやすかった。&lt;/p&gt;
-
-&lt;p&gt;この辺の並行/並列の辺りは一度ブログに書いて自分の理解を定着させたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-7&quot;&gt;[2015-07-13]&lt;/h3&gt;
-&lt;p&gt;ERDツール使う時にちょっとだけHaskellしたが最早やってない。
-あとこのツール導入する時にちょっとコード読んだ、くらい。
-https://github.com/olivierverdier/zsh-git-prompt&lt;/p&gt;
-
-&lt;h2 id=&quot;pr&quot;&gt;自分が興味を持ち続けれるプロジェクトにPRを出す&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/muddydixon&quot;&gt;@maddydickson&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;他の人々に教えてもらういい機会。コミュニティへの恩返しにもなる。
-ただし、自分が使ってる、興味を持ってるところに出すのが大事。続けれないと面白くない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-8&quot;&gt;[2014-07-07]&lt;/h3&gt;
-&lt;p&gt;未だできてない。やりたいのはluigiのS3対応が一番仕事にも近くていい気がしている。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-9&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;未だできてない。luigiにはS3のTarget入ってる事に先日気づいた。
-となるとどこに出そうかな。botoのImpalaセットアップのコード辺りか。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-10&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;できてません。興味あるプロジェクトなんだろう。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-11&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;ShibにtypoだけどPR出してマージしてもらえた。&lt;/p&gt;
-
-&lt;p&gt;https://github.com/tagomoris/shib/graphs/contributors&lt;/p&gt;
-
-&lt;p&gt;OSSへのPRはできそうなタイミングでやっていこうと思う。
-正直今は上手く使わせてもらうだけで精一杯な部分が多く、
-何か必要な機能があるのであればp-rよりも、別のサービスやOSSを探してしまう。&lt;/p&gt;
-
-&lt;p&gt;どうしても無い、っていうケースは、本当にその分野の先端を走るか、
-本当にニッチな領域に関してじゃないと無さそうだなという気がする。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-12&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;一旦自分もOSSを出してみた。使ってもらえるかどうかは知らん。&lt;/p&gt;
-
-&lt;p&gt;https://github.com/achiku/hubot-piptools&lt;/p&gt;
-
-&lt;p&gt;自分で書いた紹介記事&lt;/p&gt;
-
-&lt;p&gt;http://achiku.github.io/2015/02/02/hubot-piptools.html&lt;/p&gt;
-
-&lt;p&gt;あとshibはやっぱり便利なので継続的にコードベースを見て、何がしかのPR出せるようにしたい。
-embulkがもしかしたらOSSで名を上げる為には結構いいのではないかという説がある。
-黎明期のfluentdのような着眼点、かっけー。
-https://github.com/embulk/embulk&lt;/p&gt;
-
-&lt;h3 id=&quot;section-13&quot;&gt;[2015-03-08]&lt;/h3&gt;
-&lt;p&gt;ついにshibに対してprを出した。これマージされたら嬉しい。&lt;/p&gt;
-
-&lt;p&gt;https://github.com/tagomoris/shib/pull/30&lt;/p&gt;
-
-&lt;p&gt;あとテストが落ちるのでその報告的なやつ。&lt;/p&gt;
-
-&lt;p&gt;https://github.com/tagomoris/shib/issues/29&lt;/p&gt;
-
-&lt;h3 id=&quot;section-14&quot;&gt;[2015-03-14]&lt;/h3&gt;
-&lt;p&gt;マージされた！！&lt;/p&gt;
-
-&lt;p&gt;https://github.com/tagomoris/shib/pull/30&lt;/p&gt;
-
-&lt;p&gt;今後も継続的に色んなライブラリを見て行きたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-15&quot;&gt;[2015-05-14]&lt;/h3&gt;
-&lt;p&gt;botoに対してpr&lt;/p&gt;
-
-&lt;p&gt;https://github.com/boto/boto/pull/3156&lt;/p&gt;
-
-&lt;p&gt;awsbootstrapactionに対してissue&lt;/p&gt;
-
-&lt;p&gt;https://github.com/awslabs/emr-bootstrap-actions/issues/90&lt;/p&gt;
-
-&lt;p&gt;PyHiveに対してissue&lt;/p&gt;
-
-&lt;p&gt;https://github.com/dropbox/PyHive/issues/14&lt;/p&gt;
-
-&lt;p&gt;motoに対してissue/pr&lt;/p&gt;
-
-&lt;p&gt;https://github.com/spulec/moto/issues/347&lt;/p&gt;
-
-&lt;h3 id=&quot;section-16&quot;&gt;[2015-07-13]&lt;/h3&gt;
-&lt;p&gt;motoへのprがマージされた&lt;/p&gt;
-
-&lt;p&gt;https://github.com/spulec/moto/pull/375&lt;/p&gt;
-
-&lt;p&gt;django-s3-storageに対してprしてマージされた&lt;/p&gt;
-
-&lt;p&gt;https://github.com/etianen/django-s3-storage/pull/1&lt;/p&gt;
-
-&lt;h3 id=&quot;section-17&quot;&gt;[2015-07-29]&lt;/h3&gt;
-&lt;p&gt;&lt;a href=&quot;https://github.com/achiku/jungle&quot;&gt;jungle&lt;/a&gt;というAWSのYet Another CLI作った。そして初PyPI登録した。&lt;/p&gt;
-
-&lt;p&gt;コンセプトとしては”Unix-linkなAWS CLI”という感じ。
-aws-cliは本当に便利で最高なんだけど、全部載せ且つオプション長すぎてCLIとして普段使いするのは結構面倒。
-その中でaws s3 lsとかはかなり直感的に扱えるなぁというのがこれを作った動機になってる気がする。
-EC2やELBやASGとかだってCLIっぽく軽く扱えたらいいな、と。
-あとclickっていうPython製CLIライブラリが結構良さそうだったので使ってみたかったってのもある。&lt;/p&gt;
-
-&lt;p&gt;hotdogっていうDataDogとやりとりするCLIがあるんだけどコレも参考になる。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-18&quot;&gt;とにかく時間を投資する&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/voluntas&quot;&gt;@voluntas&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;効率とかよりもまず費やす絶対時間を増やすこと。効率は二の次。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-19&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;できてない日もあるが、概ねできている。酒飲んで帰宅遅くなるとできてない。写経のやり方もう少し効率化できる気がしてきた。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-20&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;最近帰ってからコードかけてない。けど、会社でコード書く時間がかなり増えた。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-21&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;会社でコード書く時間が格段に増えて、家では本読む時間になってる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-22&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;休日に書くコードが会社のコードではなく自分のプロジェクトのコード(CoffeeScript/Golang)になった。平日は相変わらずコード書く量を維持できてる気がする。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-23&quot;&gt;[2015-02-23]&lt;/h3&gt;
-&lt;p&gt;プロダクトのコード書き中。自分のプロジェクトは一旦お休み。ただ、「何を解決すべきなのか」という部分により多くの時間をさくフェーズな気がするので、そこまでガツガツは書けていない。来月もっと書きたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-24&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;3月はガッツリプロダクトBのコードを書いた。ココで結構Presto + SQLAlchemyの知見溜まってる。4月はプロダクトの改善、購買履歴系ランキングのデータを作った。5月は購買履歴系ランキングのデータ改善。プロダクトCの数値棚卸し。4月以降ガッツリ時間を取って何かを開発する時間をとれていない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-25&quot;&gt;[2015-07-13]&lt;/h3&gt;
-&lt;p&gt;6月はAnsible化と既存AWSインフラの整備、プロダクトAのadminに時間を費やした。しっかり時間を取って開発は無いけど、既存のAWSインフラをAnsibleで整備するのは知見が溜まった気がする。あと、Obje-CとArduinoを休日プロジェクトとして開始した。月末にはある程度のものにしたい。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-26&quot;&gt;写経する&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/voluntas&quot;&gt;@voluntas&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;新しい言語覚える場合は写経有効。興味のある分野のOSSの写経の効果は抜群。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-27&quot;&gt;[2014-07-07]&lt;/h3&gt;
-&lt;p&gt;現在django.http写経中だけど、非常にいい。知らない書き方や、知った気になってた部分結構ある事に気づける。なんといっても開始する際の心理的障壁が非常に低い。まだ新言語を学ぶ際の写経は取り入れた事ないけど、Erlangをやる時にはやってみよう。あとプログラミングHaskell一段落させて、何かHaskellのプロジェクトを写経してみる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-28&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;今はMQTTのPythonクライアントを写経中。コードやコメント自体が非常に綺麗で参考になっている。ただし、全体の構造を把握する前段階から写経に入ってしまっているので、ここは次回以降効率化できる気がする。やっぱり全体の構造が分かってから写経したほうが良い。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-29&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;サイボウズ式のコサキさんのお話がとても良かった。&lt;/p&gt;
-
-&lt;p&gt;http://d.hatena.ne.jp/nishiohirokazu/20140905/1409908066&lt;/p&gt;
-
-&lt;p&gt;今はGolangのチュートリアル完了。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-30&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;Golangの写経もう少し進めないと。最近Golangに関しては全く時間がとれていない。新しいものジワジワやっていきたいけど、メインのPythonももう少し知りたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-31&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;GolangのWebAppの写経実施中。このチュートリアルは結構良い。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-32&quot;&gt;[2015-03-14]&lt;/h3&gt;
-&lt;p&gt;最近はプロダクトのコードばかりで特に書けていない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-33&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;プロダクトコード書けてないので写経中の物が多い。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;mackerel-agent&lt;/li&gt;
-  &lt;li&gt;fluent-agent-hydra&lt;/li&gt;
-  &lt;li&gt;fluent-forwarder&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-34&quot;&gt;[2015-07-13]&lt;/h3&gt;
-&lt;p&gt;プロダクトコード書けてないので写経中。今はObj-CのTutorialを書き写してるところ。iosアプリ開発は基礎整えるのにある程度時間かかる。ただ、明細アプリはこれ以上何か発見しようとすれば、どうしてもプロトタイプが必要なんだよな。「リアルタイム決済通知や予算方式は本当に人間の購買行動に影響を与えるのか」を検証したい。現状の環境ではarduino + BLE + iPhoneで検証する予定。もしかしたらスクレイピングするかも。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-35&quot;&gt;10分で今思い描ける最高のエンドプロダクト&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/ariyasu&quot;&gt;@ariyasu&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;10分じゃなくてもいいけど、とにかく短い時間を区切るの大事。真面目属性を持ってる人はずっと考え続けてしまうし、行動にうつらない。スタートアップはスピード無いとやっていけない。10分で思い描いたらそれその週にリリースな。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-36&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;これは良さそうな習慣。懸念点は10分で本当に本質に迫れるのか、というところ。ただし、10分間鼻血が出るほど考えて、とにかくエンドプロダクトまで行く。このエンドプロダクトがその時点で本質に迫っていないのであれば、ソレはもはや自身の実力の欠如と認める。上記サイクルを何回も回しながら「10分」のクオリティを上げ続けるというのはいい策かもしれない。&lt;/p&gt;
-
-&lt;p&gt;難易度にもよるだろうけど、結果的に10分で本当に本質に迫れるような鋭い思考ができるようになるかもしれない。継続してやっていく。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-37&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;10分で解決できる問題を切り取る力が上がる。計測可能な制約を加えると新しい知見たまる事ってある。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-38&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;継続中。システム設計の部分に関しても応用できないか考える。制約は計測できれば時間じゃなくてもいい気がする。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-39&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;継続中。最近はコードについて考える時に使う事の方が多い。hubot-piptoolsもとりあえず細かい部分は実装せずにOSSにした。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-40&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;継続中。だけど最近これに対する意識が弱い気がする。引き締める。特にプロダクトB、彼らに取って最高とは一体なんなのかを考えて財布がついてこなかった感はある。「本当に最高」であれば財布も自然とついてくるもんなのかな。ここで財布を気にする必要があるのかどうか、まだまだケース毎にどの地点でバランスを取るか考える必要がある。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-41&quot;&gt;会社のどの部分を伸ばすの？から始まるプロダクト設計&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/ariyasu&quot;&gt;@ariyasu&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;読んで字のごとく。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-42&quot;&gt;[2014-08-06]&lt;/h3&gt;
-&lt;p&gt;ものすごい当たり前なんだけど、なんか全然出来てない気がしている部分。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-43&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;できてない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-44&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;データ系、ちょっとづつできてきている。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-45&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;CLOに関してはでっかい目標があり、今いい感じで達成出来て言ってると思う。
-ここのデータ系部分もっとアクセル踏みきりたい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-46&quot;&gt;[2015-03-08]&lt;/h3&gt;
-&lt;p&gt;データ系、Dashboard作ることで少しづつ見えてきてる感がある&lt;/p&gt;
-
-&lt;h2 id=&quot;section-47&quot;&gt;思考より試行&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/ariyasu&quot;&gt;@ariyasu&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;読んで字の如く。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-48&quot;&gt;[2015-07-29]&lt;/h3&gt;
-&lt;p&gt;デザイナ氏の提案で3時間に1回ハマり相談会をエンジニアチームで開催するようにした。コレもとりあえずヤル、駄目ならやめる、で即やろうってなったのは良い傾向な気がする。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-49&quot;&gt;100回書き直したら100回目が一番良いコード&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/voluntas&quot;&gt;@voluntas&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;101回だったら101回目が最高だボケ。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-50&quot;&gt;[2014-10-22]&lt;/h3&gt;
-&lt;p&gt;最近書き始めたコードベースを一回全部捨てた。意外に捨てれる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-51&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;超雑に書いて捨てるのはいいかも。ただし、書くスピードが早くないと(WAFだったらそのWAFに慣れてないと)効果出にくい。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-52&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;それでも書いてると捨てにくいコードができてしまう。。捨て難いコードとそうじゃないコードの差、ちょっと考えて見る価値ありそう。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-53&quot;&gt;[2015-02-28]&lt;/h3&gt;
-&lt;p&gt;この捨てるコードは「個人の中で完結する」事が大前提だな、って思う。 結局クソ雑に作ったプログラムの中身を知っているのはその人個人で、イケてない部分も改善点も、その人の中に溜まっていく。プロト作って文章化するコスト支払うくらいだったら、 書き直す時に同一人物がやるべき。そうでなければ捨てる用のコードを書く意味は、 コードの品質を上げるという意味において、半減から8割減な気がする。(とにかくプロダクトを出す、という意味はある。あるけど不健康だしそんなコード引き継ぎたくない。)(引き継ぐぐらいだったらちゃんと時間とって作り直し。そして流用によって開発時間短縮になるという考えを捨てる。)&lt;/p&gt;
-
-&lt;h3 id=&quot;section-54&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;プロダクトBは大分雑だけどCI/テスト/エラー通知/デプロイ/コードフォーマット/データモデルは揃ってる。基盤となるような部分だけ丁寧に作ってコードはTODOベースで開発していくの、有りだなと思う。 そもそも良くないコードはテストが無くて触れない、っていう不安が一番大きい。何が起こるかわからんから。CIがちゃんと回ってれば最悪壊れた事はわかるし、テストでカバーできてなくてもエラー通知があれば気づけるという安心感は大事だなぁと思った。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-55&quot;&gt;エンジニアのエゴとの向き合い方&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/_achiku&quot;&gt;@_achiku&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-56&quot;&gt;[2014-12-07]&lt;/h3&gt;
-&lt;p&gt;自分で感じた部分だけど、真にシンプル且つスピード上げようと思ったら要らない部分がある。 具体的にはnginx + luaの部分。アレは結局不要だったので捨てた。 新しい技術使ってみる事と作り出す価値のバランス意識的だと思ってたけど案外だめだった。 けど、ちゃんと考えて、捨てて、期日までに作り直せたのは良い事だと思う。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-57&quot;&gt;[2015-02-01]&lt;/h3&gt;
-&lt;p&gt;難しい。新しいモノを使いたい、っていうのはしょうが無い。 ただ、「ソレは本当に価値あるのか」って問い続けないと意味ないもの作ってしまうし、 「何を解決すべきか」という課題定義できずに作られたものは醜いと思う。 カッコいいエンジニアリングとは、ボトルネックになってる課題を言語化/構造化し、 シンプルに最小の手数で、狙った課題をぶっ潰す事だ。 ただコレも自分の中の宗教でしか無い部分だから、チームとしてどうするのかは引き続き考える必要がある。 例えばなんでも好きな技術をぶっ込めるSandBox的な社内サービスを作る、とか。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-58&quot;&gt;[2015-02-10]&lt;/h3&gt;
-&lt;p&gt;新しいモノ/サービスに躊躇するのはやはり、「慣れ」の部分が大きい気がする。 凄いスピードで失敗できる環境があった方が良い。あと、違和感を持っても一旦実行してみる事が大事。 新しいライブラリの利点と欠点をいくら言語化してみようとも、結局触って実行してみないと見えない部分が沢山ある。 違和感を感じる領域が自分の限界なので、結局その先に行くべきか留まるべきかは踏み込んでみないとわからない。 個人でやれ、っていうのはある程度その通りなんだけど、チームとして上手くやってくには会社としてサポートしても良いのではないかと思う部分あり。会社が潰れない程度、というのを適切に調整してやっぱりSandboxt的サービスがあるといいかも。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-59&quot;&gt;[2015-02-23]&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;Slackでやりたい事/気になった事を共有&lt;/li&gt;
-  &lt;li&gt;チームで話す時間の捻出&lt;/li&gt;
-  &lt;li&gt;ただ自分の事をガーガー話していくのはなんとなくエゴい部分はある
-    &lt;ul&gt;
-      &lt;li&gt;http://www.slideshare.net/zigorou/ss-44864139&lt;/li&gt;
-      &lt;li&gt;カッコいい技術とは課題を定義し、それを解決するもの、ってのはあるんだけど&lt;/li&gt;
-      &lt;li&gt;でもそれだと定義しきれない課題は解決できないし見つけれない事になる&lt;/li&gt;
-      &lt;li&gt;非常に難しい&lt;/li&gt;
-      &lt;li&gt;でもまだそこまで高いレベルの事はやっていないから粛々と2015年の当たり前に近づける&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;もしかしたら自分はコンサル気取りのチャレンジできないコストカッターなだけなのかもしれないなと思った&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-60&quot;&gt;[2015-02-28]&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;そうならないように毎週「モクモク会」を開催するようにしようと思う&lt;/li&gt;
-  &lt;li&gt;単になんかのチュートリアルをやってみる会
-    &lt;ul&gt;
-      &lt;li&gt;裏目的は急進派が保守派に書き心地を共有し、お互いちゃんと書いて良い悪いを言い合えるようにしたい&lt;/li&gt;
-      &lt;li&gt;ただ、本当にコレが最適な形なのかは不明&lt;/li&gt;
-      &lt;li&gt;正直領域の責任者をひとり決めて全部丸投げる、の方が楽だし良い気もしている&lt;/li&gt;
-      &lt;li&gt;チクが何か話したからといってフロントエンド側に対して適切な指摘ができる気がしない&lt;/li&gt;
-      &lt;li&gt;逆もしかり&lt;/li&gt;
-      &lt;li&gt;だけどとりあえずやってみる&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;落ちないシステムではなく、落ちても障害が起きにくいシステムを作ろう
-    &lt;ul&gt;
-      &lt;li&gt;コレはモカさんにやってもらい中か&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-61&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;モクモク会、結局最近はやらなくなってしまった。&lt;/li&gt;
-  &lt;li&gt;ISCON部的な活動するのがよいか。どうしても誰かがコスト払ってやらないと前に進まない気がする。&lt;/li&gt;
-  &lt;li&gt;なのでもう勝手にしろこの時間は、とかでいい気もする。&lt;/li&gt;
-  &lt;li&gt;悩ましい&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;section-62&quot;&gt;[2015-07-29]&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;結局仕事遂行上課題となってる部分を新しい考え方やフレームワークで解決する、という形にするのがベストか？&lt;/li&gt;
-  &lt;li&gt;課題を定義、言語化する力&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;section-63&quot;&gt;「なんとなくできていない」のほとんどはそれを指摘する人の不在が原因です&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/voluntas&quot;&gt;@voluntas&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-64&quot;&gt;[2015-03-08]&lt;/h3&gt;
-&lt;p&gt;この部分、確かにできてなかった。とりあえず自分がやいのやいの言う役をヤル事にする。KPTでは意識してできてない事を明確にする、解決できそうな工夫をする、という話は継続してできてる。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-65&quot;&gt;[2015-03-14]&lt;/h3&gt;
-&lt;p&gt;結局約束を立てて、守る、くらいしか言えないのかもしれない。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-66&quot;&gt;[2015-05-27]&lt;/h3&gt;
-&lt;p&gt;KPTで自分の事を棚に上げて理想論を振りかざすおじさん役が板についてきた。ツライ。ツライが、「じゃあ今から自分は理想論を振りかざします」って言うとキャラっぽくなってハードルさがってツラみ軽減される。&lt;/p&gt;
-
-&lt;h3 id=&quot;section-67&quot;&gt;[2015-07-29]&lt;/h3&gt;
-&lt;p&gt;KPTで継続中。現在は自分がリードなんだ、という気持ちを少しづつ抑えてる感ある。スケジュール切ったり基盤作ったりするモカさんが今はリードっていう形になってる。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-68&quot;&gt;好奇心を止めない事&lt;/h2&gt;
-
-&lt;p&gt;by &lt;a href=&quot;https://twitter.com/mururururu&quot;&gt;@murururu&lt;/a&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;section-69&quot;&gt;[2015-06-18]&lt;/h3&gt;
-&lt;p&gt;プログラミングうまくなる為に大事なことは好奇心を止めない事。あとパン屋やりたい。&lt;/p&gt;
-
-&lt;h2 id=&quot;section-70&quot;&gt;参考文献&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;http://rokujyouhitoma.hatenablog.com/entries/2011/03/25&lt;/li&gt;
-  &lt;li&gt;http://voluntas.hatenablog.com/entry/20110322/1300720173&lt;/li&gt;
-  &lt;li&gt;http://d.hatena.ne.jp/mopemope/20110316/p1&lt;/li&gt;
-  &lt;li&gt;http://d.hatena.ne.jp/gfx/20110314/1300118004&lt;/li&gt;
-  &lt;li&gt;http://d.hatena.ne.jp/nishiohirokazu/20110309/1299598527&lt;/li&gt;
-  &lt;li&gt;http://blog.madoro.org/mn/84&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-				<pubDate>Sun, 23 Aug 2015 00:00:00 +0000</pubDate>
-				<link>http://akirachiku.com//2015/08/23/chiku-meki-memorial.html</link>
-				<guid isPermaLink="true">http://akirachiku.com//2015/08/23/chiku-meki-memorial.html</guid>
 			</item>
 		
 	</channel>
