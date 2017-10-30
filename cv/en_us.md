@@ -4,7 +4,8 @@ title: "cv-en"
 ---
 
 ## Akira Chiku 
-[achiku@GitHub](https://github.com/achiku) / akira.chiku@gmail.com / Tokyo, Japan
+[GitHub](https://github.com/achiku) / [Speakerdeck](https://speakerdeck.com/achiku) / akira.chiku@gmail.com / Tokyo, Japan
+
 
 
 ## QUALIFICATIONS

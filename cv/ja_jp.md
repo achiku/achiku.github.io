@@ -11,6 +11,7 @@ title: "cv-ja"
 - 氏名: 知久 翼(Akira Chiku)
 - 誕生日: 1985/08/18
 - [GitHub](https://github.com/achiku)
+- [Speakerdeck](https://speakerdeck.com/achiku)
 - [Twitter](https://twitter.com/_achiku)
 - [Facebook](https://www.facebook.com/akira.chiku)
 
