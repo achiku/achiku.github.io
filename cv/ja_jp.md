@@ -27,6 +27,55 @@ title: "cv-ja"
 
 
 
+### PCI DSS
+
+期間|2017/11 - 2018/02
+----|-----------------
+
+#### 業務内容
+
+- PCI DSS取得に向けてセキュリティ環境整備、ドキュメント作成、監査対応
+
+
+#### 使用技術
+Ansible, terraform
+
+
+
+### BTCチャージ機能追加
+
+期間|2017/09 - 2017/11
+----|-----------------
+
+#### 業務内容
+
+- BTCチャージ機能の内製化
+- ウォレット構成設計
+- BTCウォレット/ノードRPCを利用したAPIサービス構築
+
+
+#### 使用技術
+AWS, Linux, Golang, Python, Django, SQLAlchemy, Alembic, PostgreSQL, Ansible, terraform
+
+
+
+### プリペイドカードアプリ機能追加/改善
+
+期間|2016/09 - 2017/09
+----|-----------------
+
+#### 業務内容
+
+- 提携カード複数枚対応
+- 本人確認機能
+- bitFlyerチャージ
+- 提携カードビジネス模索
+
+
+#### 使用技術
+AWS, Linux, Golang, Python, Django, SQLAlchemy, Alembic, PostgreSQL, Ansible, terraform
+
+
 ### プリペイドカードアプリ設計/開発/テスト
 
 期間|2016/01 - 2016/09
@@ -41,7 +90,7 @@ title: "cv-ja"
 - インフラ、ネットワークの設計構築
 
 #### 使用技術
-AWS, Linux, Golang, Python, Django, SQLAlchemy, Alembic, PostgreSQL, Ansible
+AWS, Linux, Golang, Python, Django, SQLAlchemy, Alembic, PostgreSQL, Ansible, terraform
 
 
 
