@@ -2,30 +2,35 @@
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
   <meta name="google-site-verification" content="H6k1xpusWugwaQgJsWDpiTw4J_AGFZHR4shRsOvPI78" />
-  <link rel="stylesheet" href="/assets/css/pure/0.3.0/pure-min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
   <link rel="stylesheet" href="/stylesheets/pygment_github.css">
   <title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
 </head>
 <body>
-<header role='banner'>
-    <h1 class="blog-title">包丁一本さらしに巻いて</h1>
-    <nav role='navigation'>
-        <div class="pure-menu pure-menu-open pure-menu-horizontal">
-            <ul>
-                <li class="pure-menu-selected"><a href="/">Top</a></li>
-                <li class="pure-menu-selected"><a href="/about.html">About</a></li>
-                <li class="pure-menu-selected"><a href="/feed.xml">Feed</a></li>
+  <div class="pure-g">
+    <div class="pure-u-1 pure-u-md-1">
+      <header role='banner'>
+        <h1 class="blog-title">包丁一本さらしに巻いて</h1>
+        <nav role='navigation'>
+          <div class="pure-menu pure-menu-horizontal">
+            <ul class="pure-menu-list">
+              <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+              <li class="pure-menu-item"><a href="/about.html" class="pure-menu-link">About</a></li>
+              <li class="pure-menu-item"><a href="https://speakerdeck.com/achiku" class="pure-menu-link">Slide</a></li>
+              <li class="pure-menu-item"><a href="/feed.xml" class="pure-menu-link">Feed</a></li>
             </ul>
-        </div>
-    </nav>
-</header>
-<article class="text">
-    <script type="text/javascript">
-/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-var disqus_shortname = 'achiku'; // required: replace example with your forum shortname
+          </div>
+        </nav>
+      </header>
+    </div>
+    <div class="pure-u-1 pure-u-md-1">
+      <article class="text">
+        <script type="text/javascript">
+var disqus_shortname = 'achiku';
 
-/* * * DON'T EDIT BELOW THIS LINE * * */
 (function () {
     var s = document.createElement('script'); s.async = true;
     s.type = 'text/javascript';
@@ -75,17 +80,17 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-<div class='pure-menu-heading'>
-    <h1>AWS EMRでPrestoを動かしてshibからクエリ流してみる</h1>
+<div>
+    <h3>AWS EMRでPrestoを動かしてshibからクエリ流してみる</h3>
     <p>2014.12.25</p>
 </div>
 <div>
     <p><a href="http://qiita.com/advent-calendar/2014/distributedcomputing">Spark, SQL on Hadoop etc. Advent Calendar 2014</a>の最終日です。</p>
 
-<h2 id="section">書くこと</h2>
+<h2 id="書くこと">書くこと</h2>
 <p>AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。</p>
 
-<h2 id="presto">Prestoについて</h2>
+<h2 id="prestoについて">Prestoについて</h2>
 <p>Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。</p>
 
 <ul>
@@ -98,7 +103,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。</p>
 
-<h2 id="shib">shibについて</h2>
+<h2 id="shibについて">shibについて</h2>
 <p>PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。</p>
 
 <ul>
@@ -106,7 +111,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
   <li>なぜnodeか: <a href="http://d.hatena.ne.jp/tagomoris/20110805/1312536706">Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行</a></li>
 </ul>
 
-<h2 id="aws-emr">AWS EMRについて</h2>
+<h2 id="aws-emrについて">AWS EMRについて</h2>
 
 <p>AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。</p>
 
@@ -117,7 +122,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
 
 <p>前置きが長くなるとアレなので早速awscliを利用し環境を構築。</p>
 
-<h2 id="section-1">環境概要</h2>
+<h2 id="環境概要">環境概要</h2>
 
 <ul>
   <li>HadoopはEMRを使ってクラスタ起動</li>
@@ -131,9 +136,9 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
   <li>S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる</li>
 </ul>
 
-<h2 id="section-2">構築方法</h2>
+<h2 id="構築方法">構築方法</h2>
 
-<h3 id="aws-cli">AWS CLIの準備</h3>
+<h3 id="aws-cliの準備">AWS CLIの準備</h3>
 
 <p>CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下</p>
 
@@ -144,7 +149,7 @@ var disqus_shortname = 'achiku'; // required: replace example with your forum sh
   <li>awscli==1.6.10</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ mkvirtualenv emr
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ mkvirtualenv emr
 (emr)$ pip install awscli
 (emr)$ pip freeze | grep awscli
 awscli==1.6.10
@@ -160,10 +165,9 @@ export AWS_CONFIG_FILE=~/.awscli/config
 export AWS_DEFAULT_PROFILE=development
 source aws_zsh_completer.sh
 EOF
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<h3 id="s3">S3に必要なプログラムを配置</h3>
+<h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
 
 <p>2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。</p>
 
@@ -177,7 +181,7 @@ EOF
 
 <p>上記をダウンロードし、適当なS3キーに配置しておきます。以下例。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
 $ aws s3 cp presto-server-0.85.tar.gz s3://yourbucket/libs/
 $ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar
 $ aws s3 cp presto-cli-0.85-executable.jar s3://yourbucket/libs/
@@ -185,14 +189,13 @@ $ wget https://github.com/tagomoris/shib/archive/v0.3.8.zip
 $ unzip v0.3.8.zip &amp;&amp; mv shib-0.3.8 shib
 $ tar cvfz shib.tar.gz shib
 $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<h3 id="s3-1">S3に必要な設定ファイルを配置</h3>
+<h3 id="s3に必要な設定ファイルを配置">S3に必要な設定ファイルを配置</h3>
 
 <p>shibがPrestoにクエリするための設定ファイル。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>var servers = exports.servers = {
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var servers = exports.servers = {
   listen: 3000,
   fetch_lines: 1000,   // lines per fetch in shib
   query_timeout: null, // shib waits queries forever
@@ -214,18 +217,16 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
     },
   ],
 };
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ aws s3 cp shib-config.js s3://yourbucket/libs/
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ aws s3 cp shib-config.js s3://yourbucket/libs/
+</code></pre></div></div>
 
-<h3 id="s3bootstrap-action">S3に必要なBootstrap Actionを配置</h3>
+<h3 id="s3に必要なbootstrap-actionを配置">S3に必要なBootstrap Actionを配置</h3>
 
 <p>Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。</p>
 
-<h4 id="prestobootstrap-action">PrestoのBootstrap Action</h4>
+<h4 id="prestoのbootstrap-action">PrestoのBootstrap Action</h4>
 <p>こちらのAWS Labリポジトリにあるので流用します。</p>
 
 <ul>
@@ -235,12 +236,11 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
 
 <p>PrestoのBootstrap Actionはそんなオフィシャルにサポートしてはいないですが、READMEもちゃんと書いてあるし、そこまで複雑ではないので要件によっては自作も有りかなと思います。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
 $ aws s3 cp install-presto.rb s3://yourbucket/libs/
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<h4 id="shibbootstrap-action">shibのBootstrap Action</h4>
+<h4 id="shibのbootstrap-action">shibのBootstrap Action</h4>
 
 <p>shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。</p>
 
@@ -248,54 +248,51 @@ $ aws s3 cp install-presto.rb s3://yourbucket/libs/
   <li>install-shib.sh</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
 
 <span class="nv">shib_tarball_path</span><span class="o">=</span><span class="nv">$1</span>
 <span class="nv">config_file_path</span><span class="o">=</span><span class="nv">$2</span>
 
-sudo yum -y update
-sudo yum install -y git
-sudo yum install -y nodejs npm --enablerepo<span class="o">=</span>epel
+<span class="nb">sudo </span>yum <span class="nt">-y</span> update
+<span class="nb">sudo </span>yum <span class="nb">install</span> <span class="nt">-y</span> git
+<span class="nb">sudo </span>yum <span class="nb">install</span> <span class="nt">-y</span> nodejs npm <span class="nt">--enablerepo</span><span class="o">=</span>epel
 
-aws s3 cp <span class="k">${</span><span class="nv">shib_tarball_path</span><span class="k">}</span> /home/hadoop/shib.tar.gz
+aws s3 <span class="nb">cp</span> <span class="k">${</span><span class="nv">shib_tarball_path</span><span class="k">}</span> /home/hadoop/shib.tar.gz
 <span class="o">{</span>
-  <span class="nb">cd</span> /home/hadoop <span class="o">&amp;&amp;</span> tar xvfz /home/hadoop/shib.tar.gz
-  <span class="nb">cd</span> /home/hadoop/shib <span class="o">&amp;&amp;</span> npm install
+  <span class="nb">cd</span> /home/hadoop <span class="o">&amp;&amp;</span> <span class="nb">tar </span>xvfz /home/hadoop/shib.tar.gz
+  <span class="nb">cd</span> /home/hadoop/shib <span class="o">&amp;&amp;</span> npm <span class="nb">install</span>
 <span class="o">}</span>
-aws s3 cp <span class="k">${</span><span class="nv">config_file_path</span><span class="k">}</span> /home/hadoop/shib/config.js
+aws s3 <span class="nb">cp</span> <span class="k">${</span><span class="nv">config_file_path</span><span class="k">}</span> /home/hadoop/shib/config.js
 <span class="o">{</span>
-  <span class="nb">cd</span> /home/hadoop/shib <span class="o">&amp;&amp;</span> nohup npm start &amp;
+  <span class="nb">cd</span> /home/hadoop/shib <span class="o">&amp;&amp;</span> <span class="nb">nohup </span>npm start &amp;
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>これも同様にS3にあげる。</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ aws s3 cp install-shib.sh s3://yourbucket/libs/
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ aws s3 cp install-shib.sh s3://yourbucket/libs/
+</code></pre></div></div>
 
-<h3 id="aws-cli-1">AWS CLIでクラスタ立ち上げ</h3>
+<h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
 
 <ul>
   <li>create-cluster.sh</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
 
-aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
-    --name <span class="s2">"</span><span class="nv">$USER</span><span class="s2"> (AMI 3.3.1 Hive + Hue + Presto + shib) </span><span class="k">$(</span> date <span class="s1">'+%Y%m%d%H%M'</span> <span class="k">)</span><span class="s2">"</span> <span class="se">\</span>
-    --tags <span class="nv">Name</span><span class="o">=</span>presto-on-emr <span class="nv">environment</span><span class="o">=</span>development <span class="se">\</span>
-    --ec2-attributes <span class="nv">KeyName</span><span class="o">=</span>yourkey <span class="se">\</span>
-    --applications <span class="nv">Name</span><span class="o">=</span>hive <span class="nv">Name</span><span class="o">=</span>hue <span class="se">\</span>
-    --instance-groups file://./large-instance-setup.json <span class="se">\</span>
-    --bootstrap-actions file://./bootstrap-presto.json <span class="se">\</span>
-    --log-uri <span class="s1">'s3://yourbucket/jobflow_logs/'</span> <span class="se">\</span>
-    --no-auto-terminate <span class="se">\</span>
-    --use-default-roles <span class="se">\</span>
-    --visible-to-all-users
-</code></pre>
-</div>
+aws emr create-cluster <span class="nt">--ami-version</span> 3.3.1 <span class="se">\</span>
+    <span class="nt">--name</span> <span class="s2">"</span><span class="nv">$USER</span><span class="s2"> (AMI 3.3.1 Hive + Hue + Presto + shib) </span><span class="k">$(</span> <span class="nb">date</span> <span class="s1">'+%Y%m%d%H%M'</span> <span class="k">)</span><span class="s2">"</span> <span class="se">\</span>
+    <span class="nt">--tags</span> <span class="nv">Name</span><span class="o">=</span>presto-on-emr <span class="nv">environment</span><span class="o">=</span>development <span class="se">\</span>
+    <span class="nt">--ec2-attributes</span> <span class="nv">KeyName</span><span class="o">=</span>yourkey <span class="se">\</span>
+    <span class="nt">--applications</span> <span class="nv">Name</span><span class="o">=</span>hive <span class="nv">Name</span><span class="o">=</span>hue <span class="se">\</span>
+    <span class="nt">--instance-groups</span> file://./large-instance-setup.json <span class="se">\</span>
+    <span class="nt">--bootstrap-actions</span> file://./bootstrap-presto.json <span class="se">\</span>
+    <span class="nt">--log-uri</span> <span class="s1">'s3://yourbucket/jobflow_logs/'</span> <span class="se">\</span>
+    <span class="nt">--no-auto-terminate</span> <span class="se">\</span>
+    <span class="nt">--use-default-roles</span> <span class="se">\</span>
+    <span class="nt">--visible-to-all-users</span>
+</code></pre></div></div>
 <p>※AWSアカウントによっては–use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。</p>
 
 <p>instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。</p>
@@ -304,7 +301,7 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
   <li>large-instance-setup.json</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[
   {
      "Name": "emr-master-production",
      "InstanceGroupType": "MASTER",
@@ -318,14 +315,13 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
      "InstanceType": "m3.xlarge"
   }
 ]
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <ul>
   <li>bootstrap-presto.json</li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>[
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[
   {
     "Name": "Install/Setup Shib",
     "Path": "s3://yourbucket/libs/install-shib.sh",
@@ -343,12 +339,11 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
     ]
   }
 ]
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<h2 id="shibhue">Shib/Hueアクセス方法</h2>
+<h2 id="shibhueアクセス方法">Shib/Hueアクセス方法</h2>
 
-<h3 id="foxyproxyssh">FoxyProxyとSSHトネリングを利用</h3>
+<h3 id="foxyproxyとsshトネリングを利用">FoxyProxyとSSHトネリングを利用</h3>
 <p>FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。</p>
 
 <ul>
@@ -360,7 +355,7 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
   </li>
 </ul>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
 <span class="nt">&lt;foxyproxy&gt;</span>
     <span class="nt">&lt;proxies&gt;</span>
         <span class="nt">&lt;proxy</span> <span class="na">name=</span><span class="s">"emr-socks-proxy"</span> <span class="na">id=</span><span class="s">"2322596116"</span> <span class="na">notes=</span><span class="s">""</span> <span class="na">fromSubscription=</span><span class="s">"false"</span> <span class="na">enabled=</span><span class="s">"true"</span> <span class="na">mode=</span><span class="s">"manual"</span> <span class="na">selectedTabIndex=</span><span class="s">"2"</span> <span class="na">lastresort=</span><span class="s">"false"</span> <span class="na">animatedIcons=</span><span class="s">"true"</span> <span class="na">includeInCycle=</span><span class="s">"true"</span> <span class="na">color=</span><span class="s">"#0055E5"</span> <span class="na">proxyDNS=</span><span class="s">"true"</span> <span class="na">noInternalIPs=</span><span class="s">"false"</span> <span class="na">autoconfMode=</span><span class="s">"pac"</span> <span class="na">clearCacheBeforeUse=</span><span class="s">"false"</span> <span class="na">disableCache=</span><span class="s">"false"</span> <span class="na">clearCookiesBeforeUse=</span><span class="s">"false"</span> <span class="na">rejectCookies=</span><span class="s">"false"</span><span class="nt">&gt;</span>
@@ -373,12 +368,10 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
         <span class="nt">&lt;/proxy&gt;</span>
     <span class="nt">&lt;/proxies&gt;</span>
 <span class="nt">&lt;/foxyproxy&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
+</code></pre></div></div>
 
 <p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
 
@@ -392,13 +385,13 @@ aws emr create-cluster --ami-version 3.3.1 <span class="se">\</span>
   <li>http://youremrhost.compute.amazonaws.com:8888</li>
 </ul>
 
-<h3 id="aws-securitygroup">AWS SecurityGroupを変更</h3>
+<h3 id="aws-securitygroupを変更">AWS SecurityGroupを変更</h3>
 <p>EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。</p>
 
-<h2 id="section-3">パフォーマンス</h2>
+<h2 id="パフォーマンス">パフォーマンス</h2>
 <p>パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。</p>
 
-<h2 id="section-4">終わりに</h2>
+<h2 id="終わりに">終わりに</h2>
 <p>いかがでしたでしょうか。
 PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
 もうあと25日は2時間しか残ってませんがハッピーメリークリスマス！</p>
@@ -425,15 +418,15 @@ PrestoとEMRはまだそんなにビッグじゃないけど、大きくなり�
 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 
-</article>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-50431971-1', 'akirachiku.com');
-  ga('send', 'pageview');
-
-</script>
+      </article>
+    </div>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-50431971-1', 'akirachiku.com');
+      ga('send', 'pageview');
+    </script>
+  </div>
 </body>

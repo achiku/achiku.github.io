@@ -4,7 +4,7 @@ title: "包丁一本さらしに巻いて"
 ---
 {% for post in site.posts %}
   <section>
-    <h2><a class="post-title" href="{{ post.url }}">{{ post.title }}</a></h2>
+    <h3><a class="post-title" href="{{ post.url }}">{{ post.title }}</a></h3>
     <p>{{ post.date | date: "%Y.%m.%d" }}</p>
     <p>{{ post.excerpt }}</p>
   </section>
@@ -17,5 +17,4 @@ title: "包丁一本さらしに巻いて"
 
   ga('create', 'UA-50431971-1', 'akirachiku.com');
   ga('send', 'pageview');
-
 </script>

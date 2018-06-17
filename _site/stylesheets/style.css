@@ -14,10 +14,21 @@ a { text-decoration: none; }
 a.post-title { color: #555; }
 a.post-title:hover { color: orange; }
 
+html, button, input, select, textarea,
+.pure-g [class *= "pure-u"] {
+    /* Set your content font stack here: */
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Helvetica", "Arial", "Lucida Grande", "sans-serif";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizelegibility;
+    font-size: 17px;
+}
+
 h1.blog-title {
   font-family: "HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
   color: #555;
   text-decoration:none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
 }
 
 
@@ -27,18 +38,14 @@ blockquote {
 
 header, article, footer {
     margin: 0 auto;
-    width: 70%;
-    max-width: 780px;
-    padding: 1em 4em;
-    margin-bottom: 1em;
+    width: 90%;
+    line-height: 1.5;
+    font-weight: 400;
+    font-size: 0.9em;
     background-color: white;
 }
 
-footer {
-    background-image: url('../images/wavegrid.png')
- }
-
- pre {
+pre {
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
     font-size: 13px;
     font-weight: 300;
