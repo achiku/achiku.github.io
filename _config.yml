@@ -12,7 +12,7 @@ exclude: [".rvmrc", ".rbenv-version", "README.md", "Rakefile", "changelog.md"]
 highlighter: rouge
 markdown: kramdown
 
-production_url : http://akirachiku.com
+production_url : https://akirachiku.com
 comments : True
 
 source:      .
@@ -20,7 +20,6 @@ excerpt_separator: "。"
 destination: ./_site
 plugins_dir: ./_plugins
 layouts_dir: ./_layouts
-include:     ['.htaccess']
 exclude:     []
 gems:        []
 timezone:    nil
