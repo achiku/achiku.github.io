@@ -1,12 +1,3 @@
-a:link { color: orange; }
-a:visited { color: orange; }
-a:hover { color: orange; }
-a:active { color: orange; }
-a { text-decoration: none; }
-
-a.post-title { color: #555; }
-a.post-title:hover { color: orange; }
-
 body {
   margin: 0;
 }
@@ -26,13 +17,25 @@ body {
 }
 
 #header, #article {
-  padding: 30px;
-  width: 100%;
+  padding: 20px;
+  width: 90%;
   line-height: 1.5;
 }
 
 pre {
-    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
-    font-size: 14px;
-    font-weight: 300;
+  font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+  font-size: 14px;
+  font-weight: 300;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
  }
+
+a:link { color: orange; }
+a:visited { color: orange; }
+a:hover { color: orange; }
+a:active { color: orange; }
+a { text-decoration: none; }
+
+a.post-title { color: #555; }
+a.post-title:hover { color: orange; }

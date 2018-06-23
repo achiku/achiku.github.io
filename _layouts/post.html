@@ -53,13 +53,16 @@ var disqus_shortname = 'achiku';
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-<div>
-    <h2>{{ page.title }}</h2>
-    <p>{{ page.date | date: "%Y.%m.%d" }}</p>
-</div>
-<div>
-    {{ content }}
-</div>
+<article>
+  <div>
+      <h2>{{ page.title }}</h2>
+      <p>{{ page.date | date: "%Y.%m.%d" }}</p>
+  </div>
+  <div>
+      {{ content }}
+  </div>
+</article>
+
 <div class="post-sharing">
   <a href="https://twitter.com/share" class="twitter-share-button" data-via="_achiku" style="display: inline-block; vertical-align: bottom;">Tweet</a>
   <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>

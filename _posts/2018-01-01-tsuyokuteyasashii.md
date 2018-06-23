@@ -43,6 +43,7 @@ title: "強くて優しくありたい"
 
 ### ツイッター
 
+<div style="width:90%">
 <blockquote class="twitter-tweet"><p lang="ja" dir="ltr">今日髪を切ってもらいながら公共交通機関で遭遇するキレるおじいさん達の話をしたのですが最後二人共無言になってしまい、気まずいなと思いながら「人生の目標…強くて優しくなる事かもしれませんね…」みたいな事を口走ってしまい、夏の終わりに人生の真理に到達してしまった</p>&mdash; アチク (@_achiku) <a href="https://twitter.com/_achiku/status/901363454438629378?ref_src=twsrc%5Etfw">August 26, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 <blockquote class="twitter-tweet"><p lang="ja" dir="ltr">昨日深夜の六本木通りでベチャベチャに酔っ払いながら「強くて優しくなりたい！！それ以外に何もない！！」って言ってたんだけど本当にそれしかない</p>&mdash; アチク (@_achiku) <a href="https://twitter.com/_achiku/status/915420048088489984?ref_src=twsrc%5Etfw">October 4, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -50,3 +51,4 @@ title: "強くて優しくありたい"
 <blockquote class="twitter-tweet"><p lang="ja" dir="ltr">『鬼滅の刃』を読んだワシ「強くて優しくなりたい以外に何もないな…………」</p>&mdash; アチク (@_achiku) <a href="https://twitter.com/_achiku/status/921218441889046528?ref_src=twsrc%5Etfw">October 20, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 <blockquote class="twitter-tweet"><p lang="ja" dir="ltr">「強くて優しくなりたい」以外に何もないし、「恋も仕事も頑張る」のがいいと思うので年を経るごとに高校生に近づいていく気がする</p>&mdash; アチク (@_achiku) <a href="https://twitter.com/_achiku/status/931528688062971904?ref_src=twsrc%5Etfw">November 17, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
