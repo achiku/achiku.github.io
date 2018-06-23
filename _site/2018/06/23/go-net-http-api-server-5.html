@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <meta name="google-site-verification" content="H6k1xpusWugwaQgJsWDpiTw4J_AGFZHR4shRsOvPI78" />
+  <meta name="google-site-verification" content="u9xcmSuNZGHAmIz_6BC3gkGEQBTPZCcLqqwXb_w4KYg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <link rel="stylesheet" href="/stylesheets/pygment_github.css">
+  <title>net/httpで作るGo APIサーバー #5</title>
+</head>
+<body>
+  <div id="container" class="pure-g">
+    <div id="header" class="pure-u-1 pure-u-md-1">
+      <header role='banner'>
+        <h1 class="blog-title">包丁一本さらしに巻いて</h1>
+        <nav role='navigation'>
+          <div class="pure-menu pure-menu-horizontal">
+            <ul class="pure-menu-list">
+              <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+              <li class="pure-menu-item"><a href="/about.html" class="pure-menu-link">About</a></li>
+              <li class="pure-menu-item"><a href="/feed.xml" class="pure-menu-link">Feed</a></li>
+            </ul>
+          </div>
+        </nav>
+      </header>
+    </div>
+    <div id="article" class="pure-u-1 pure-u-md-1">
+      <script type="text/javascript">
+var disqus_shortname = 'achiku';
+
+(function () {
+    var s = document.createElement('script'); s.async = true;
+    s.type = 'text/javascript';
+    s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+
+<div id="fb-root">
+<script>
+  window.fbAsyncInit = function() {
+    // init the FB JS SDK
+    FB.init({
+      appId      : '1447639612119183',                   // App ID from the app dashboard
+      status     : true,                                 // Check Facebook Login status
+      xfbml      : true                                  // Look for social plugins on the page
+    });
+
+    // Additional initialization code such as adding Event Listeners goes here
+  };
+
+  // Load the SDK asynchronously
+  (function(){
+     // If we've already installed the SDK, we're done
+     if (document.getElementById('facebook-jssdk')) {return;}
+
+     // Get the first script element, which we'll use to find the parent node
+     var firstScriptElement = document.getElementsByTagName('script')[0];
+
+     // Create a new script element and set its id
+     var facebookJS = document.createElement('script'); 
+     facebookJS.id = 'facebook-jssdk';
+
+     // Set the new script's source to the source of the Facebook JS SDK
+     facebookJS.src = '//connect.facebook.net/en_US/all.js';
+
+     // Insert the Facebook JS SDK into the DOM
+     firstScriptElement.parentNode.insertBefore(facebookJS, firstScriptElement);
+   }());
+</script>
+</div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=1447639612119183";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<article>
+  <div>
+      <h2>net/httpで作るGo APIサーバー #5</h2>
+      <p>2018.06.23</p>
+  </div>
+  <div>
+      <p>この一連の記事では <code class="highlighter-rouge">net/http</code> を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
+
+<ul>
+  <li><a href="https://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
+  <li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+  <li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+  <li><a href="https://akirachiku.com/2017/04/08/go-net-http-api-server-4.html">net/httpで作るGo APIサーバー #4</a></li>
+</ul>
+
+<p>上記4つの記事で <code class="highlighter-rouge">net/http</code> 単体でも小さいライブラリを利用しながらある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。今回はサーバーを実装する上で欠かせないロギングについて書く。</p>
+
+<h3 id="ロギングライブラリ">ロギングライブラリ</h3>
+
+<p>まずはHTTP APIサーバーのロギングライブラリに求める事を書きだす。</p>
+
+<ul>
+  <li>リクエスト単位で設定した情報(例: <code class="highlighter-rouge">user_id</code>、<code class="highlighter-rouge">source_ip</code>、<code class="highlighter-rouge">request_id</code> 等)をメタ情報として保持し、メッセージと同時に出力
+    <ul>
+      <li>これは毎回手で書けばいけるけど、毎回手で書くのはだるいし忘れる</li>
+      <li>middlewareでリクエストID等を振り出してログに出力すると、そのIDで検索すれば処理の流れが一発でわかる等、メタ情報がデフォルトで出力されていると何か発生した際の初動速度が上がる</li>
+    </ul>
+  </li>
+  <li>エラートラッキングサービスとの連携用フック
+    <ul>
+      <li>output系の処理にプラグインを組み込める機構になっていると嬉しい</li>
+    </ul>
+  </li>
+</ul>
+
+<p>逆に下はあまり重要視しなかったもの。</p>
+
+<ul>
+  <li>Leveled Logging
+    <ul>
+      <li>これは外部ライブラリ使おうと思うと大体ついてくるのでそこまで重要視しなかった</li>
+      <li><a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Let’s talk about logging</a>
+        <ul>
+          <li>自分はdaveのこのブログポストがロギングの本当の課題は何かを再度検証しようとしてて結構好き</li>
+          <li>leveled loggingは大体のログライブラリにデフォルトでついてるので、なぜついてるのか考える契機になる気がする</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>パフォーマンス
+    <ul>
+      <li>作っていたのがそこまでパフォーマンス要件が厳しいアプリケーションではなかったのであまり見なかった</li>
+    </ul>
+  </li>
+</ul>
+
+<p>上記の要件で選んだ時に当時良いなと思ったのは以下のライブラリ。</p>
+
+<ul>
+  <li><a href="https://github.com/rs/xlog">rs/xlog</a></li>
+</ul>
+
+<p>(現在は <code class="highlighter-rouge">xlog</code> の後継 <a href="https://github.com/rs/zerolog">rs/zerolog</a> が出ているので今作るならそっちを使う方が良いと思う。めっちゃ速いらしいのでパフォーマンスきついところでも使えるんじゃないだろうか。)</p>
+
+<h3 id="実例">実例</h3>
+
+<p>xlogは Go HTTP サーバーの middleware chain に組み込んで、リクエスト毎に logger を作成(もしくはPoolから取得)し、<code class="highlighter-rouge">http.Request</code> 内の <code class="highlighter-rouge">context.Context</code> に logger を入れて次の処理に渡してくれる形になっている。<a href="https://github.com/justinas/alice">justinas/alice</a> を使った例を書くとこのような感じで初期化することになる。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="x">	</span><span class="n">app</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">NewApp</span><span class="p">(</span><span class="n">cfgPath</span><span class="p">)</span><span class="x">
+	</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+
+	</span><span class="c">// middleware chain</span><span class="x">
+	</span><span class="n">chain</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">alice</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="x">
+		</span><span class="n">recoverMiddleware</span><span class="p">,</span><span class="x">
+	</span><span class="p">)</span><span class="x">
+	</span><span class="n">apiChain</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">chain</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">NewHandler</span><span class="p">(</span><span class="n">NewLogConfig</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">Config</span><span class="p">)),</span><span class="x">
+	</span><span class="p">)</span><span class="x">
+	</span><span class="c">// for gorilla/mux</span><span class="x">
+	</span><span class="n">router</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">mux</span><span class="o">.</span><span class="n">NewRouter</span><span class="p">()</span><span class="x">
+	</span><span class="n">r</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">router</span><span class="o">.</span><span class="n">PathPrefix</span><span class="p">(</span><span class="s">"/api"</span><span class="p">)</span><span class="o">.</span><span class="n">Subrouter</span><span class="p">()</span><span class="x">
+	</span><span class="n">r</span><span class="o">.</span><span class="n">Methods</span><span class="p">(</span><span class="s">"GET"</span><span class="p">)</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="s">"/hello"</span><span class="p">)</span><span class="o">.</span><span class="n">Handler</span><span class="p">(</span><span class="n">apiChain</span><span class="o">.</span><span class="n">Then</span><span class="p">(</span><span class="n">AppHandler</span><span class="p">{</span><span class="n">h</span><span class="o">:</span><span class="x"> </span><span class="n">app</span><span class="o">.</span><span class="n">Greeting</span><span class="p">}))</span><span class="x">
+</span></code></pre></div></div>
+<p>(middleware chainやaliceに関してはこちら <a href="https://akirachiku.com/2017/04/03/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a>)</p>
+
+<p>xlog にデフォルトでついている関数を利用すると、サクッと以下のように logger が出力するメタデータを追加できる。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="x">	</span><span class="n">apiChain</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">chain</span><span class="o">.</span><span class="n">Append</span><span class="p">(</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">NewHandler</span><span class="p">(</span><span class="n">NewLogConfig</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">Config</span><span class="p">)),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">MethodHandler</span><span class="p">(</span><span class="s">"method"</span><span class="p">),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">URLHandler</span><span class="p">(</span><span class="s">"url"</span><span class="p">),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">RemoteAddrHandler</span><span class="p">(</span><span class="s">"ip"</span><span class="p">),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">UserAgentHandler</span><span class="p">(</span><span class="s">"user_agent"</span><span class="p">),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">RefererHandler</span><span class="p">(</span><span class="s">"referer"</span><span class="p">),</span><span class="x">
+		</span><span class="n">xlog</span><span class="o">.</span><span class="n">RequestIDHandler</span><span class="p">(</span><span class="s">"req_id"</span><span class="p">,</span><span class="x"> </span><span class="s">"Request-Id"</span><span class="p">),</span><span class="x">
+	</span><span class="p">)</span><span class="x">
+</span></code></pre></div></div>
+
+<p>初期化した後に以下のような形で handler 側で利用する。肝は渡ってくる <code class="highlighter-rouge">http.Request</code> から logger を取得して利用している3行目の部分。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// Greeting greeting</span><span class="x">
+</span><span class="k">func</span><span class="x"> </span><span class="p">(</span><span class="n">app</span><span class="x"> </span><span class="o">*</span><span class="n">App</span><span class="p">)</span><span class="x"> </span><span class="n">Greeting</span><span class="p">(</span><span class="n">w</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">ResponseWriter</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="x"> </span><span class="o">*</span><span class="n">http</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span><span class="x"> </span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="x"> </span><span class="k">interface</span><span class="p">{},</span><span class="x"> </span><span class="kt">error</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+	</span><span class="n">logger</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">xlog</span><span class="o">.</span><span class="n">FromRequest</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="x">
+	</span><span class="n">res</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">HelloService</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">Context</span><span class="p">(),</span><span class="x"> </span><span class="s">""</span><span class="p">,</span><span class="x"> </span><span class="n">time</span><span class="o">.</span><span class="n">Now</span><span class="p">())</span><span class="x">
+	</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="n">e</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">ErrorResponse</span><span class="p">{</span><span class="x">
+			</span><span class="n">Code</span><span class="o">:</span><span class="x">    </span><span class="n">http</span><span class="o">.</span><span class="n">StatusInternalServerError</span><span class="p">,</span><span class="x">
+			</span><span class="n">Message</span><span class="o">:</span><span class="x"> </span><span class="s">"something went wrong"</span><span class="p">,</span><span class="x">
+		</span><span class="p">}</span><span class="x">
+		</span><span class="k">return</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">StatusInternalServerError</span><span class="p">,</span><span class="x"> </span><span class="n">e</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="n">logger</span><span class="o">.</span><span class="n">Debugf</span><span class="p">(</span><span class="s">"%s %s"</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="o">.</span><span class="n">Message</span><span class="p">)</span><span class="x">
+	</span><span class="k">return</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">StatusOK</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="p">,</span><span class="x"> </span><span class="no">nil</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre></div></div>
+
+<p>リクエストすると、</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ http http://localhost:8080/api/hello/achiku
+HTTP/1.1 200 OK
+Content-Length: 36
+Content-Type: text/plain; charset=utf-8
+Date: Sat, 23 Jun 2018 10:11:20 GMT
+Request-Id: bcn1pi6jc9mjbucnus10
+
+{
+    "message": "hello",
+    "name": "achiku"
+}
+</code></pre></div></div>
+
+<p>以下のようなログが出力される。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{"file":"server.go:76","ip":"::1","level":"debug","message":"achiku hello","method":"GET","req_id":"bcn1pi6jc9mjbucnus10","role":"my-service","time":"2018-06-23T19:11:20.029910256+09:00","url":"/api/hello/achiku","user_agent":"HTTPie/0.9.9"}
+</code></pre></div></div>
+
+<p>便利なのは上記ログ、以下の1行から出されている事。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="x">	</span><span class="n">logger</span><span class="o">.</span><span class="n">Debugf</span><span class="p">(</span><span class="s">"%s %s"</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="o">.</span><span class="n">Message</span><span class="p">)</span><span class="x">
+</span></code></pre></div></div>
+
+<p>ログを出力する部分はメッセージだけにフォーカスでき、その他のメタデータは自動でセットされるようにできた。更に、logger にセットしておくメタデータは middleware chain の中で独自に追加することも可能。例えば、認証ミドルウェアが取得してきたユーザー情報を logger にセットしたい場合、リクエストヘッダーに入っているクライアントのバージョン情報を logger にセットしたい場合等は、以下のようにアプリケーションハンドラーをラップする <code class="highlighter-rouge">ServeHTTP</code> メソッドの中に書くと良いのではないだろうか。</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// AppHandler application handler adaptor</span><span class="x">
+</span><span class="k">type</span><span class="x"> </span><span class="n">AppHandler</span><span class="x"> </span><span class="k">struct</span><span class="x"> </span><span class="p">{</span><span class="x">
+	</span><span class="n">h</span><span class="x"> </span><span class="k">func</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">ResponseWriter</span><span class="p">,</span><span class="x"> </span><span class="o">*</span><span class="n">http</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span><span class="x"> </span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="x"> </span><span class="k">interface</span><span class="p">{},</span><span class="x"> </span><span class="kt">error</span><span class="p">)</span><span class="x">
+</span><span class="p">}</span><span class="x">
+
+</span><span class="k">func</span><span class="x"> </span><span class="p">(</span><span class="n">a</span><span class="x"> </span><span class="n">AppHandler</span><span class="p">)</span><span class="x"> </span><span class="n">ServeHTTP</span><span class="p">(</span><span class="n">w</span><span class="x"> </span><span class="n">http</span><span class="o">.</span><span class="n">ResponseWriter</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="x"> </span><span class="o">*</span><span class="n">http</span><span class="o">.</span><span class="n">Request</span><span class="p">)</span><span class="x"> </span><span class="p">{</span><span class="x">
+	</span><span class="n">user</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">getUserFromContext</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">Context</span><span class="p">())</span><span class="x">
+	</span><span class="n">logger</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">xlog</span><span class="o">.</span><span class="n">FromRequest</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="x">
+	</span><span class="n">logger</span><span class="o">.</span><span class="n">SetField</span><span class="p">(</span><span class="s">"user_id"</span><span class="p">,</span><span class="x"> </span><span class="n">user</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span><span class="x">
+	</span><span class="n">logger</span><span class="o">.</span><span class="n">SetField</span><span class="p">(</span><span class="s">"user_name"</span><span class="p">,</span><span class="x"> </span><span class="n">user</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span><span class="x">
+	</span><span class="n">logger</span><span class="o">.</span><span class="n">SetField</span><span class="p">(</span><span class="s">"app_version"</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="o">.</span><span class="n">Header</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">"App-Version"</span><span class="p">))</span><span class="x">
+	</span><span class="n">logger</span><span class="o">.</span><span class="n">SetField</span><span class="p">(</span><span class="s">"x_forwarded_for"</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="o">.</span><span class="n">Header</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s">"X-Forwarded-For"</span><span class="p">))</span><span class="x">
+
+	</span><span class="n">encoder</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">json</span><span class="o">.</span><span class="n">NewEncoder</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="x">
+	</span><span class="n">status</span><span class="p">,</span><span class="x"> </span><span class="n">res</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">:=</span><span class="x"> </span><span class="n">a</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">w</span><span class="p">,</span><span class="x"> </span><span class="n">r</span><span class="p">)</span><span class="x">
+	</span><span class="k">if</span><span class="x"> </span><span class="n">err</span><span class="x"> </span><span class="o">!=</span><span class="x"> </span><span class="no">nil</span><span class="x"> </span><span class="p">{</span><span class="x">
+		</span><span class="n">log</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"error: %s"</span><span class="p">,</span><span class="x"> </span><span class="n">err</span><span class="p">)</span><span class="x">
+		</span><span class="n">w</span><span class="o">.</span><span class="n">WriteHeader</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="x">
+		</span><span class="n">encoder</span><span class="o">.</span><span class="n">Encode</span><span class="p">(</span><span class="n">res</span><span class="p">)</span><span class="x">
+		</span><span class="k">return</span><span class="x">
+	</span><span class="p">}</span><span class="x">
+	</span><span class="n">w</span><span class="o">.</span><span class="n">WriteHeader</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="x">
+	</span><span class="n">encoder</span><span class="o">.</span><span class="n">Encode</span><span class="p">(</span><span class="n">res</span><span class="p">)</span><span class="x">
+	</span><span class="k">return</span><span class="x">
+</span><span class="p">}</span><span class="x">
+</span></code></pre></div></div>
+
+<p>リクエスト</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ http http://localhost:8080/api/hello/achiku "App-Version: 1.0.1" "X-Forwarded-For: 192.168.11.111"
+</code></pre></div></div>
+
+<p>ログ</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{"app_version":"1.0.1","file":"server.go:84","ip":"::1","level":"debug","message":"achiku hello","method":"GET","req_id":"bcn2eiujc9mmeq0c7ba0","role":"my-service","time":"2018-06-23T19:56:11.907778774+09:00","url":"/api/hello/achiku","user_agent":"HTTPie/0.9.9","user_id":10,"user_name":"achiku","x_forwarded_for":"192.168.11.111"}
+</code></pre></div></div>
+
+<ul>
+  <li><a href="https://github.com/achiku/go-http-api-server/tree/master/ch08">この記事で使ったコード</a></li>
+  <li><a href="https://twitter.com/_achiku/status/907561841450147840">deeeeetさんとの会話</a></li>
+</ul>
+
+<div style="width: 90%">
+<blockquote class="twitter-tweet" data-lang="ja"><p lang="ja" dir="ltr">似た感じですね．今はrequest idだけですがcontext.Valueに入ってるリクエスト限定の値などをデフォルトでannotateさせるログを毎回作るようにすればいいかなという結論になりました現状は</p>&mdash; Taichi Nakashima (@deeeet) <a href="https://twitter.com/deeeet/status/907589519758594048?ref_src=twsrc%5Etfw">2017年9月12日</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</div>
+
+  </div>
+</article>
+
+<div class="post-sharing">
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="_achiku" style="display: inline-block; vertical-align: bottom;">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+  <a class="fb-like" data-href="" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true" style="display: inline-block"></a>
+</div>
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'achiku'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </div>
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-50431971-1', 'akirachiku.com');
+      ga('send', 'pageview');
+    </script>
+  </div>
+</body>
