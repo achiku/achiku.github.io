@@ -7,6 +7,270 @@
 		<atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>net/httpで作るGo APIサーバー #6</title>
+				<description>&lt;p&gt;この一連の記事では &lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt; を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://akirachiku.com/2017/04/01/go-net-http-api-server-1.html&quot;&gt;net/httpで作るGo APIサーバー #1&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://akirachiku.com/2017/04/02/go-net-http-api-server-2.html&quot;&gt;net/httpで作るGo APIサーバー #2&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://akirachiku.com/2017/04/02/go-net-http-api-server-3.html&quot;&gt;net/httpで作るGo APIサーバー #3&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://akirachiku.com/2017/04/08/go-net-http-api-server-4.html&quot;&gt;net/httpで作るGo APIサーバー #4&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://akirachiku.com/2018/06/23/go-net-http-api-server-5.html&quot;&gt;net/httpで作るGo APIサーバー #5&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;上記5つの記事で &lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt; 単体でも小さいライブラリを利用しながらある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。今回はエラーハンドリングについて書く。サーバーサイドのエラーハンドリングを中心に書くが、この領域はフロントエンドとも密に連携していく必要があるため、その辺りの仕組みをどうするかに関しても言及していく。&lt;/p&gt;
+
+&lt;h3 id=&quot;エラーと呼ばれるものの種類と扱い方&quot;&gt;“エラー”と呼ばれるものの種類と扱い方&lt;/h3&gt;
+
+&lt;p&gt;Goで”エラー”という言葉が表すものを恣意的に二種類に分類した。それぞれの定義と簡易的な扱い方を以下に書く。&lt;/p&gt;
+
+&lt;h4 id=&quot;ハンドリングの余地の無いエラー&quot;&gt;ハンドリングの余地の無いエラー&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;例: 存在しないスライスのインデックスにアクセスした、等&lt;/li&gt;
+  &lt;li&gt;アプリケーション側ではこれ以上どうしようもない、という状態になるエラー&lt;/li&gt;
+  &lt;li&gt;このタイプのエラーは &lt;code class=&quot;highlighter-rouge&quot;&gt;panic&lt;/code&gt; を利用する&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/golang/go/wiki/CodeReviewComments#dont-panic&quot;&gt;Code Review Comment&lt;/a&gt; にもあるようにアプリケーションコードの中で利用することはあまり無いかなという印象。たまにGoの &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; を扱うのがダルいので &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; を返さずに &lt;code class=&quot;highlighter-rouge&quot;&gt;panic&lt;/code&gt; で終了！みたいなコードをライブラリ内で見ることがあるけど、そのような使い方をしてしまうとライブラリ利用側でそのエラーが発生した際にどのような挙動をするべきか決めるという自由を奪い強制的に終了することになるので、少なくとも利用には慎重になるのが大切かなと思う。(もちろん &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; を返すよりも &lt;code class=&quot;highlighter-rouge&quot;&gt;panic&lt;/code&gt; で落とすケースの方が適切な場合もあると思うのであくまで &lt;code class=&quot;highlighter-rouge&quot;&gt;panic&lt;/code&gt; 使う前に慎重になる、という意味)&lt;/p&gt;
+
+&lt;h4 id=&quot;ハンドリングの余地の有るエラー&quot;&gt;ハンドリングの余地の有るエラー&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;例: 存在しないユーザーIDがリクエストされてきた、等&lt;/li&gt;
+  &lt;li&gt;アプリケーション側で発生したエラーによって挙動、メッセージを変更したいエラー&lt;/li&gt;
+  &lt;li&gt;このタイプのエラーは &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; を利用し適切なハンドリングをする&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Goで &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; はビルトインのインターフェース型の一つ。以下の形を満たせばどのような構造体でも関数でも &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; として扱える。&lt;/p&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;また標準ライブラリの &lt;code class=&quot;highlighter-rouge&quot;&gt;errors&lt;/code&gt;　パッケージの中を覗いてみるとこういうコードになっている。&lt;a href=&quot;https://golang.org/src/errors/errors.go&quot;&gt;src/errors/errors.go&lt;/a&gt;。非常にシンプルだが拡張性のある形になっている。ただし、それが故に以下2点に関しては少し工夫が必要になる。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; に付加情報を持たせる
+    &lt;ul&gt;
+      &lt;li&gt;関数の深いところから &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; が返ってくる場合に &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; インターフェースを満たしながら各階層でコンテクストを付加して呼び出し元に渡したい場合がある&lt;/li&gt;
+      &lt;li&gt;これは処理がGoの中で閉じるならよほどのことが無い限り &lt;a href=&quot;https://github.com/pkg/errors&quot;&gt;github.com/pkg/errors&lt;/a&gt; を利用すれば良いと思う
+        &lt;ul&gt;
+          &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;errors.Wrap&lt;/code&gt; もしくは &lt;code class=&quot;highlighter-rouge&quot;&gt;errors.Wrapf&lt;/code&gt; で呼び出した関数から上がってきた &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; に何某かの付加情報を付与して返す形になる&lt;/li&gt;
+          &lt;li&gt;これをやることで &lt;code class=&quot;highlighter-rouge&quot;&gt;no such file or directory&lt;/code&gt; だけのエラーが返ってくる事がなくなり、どこで何の関数が失敗したのかわかりやすくなる&lt;/li&gt;
+          &lt;li&gt;ただしフロントエンドに返すエラーとなると話が違うので後ほど詳細に書く&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; に種類を持たせる
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; が呼び出した関数から返ってきた場合、具体的に何のエラーかによって呼び出し元で処理を分けたい場合がある&lt;/li&gt;
+      &lt;li&gt;実装方法は大きく分けて3つあり、それぞれにメリット/デメリットがある
+        &lt;ul&gt;
+          &lt;li&gt;この記事が最高に参考になる&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully&quot;&gt;Don’t just check errors, handle them gracefully&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;「 &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; に付加情報を持たせる」に関してはあまり大きな論点が無いのでそのままにするとして、「 &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; に種類を持たせる」の部分はもう少し詳細に書く。&lt;/p&gt;
+
+&lt;h3 id=&quot;どのようにerrorに種類を持たせるか&quot;&gt;どのようにerrorに種類を持たせるか&lt;/h3&gt;
+
+&lt;p&gt;原則 &lt;a href=&quot;https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully&quot;&gt;Don’t just check errors, handle them gracefully&lt;/a&gt; を読めばいけるんだけどざっくりと要約すると以下になる。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;daveの結論
+    &lt;ul&gt;
+      &lt;li&gt;Opaque Errorを使うとパッケージ間の依存を極限まで減らせて便利&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;エラーに種類を持たせ、種類によって呼び出し元の処理を変える方法は大きく3つあり、それぞれメリットとデメリットがある&lt;/li&gt;
+  &lt;li&gt;Sentinel Error
+    &lt;ul&gt;
+      &lt;li&gt;エラーを値としてパッケージ内に持つ (例: &lt;code class=&quot;highlighter-rouge&quot;&gt;io.EOF&lt;/code&gt;)&lt;/li&gt;
+      &lt;li&gt;値なので &lt;code class=&quot;highlighter-rouge&quot;&gt;==&lt;/code&gt; で比較して呼び出し元の処理を分ける&lt;/li&gt;
+      &lt;li&gt;メリット
+        &lt;ul&gt;
+          &lt;li&gt;あんまりない&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;デメリット
+        &lt;ul&gt;
+          &lt;li&gt;エラーに追加で情報をもたせたりする事ができなくなる
+            &lt;ul&gt;
+              &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;var EOF = errors.New(&quot;EOF&quot;)&lt;/code&gt; で定義されているので&lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/li&gt;
+          &lt;li&gt;このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ErrSomething&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;…&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Error Type
+    &lt;ul&gt;
+      &lt;li&gt;エラーを型を持つ構造体としてパッケージ内に持つ (例: &lt;code class=&quot;highlighter-rouge&quot;&gt;os.PathError&lt;/code&gt;)&lt;/li&gt;
+      &lt;li&gt;Type Assertionを使って呼び出し元の処理を分ける&lt;/li&gt;
+      &lt;li&gt;メリット
+        &lt;ul&gt;
+          &lt;li&gt;型なので属性を増やせば追加でエラーのメタデータを増やせる
+            &lt;ul&gt;
+              &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;os.PathError&lt;/code&gt; には &lt;code class=&quot;highlighter-rouge&quot;&gt;Op&lt;/code&gt; , &lt;code class=&quot;highlighter-rouge&quot;&gt;Path&lt;/code&gt; というメタデータが存在している&lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;デメリット
+        &lt;ul&gt;
+          &lt;li&gt;このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyError&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Msg&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Line&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; 
+        &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;%s:%d: %s”, e.File, e.Line, e.Msg)
+}
+
+return &amp;amp;MyError{&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Something&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;happened&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;, “server.go&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;m&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;something&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// call succeeded, nothing to do&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;“&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;occurred&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;line&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// unknown error&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Opaque Error
+    &lt;ul&gt;
+      &lt;li&gt;特定のインターフェースをパッケージ内に持つ (例: &lt;code class=&quot;highlighter-rouge&quot;&gt;net.Error&lt;/code&gt;)&lt;/li&gt;
+      &lt;li&gt;Type Assertionを使って呼び出し元の処理を分ける&lt;/li&gt;
+      &lt;li&gt;メリット
+        &lt;ul&gt;
+          &lt;li&gt;インターフェースなのでパッケージ外に出る際付加情報を加える事も容易(インターフェースを満たす構造体をエラーとして利用)&lt;/li&gt;
+          &lt;li&gt;呼び出し側は特定の型を別パッケージからimportする必要無くエラー発生時に処理を分岐させれる&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;デメリット
+        &lt;ul&gt;
+          &lt;li&gt;あんまりない&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;temporary&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;interface&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Temporary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+ 
+&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// IsTemporary returns true if err is temporary.&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IsTemporary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;bool&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;te&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;temporary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;te&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Temporary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;こっからは自分の主観。Opaque Errorは確かに便利で標準ライブラリでも良く利用されているパターンだと思うんだけど、アプリケーション内部で使うにはそこまでパッケージの結合度合いを考えないで良いのではないかなぁという思いがある(特にアプリケーション構築初期には)。なので自分はHTTP APIサーバーを作るというコンテクストでは Error Type 推し。ただ Opaque Error を使うと1関数から複数の Error Type が返ってくる想定で且つそれぞれの Error Type が &lt;code class=&quot;highlighter-rouge&quot;&gt;Tempolary()&lt;/code&gt; と &lt;code class=&quot;highlighter-rouge&quot;&gt;Timeout()&lt;/code&gt; を持っている場合、横断的なエラーハンドリングがしやすくはなるなとは思う。余談だけど、このタイプのメソッドは &lt;code class=&quot;highlighter-rouge&quot;&gt;Tempolary()&lt;/code&gt; と &lt;code class=&quot;highlighter-rouge&quot;&gt;Timeout()&lt;/code&gt; くらいしか見たことがなく自分の知見が狭いだけな可能性があるため、他にもこういう形のエラーハンドリングを使ってる場所があれば知りたい。&lt;/p&gt;
+
+&lt;h3 id=&quot;http-apiサーバーという文脈でそれらをどのように扱うか&quot;&gt;HTTP APIサーバーという文脈でそれらをどのように扱うか&lt;/h3&gt;
+
+&lt;p&gt;長かった。HTTP APIサーバーの中で &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; をどうやって使うかという話を書く。結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則 &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; のみ利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする。エラーログの出力は &lt;code class=&quot;highlighter-rouge&quot;&gt;ServeHTTP&lt;/code&gt; の中で実施する。」という形をとっている。一つづついきます。&lt;/p&gt;
+
+&lt;h4 id=&quot;apiサーバーの中では原則errorのみ利用し本当に必要な場合は-error-type-を使う&quot;&gt;APIサーバーの中では原則errorのみ利用し、本当に必要な場合は Error Type を使う&lt;/h4&gt;
+
+&lt;p&gt;現状のパッケージ構成はいまだこの構成のまま。&lt;/p&gt;
+
+&lt;script async=&quot;&quot; class=&quot;speakerdeck-embed&quot; data-slide=&quot;10&quot; data-id=&quot;9c6e284d996840b1a542b2beaf5ca30e&quot; data-ratio=&quot;1.33333333333333&quot; src=&quot;//speakerdeck.com/assets/embed.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;また、特にパッケージ毎にエラーを定義せずに原則 &lt;code class=&quot;highlighter-rouge&quot;&gt;error&lt;/code&gt; を &lt;code class=&quot;highlighter-rouge&quot;&gt;errors.Wrap&lt;/code&gt; して &lt;code class=&quot;highlighter-rouge&quot;&gt;model&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;service&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;handler&lt;/code&gt; に伝播させていっている。Error Type を使わなかった理由は特に無くて、ただただアプリケーション作るだけならあんまし必要なくね、って思ったから。&lt;/p&gt;
+
+&lt;p&gt;例えば、&lt;code class=&quot;highlighter-rouge&quot;&gt;model.GetUserByID(tx sql.Tx, id int64) (*model.User, error)&lt;/code&gt; という関数があったとして、その関数から &lt;code class=&quot;highlighter-rouge&quot;&gt;UserNotFoundError&lt;/code&gt; や &lt;code class=&quot;highlighter-rouge&quot;&gt;UserSuspendedError&lt;/code&gt; を返す事もできる。&lt;/p&gt;
+
+&lt;h4 id=&quot;フロントとのやり取りをするためにはそれ用の-error-type-を定義してやりとりする&quot;&gt;フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする&lt;/h4&gt;
+
+&lt;h4 id=&quot;エラーログの出力はservehttpの中で実施する&quot;&gt;エラーログの出力はServeHTTPの中で実施する&lt;/h4&gt;
+
+&lt;div class=&quot;language-go highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;// ServeHTTPC for iapi&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IapiHandler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ServeHTTP&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ResponseWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewEncoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlog&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FromRequest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handler&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// 204 でbodyにWriteすると以下のエラーが発生するので 204 の場合はwriteしない&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// http: request method or response status code does not allow body&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusNoContent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;// 300系はとりあえずリダイレクト&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusFound&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;||&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusMovedPermanently&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;redirectURL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ok&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;failed to convert res to redirectURL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WriteHeader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+			&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Redirect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;redirectURL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusBadRequest&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Warn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+
+	&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WriteHeader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;no&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;x&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;w&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WriteHeader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;http&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;StatusInternalServerError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoder&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;errorResponseUnknown&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+		&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+	&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;x&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;効率的に扱うための仕組み&quot;&gt;効率的に扱うための仕組み&lt;/h3&gt;
+
+&lt;h3 id=&quot;参考資料&quot;&gt;参考資料&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://middlemost.com/failure-is-your-domain/&quot;&gt;Failure is your Domain&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully&quot;&gt;Don’t just check errors, handle them gracefully&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://blog.golang.org/error-handling-and-go&quot;&gt;Error handling and Go&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://deeeet.com/writing/2016/04/25/go-pkg-errors/&quot;&gt;Golangのエラー処理とpkg/errors&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html&quot;&gt;Error handling in Upspin&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+				<pubDate>Sat, 11 Aug 2018 00:00:00 +0000</pubDate>
+				<link>http://localhost:4000//2018/08/11/go-net-http-api-server-6.html</link>
+				<guid isPermaLink="true">http://localhost:4000//2018/08/11/go-net-http-api-server-6.html</guid>
+			</item>
+		
+			<item>
 				<title>net/httpで作るGo APIサーバー #5</title>
 				<description>&lt;p&gt;この一連の記事では &lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt; を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。&lt;/p&gt;
 
@@ -1334,41 +1598,6 @@ nmap &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;k
 				<pubDate>Sat, 01 Apr 2017 00:00:00 +0000</pubDate>
 				<link>http://localhost:4000//2017/04/01/go-net-http-api-server-1.html</link>
 				<guid isPermaLink="true">http://localhost:4000//2017/04/01/go-net-http-api-server-1.html</guid>
-			</item>
-		
-			<item>
-				<title>GoCon 2017で発表してきた</title>
-				<description>&lt;p&gt;今週末、GoCon 2017 Springに参加して発表してきた。タイムマネージメントができてなかったり、資料をTwitterに上げ忘れてたり、最後ドタバタしてしまい、ご迷惑をおかけしました。&lt;/p&gt;
-
-&lt;h3 id=&quot;感謝&quot;&gt;感謝&lt;/h3&gt;
-
-&lt;p&gt;GoCon運営をしてくださったみなさま、休日というのに会場運営を行ってくださったYahoo Japanのみなさま、このような場を提供してくださり、本当にありがとうございました！発表も全て刺激的で、今後もガシガシと良いコードを書いていこうと思えるものばかりでした。&lt;/p&gt;
-
-&lt;h3 id=&quot;資料&quot;&gt;資料&lt;/h3&gt;
-
-&lt;script async=&quot;&quot; class=&quot;speakerdeck-embed&quot; data-id=&quot;9c6e284d996840b1a542b2beaf5ca30e&quot; data-ratio=&quot;1.33333333333333&quot; src=&quot;//speakerdeck.com/assets/embed.js&quot;&gt;&lt;/script&gt;
-
-&lt;h3 id=&quot;感想&quot;&gt;感想&lt;/h3&gt;
-
-&lt;p&gt;発表で話したいことが多すぎてとっちらかってしまったのが反省点です。もう少し話題を絞る(例えば&lt;code class=&quot;highlighter-rouge&quot;&gt;model&lt;/code&gt;パッケージのテストだけにしぼる)等すればよかったなぁというのが正直なところです。&lt;/p&gt;
-
-&lt;p&gt;また、haya14busaさんの&lt;a href=&quot;https://docs.google.com/presentation/d/1oIVK_mZYoS7mIVq4DCkJKDU4vDNyPd8AJ70zOC7peBU/pub?slide=id.g1f224d448c_0_71&quot;&gt;ちいさくはじめるGoコントリビューション@haya14busa&lt;/a&gt;がだいぶ響きました。困ると標準ライブラリのコード/GoDocを読をむけどけどそれ以外のタイミングではあまり見ないので、興味ある部分を上から読んで動かしてみるというのは確かにおもしろそうだと思いました。あと、”no nit is too small”という言葉、すごい良いなと思いました。自分もいくつかOSSを公開していてたまにPRを貰ったりするんですが、テストケースの追加やドキュメント修正でも確かにありがたい。もちろんコアコントリビューターの邪魔にならないよう、ドキュメントにそって丁寧に議論する/修正をする必要はあるんだけど、お世話になってるので何某か返せたらなぁと思い今日さっそく&lt;code class=&quot;highlighter-rouge&quot;&gt;net/http&lt;/code&gt;読んで動かしてます。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;GoCon直前にこの修正を見たりしてたので、まだ読めば改善できるポイントは存在しているのでは？というところもある。
-    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;https://go-review.googlesource.com/c/38057/7/src/net/http/server.go&quot;&gt;net/http/server.go&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;また、登壇して発表する事で、日頃からブログ記事経由でお世話になっているdeeeetさん(初対面)にお礼が言えたので、だいぶ満足してGoCon会場を後にしました。&lt;/p&gt;
-
-&lt;p&gt;また何か発表できるような工夫をモリモリこさえて、次回はスマートに発表しにいきたいと思います。&lt;/p&gt;
-</description>
-				<pubDate>Mon, 27 Mar 2017 00:00:00 +0000</pubDate>
-				<link>http://localhost:4000//2017/03/27/go-con.html</link>
-				<guid isPermaLink="true">http://localhost:4000//2017/03/27/go-con.html</guid>
 			</item>
 		
 	</channel>
