@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>MQTT as a Service sango &#43; paho-mqtt Python</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>MQTT as a Service sango &#43; paho-mqtt Python</h2>
+			<time>2014/08/29</time>
+			<div>
+				
+
+<p>本日のMQTT(もきゅっと)の会直前に時雨堂さんがMQTT as a Service, sangoをリリースしていたので触ってみた。</p>
+
+<p><a href="https://sango.shiguredo.jp/">sango</a></p>
+
+<p>GitHubアカウントを利用して上記サイトから無料登録する。ログインするとユーザ名、パスワードが出てくるのでメモる。
+次にMQTTのPythonクライアントライブラリである<a href="https://pypi.python.org/pypi/paho-mqtt">phao-mqtt</a>を準備。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ pip install phao-mqtt</code></pre></div>
+
+<p>これでphao-mqttのPythonライブラリが入るので、サンプルを元に以下のような雑プログラムを作ってみた。</p>
+
+<h3 id="sub-py">sub.py</h3>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+<span style="color:#f92672">import</span> paho.mqtt.client <span style="color:#f92672">as</span> mqtt
+
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">on_connect</span>(client, userdata, flags, rc):
+    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;Connected with result code &#39;</span><span style="color:#f92672">+</span>str(rc))
+    client<span style="color:#f92672">.</span>subscribe(<span style="color:#e6db74">&#34;achiku@github/#&#34;</span>)
+
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">on_message</span>(client, userdata, msg):
+    <span style="color:#66d9ef">print</span>(msg<span style="color:#f92672">.</span>topic <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39; &#39;</span> <span style="color:#f92672">+</span> str(msg<span style="color:#f92672">.</span>payload))
+
+
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+
+    username <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;yourname@github&#39;</span>
+    password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;yourpass&#39;</span>
+    host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;free.mqtt.shiguredo.jp&#39;</span>
+    port <span style="color:#f92672">=</span> <span style="color:#ae81ff">1883</span>
+
+    client <span style="color:#f92672">=</span> mqtt<span style="color:#f92672">.</span>Client()
+    client<span style="color:#f92672">.</span>on_connect <span style="color:#f92672">=</span> on_connect
+    client<span style="color:#f92672">.</span>on_message <span style="color:#f92672">=</span> on_message
+
+    client<span style="color:#f92672">.</span>username_pw_set(username, password<span style="color:#f92672">=</span>password)
+    client<span style="color:#f92672">.</span>connect(host, port<span style="color:#f92672">=</span>port, keepalive<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>)
+    client<span style="color:#f92672">.</span>loop_forever()</code></pre></div>
+
+<h3 id="pub-py">pub.py</h3>
+
+<p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+<span style="color:#f92672">import</span> paho.mqtt.client <span style="color:#f92672">as</span> mqtt
+<span style="color:#f92672">from</span> time <span style="color:#f92672">import</span> sleep
+
+
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+
+    username <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;yourname@github&#39;</span>
+    password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;yourpass&#39;</span>
+    host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;free.mqtt.shiguredo.jp&#39;</span>
+    topic <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;achiku@github/test_topic&#39;</span>
+    port <span style="color:#f92672">=</span> <span style="color:#ae81ff">1883</span>
+
+    client <span style="color:#f92672">=</span> mqtt<span style="color:#f92672">.</span>Client()
+    client<span style="color:#f92672">.</span>username_pw_set(username, password<span style="color:#f92672">=</span>password)
+    client<span style="color:#f92672">.</span>connect(host, port<span style="color:#f92672">=</span>port, keepalive<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>)
+
+    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">10</span>):
+        <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#39;[{}] Sending message to sango.&#39;</span><span style="color:#f92672">.</span>format(i)
+        client<span style="color:#f92672">.</span>publish(topic, <span style="color:#e6db74">&#39;[{}] message from pub coming through sango!&#39;</span><span style="color:#f92672">.</span>format(i))
+        sleep(<span style="color:#ae81ff">0.5</span>)</code></pre></div></p>
+
+<p>0.5秒おきにsango MQTT brokerにメッセージをPublishするpub.pyと、sangoが受けているメッセージをSubscribeし続けるsub.pyという形。
+まずはsub.pyを起動しておく。</p>
+
+<p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ python sub.py
+Connected with result code <span style="color:#ae81ff">0</span></code></pre></div></p>
+
+<p>上のような表示が出れば適切にサービスに繋がり、Subscribeできてる。
+次にpub.pyでメッセージをsangoに送る。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ python pub.py
+<span style="color:#f92672">[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">2</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">3</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">4</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">5</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">6</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">7</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">8</span><span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span><span style="color:#ae81ff">9</span><span style="color:#f92672">]</span> Sending message to sango.</code></pre></div>
+
+<p>sub.py側で以下のような表示が確認できるはず。</p>
+
+<p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">2</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">3</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">4</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">5</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">6</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">7</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">8</span><span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">9</span><span style="color:#f92672">]</span> message from pub coming through sango!</code></pre></div></p>
+
+<p>それでは新宿であいましょう！！(時間がやばい)</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

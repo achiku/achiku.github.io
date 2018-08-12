@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>net/httpで作るGo APIサーバー #1</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>net/httpで作るGo APIサーバー #1</h2>
+			<time>2017/04/01</time>
+			<div>
+				
+
+<p>GoにはWebサービスを作るためのフレームワークがそれなりの数存在している。</p>
+
+<ul>
+<li><a href="https://github.com/avelino/awesome-go#web-frameworks">Awesome Go - Web Frameworks</a></li>
+</ul>
+
+<p>ただ、そこまでデファクトというものがあるわけではなく、他の言語と比べると少々乱立気味なのではないかな、という感想を持っている。この記事では<code>net/http</code>を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
+
+<p>長くなりそうなので記事を分けて紹介する予定だけど、今日はアプリケーショングローバルな値をどのように保持するのが良いのかについて書く。</p>
+
+<h3 id="アプリケーショングローバルな値">アプリケーショングローバルな値</h3>
+
+<p>APIサーバーにはそのアプリケーションにおいてグローバルな値を保持しておきたいケースが多い。例えばAPIサーバーの設定情報だったり、外部APIにアクセスするクライアントだったり、DBへのコネクションだったり、loggerだったり。そういったものを初期化する時に、<code>func init()</code>を使ってpackageグローバルな値を作る、という策もあるが、これはその後テストをすることを考えると良い設計とは言えない。テスト実行時に自由に設定や接続先DBを変更しにくくなってしまうからだ。</p>
+
+<p>そこで以下のサンプルのように<code>App</code>的な<code>struct</code>を作り、その属性としてアプリケーショングローバルな値を入れ、<code>main</code>関数内で初期化する方法が良いのではないかと思っている。</p>
+
+<ul>
+<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server.go">サンプルコード全量</a></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// App application
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">App</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Host</span>   <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">Name</span>   <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">Logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">host</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Hostname</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#a6e22e">app</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">App</span>{
+		<span style="color:#a6e22e">Name</span>:   <span style="color:#e6db74">&#34;my-service&#34;</span>,
+		<span style="color:#a6e22e">Host</span>:   <span style="color:#a6e22e">host</span>,
+		<span style="color:#a6e22e">Logger</span>: <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;[host=%s] &#34;</span>, <span style="color:#a6e22e">host</span>), <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>),
+	}
+    <span style="color:#f92672">...</span>.
+}</code></pre></div>
+<p>(本来なら<code>NewApp()</code>的な関数を定義しておくべきだけど、今回は省略)</p>
+
+<p>この<code>App</code>にメソッドを付与して各処理を記述していくことで、アプリケーション内で必要となる値には各処理から簡単にアクセスできるようになる。また、このメソッドのシグネチャを<code>func(http.ResponseWriter, *http.Request)</code>にして<code>http.HandlerFunc</code>の型に合うようにする事で、ある程度の規模まではその他標準ライブラリと連携しやすくなる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// Greeting greeting
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">app</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">Greeting</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">encoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#a6e22e">w</span>)
+	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HelloService</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>(), <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>())
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;error: %s&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)
+		<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">ErrorResponse</span>{
+			<span style="color:#a6e22e">Code</span>:    <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>,
+			<span style="color:#a6e22e">Message</span>: <span style="color:#e6db74">&#34;something went wrong&#34;</span>,
+		})
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ok: %v&#34;</span>, <span style="color:#a6e22e">res</span>)
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
+	<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
+	<span style="color:#66d9ef">return</span>
+}</code></pre></div>
+<p>サンプルコード見て「同じような処理(主にhttp.ResponseWriterとエラーハンドリング周辺)が何回も出てきて微妙だな」と思う人もいるかと思うし、自分もちょっとこれは微妙かなと思う部分が多い。後ほど書く予定の記事でこの部分は改善してみようと思うので、一旦このまま進む。</p>
+
+<p>(書いた-&gt;<a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a>)</p>
+
+<p>1点気をつけなければいけない事がある。この<code>App</code>は各httpリクエストに対応するgoroutineから同時にアクセスされる為、中に入れておく値は読み出すだけのものか、concurrent safeなものに限定しておくのが良い。例えば<code>log.Logger</code>はドキュメントにもあるようにconcurrent safeなstructだ(<a href="https://golang.org/pkg/log/#Logger">godoc</a>)。</p>
+
+<h3 id="テストを書く">テストを書く</h3>
+
+<p>上記のようにアプリケーショングローバルな値をpackageグローバルな形にするのを避け、なるべくコントロール可能な形にすることで比較的テストが書きやすくなる。</p>
+
+<ul>
+<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server_test.go">サンプルコード</a></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">testNewApp</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span> {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">Verbose</span>() {
+		<span style="color:#a6e22e">logger</span> = <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#e6db74">&#34;[test log] &#34;</span>, <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>)
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">logger</span> = <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">Discard</span>, <span style="color:#e6db74">&#34;[null log] &#34;</span>, <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">App</span>{
+		<span style="color:#a6e22e">Name</span>:   <span style="color:#e6db74">&#34;my-test-server&#34;</span>,
+		<span style="color:#a6e22e">Host</span>:   <span style="color:#e6db74">&#34;test-host&#34;</span>,
+		<span style="color:#a6e22e">Logger</span>: <span style="color:#a6e22e">logger</span>,
+	}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestGreeting</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">app</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">testNewApp</span>(<span style="color:#a6e22e">t</span>)
+	<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">MethodGet</span>, <span style="color:#e6db74">&#34;/api/hello&#34;</span>, <span style="color:#66d9ef">nil</span>)
+	<span style="color:#a6e22e">w</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>()
+	<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">req</span>)
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Code</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;want %d got %d&#34;</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Code</span>)
+	}
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">res</span> <span style="color:#a6e22e">Greeting</span>
+	<span style="color:#a6e22e">decoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewDecoder</span>(<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Body</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">decoder</span>.<span style="color:#a6e22e">Decode</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">res</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">expected</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;anonymous&#34;</span>; <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">expected</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;want %s got %s&#34;</span>, <span style="color:#a6e22e">expected</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>)
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">expected</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;hello!&#34;</span>; <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">expected</span> {
+		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;want %s got %s&#34;</span>, <span style="color:#a6e22e">expected</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
+	}
+}</code></pre></div>
+<p>何の変哲もないテストだけど注目してほしいのは<code>testNewApp</code>関数の中での<code>App</code>初期化だ。このようにテスト用のAppを外部からの入力によって変更する事がとても簡単にできる。</p>
+
+<p>今回のケースでは<code>go test -v</code>の<code>-v</code>が渡されていた場合、loggerの出力先を変更している。自分は<code>go test</code>の成功すると何も出力されない、という仕様がとても好きなんだけど、時にはテストしたい関数の中にデバッグログを仕込んで出力を見たい、という場合がある。そのような場合に、Appが持つLoggerの属性をパラメタを渡すことで変更している。</p>
+
+<p>Loggerに限らず、例えば後で詳細に書くけど外部のAPI ClientやDBのMockをこの部分で初期化する事で、実際にサーバーとして走らすAppとは異なるAppを作り、テストしたい関数(今回の場合はApp.Greeting)に集中してテストが書けるようになっている。</p>
+
+<h3 id="合わせて読みたい">合わせて読みたい</h3>
+
+<ul>
+<li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+<li><a href="http://akirachiku.com/2017/04/03/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+</ul>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

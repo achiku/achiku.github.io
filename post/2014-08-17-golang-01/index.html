@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Golangへの道 #1</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>Golangへの道 #1</h2>
+			<time>2014/08/17</time>
+			<div>
+				
+
+<p>ちょっと書いてみたくなった。</p>
+
+<h2 id="目標">目標</h2>
+
+<ul>
+<li>VimでGolang書けるように環境を設定する(一旦ライブラリ管理等のベストプラクティスは無視)</li>
+<li>Golangの基礎基本を覚える</li>
+<li>最終的にGETリクエストに対して何かJSON返すサーバーを作る</li>
+</ul>
+
+<h2 id="前提">前提</h2>
+
+<ul>
+<li>環境はMac OS X 10.9.4。homebrewインストール済み</li>
+<li>学習者はPython歴9ヶ月、ポインタに関する理解はポインタ演算手前まで</li>
+<li>学習者は平行/並列処理の知識無し</li>
+</ul>
+
+<h2 id="インストール">インストール</h2>
+
+<p>既に入ってるのでアップグレード。</p>
+
+<pre><code>$ brew upgrade go 
+==&gt; Upgrading 1 outdated package, with result:
+go 1.2.2
+==&gt; Upgrading go
+==&gt; Downloading https://downloads.sf.net/project/machomebrew/Bottles/go-1.2.2.mavericks.bottle.tar.gz
+######################################################################## 100.0%
+==&gt; Pouring go-1.2.2.mavericks.bottle.tar.gz
+==&gt; Caveats
+As of go 1.2, a valid GOPATH is required to use the `go get` command:
+  http://golang.org/doc/code.html#GOPATH
+
+`go vet` and `go doc` are now part of the go.tools sub repo:
+  http://golang.org/doc/go1.2#go_tools_godoc
+
+To get `go vet` and `go doc` run:
+  go get code.google.com/p/go.tools/cmd/godoc
+  go get code.google.com/p/go.tools/cmd/vet
+
+You may wish to add the GOROOT-based install location to your PATH:
+  export PATH=$PATH:/usr/local/opt/go/libex
+</code></pre>
+
+<p>インストール後の確認</p>
+
+<pre><code>$ go version
+go version go1.2.2 darwin/amd64
+</code></pre>
+
+<h2 id="vim-plugin">Vim Plugin</h2>
+
+<p>ざっと見てコレが一番良さそうだったので入れる。</p>
+
+<p><a href="https://github.com/fatih/vim-go">https://github.com/fatih/vim-go</a></p>
+
+<p>以下の設定を.zshrcに入れる</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#for golang
+</span><span style="color:#75715e"></span>export GOPATH<span style="color:#f92672">=</span>$HOME/.go
+export GOROOT<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span> go env GOROOT <span style="color:#66d9ef">)</span>
+export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
+<p>.vimrcに以下を追加。</p>
+
+<pre><code>set rtp+=$GOROOT/misc/vim
+exe &quot;set rtp+=&quot;.globpath($GOPATH, &quot;src/github.com/nsf/gocode/vim”)
+</code></pre>
+
+<p>vim開くと色々インストールされる</p>
+
+<pre><code>vim-go: gocode not found. Installing github.com/nsf/gocode to folder /Users/achiku/.vim-go/
+vim-go: goimports not found. Installing code.google.com/p/go.tools/cmd/goimports to folder /Users/achiku/.vim-go/
+vim-go: godef not found. Installing code.google.com/p/rog-go/exp/cmd/godef to folder /Users/achiku/.vim-go/
+vim-go: oracle not found. Installing code.google.com/p/go.tools/cmd/oracle to folder /Users/achiku/.vim-go/
+vim-go: golint not found. Installing github.com/golang/lint/golint to folder /Users/achiku/.vim-go/
+vim-go: errcheck not found. Installing github.com/kisielk/errcheck to folder /Users/achiku/.vim-go/
+vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users/achiku/.vim-go/
+</code></pre>
+
+<p>おなじみのHello, Worldからはじまる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Hello, World!\n&#34;</span>)
+}</code></pre></div>
+<p>Vimで編集してて、import &ldquo;fmt&rdquo;書いた後に:wでファイル保存したらその部分だけ削除されて、なんじゃこりゃってなってたけど、どうやら先ほど入れたVimプラグインが使ってるパッケージを自動検出してソースをフォーマットしてくれているらしい。逆にimport文ナシで上のソースを書いて保存したらimport &ldquo;fmt&rdquo;の部分は自動で追記された。IDEみたい。</p>
+
+<p>書いた後に、:GoBuildでビルド。:GoRunでビルドして実行。便利。</p>
+
+<h2 id="おまけ">おまけ</h2>
+
+<p>Pythonに比べるとカッコが多い気がするので以下のVimプラグインを入れておく事をオススメ。設定はデフォルトでも十分。</p>
+
+<p><a href="https://github.com/jiangmiao/auto-pairs">https://github.com/jiangmiao/auto-pairs</a></p>
+
+<p>と思ったけど、自分が常用しているKaoriya-vimの日本語入力(インサートモードから抜けた時のIMEモードを記録しておく設定)とかち合うので以下にした。数時間しか使っていないがauto-pairsの方が高機能なイメージ(関数書いた後に{}を書いて改行すると自動的にカーソルがいい感じの位置に来たり、等)。</p>
+
+<p><a href="https://github.com/Raimondi/delimitMate">https://github.com/Raimondi/delimitMate</a></p>
+
+<h2 id="基礎基本">基礎基本</h2>
+
+<p>とりあえず以下を全部写経して覚える。</p>
+
+<p><a href="https://gobyexample.com/">https://gobyexample.com/</a></p>
+
+<p>まだ全部は終わってないけど、channelまでは比較的サクサク進む。</p>
+
+<p><a href="https://github.com/achiku/syakyou/tree/master/golang/gobyexample">https://github.com/achiku/syakyou/tree/master/golang/gobyexample</a></p>
+
+<h2 id="golangっぽいところ1">Golangっぽいところ1</h2>
+
+<p>先述のGo By Example、goroutine、channel、selectあたりからGolangっぽいところが出てくる気がする。自分自身平行/並列処理系はまったく分かってないので、多分この辺りを読んで実際書いていかないと難しい。</p>
+
+<p><a href="http://jxck.hatenablog.com/entry/20130414/1365960707">Go の並行処理</a></p>
+
+<p>あとエラーの扱い方もJavaやPythonのExceptionに慣れている身からすると面白かった。Golangに関しての記述はなかったけど、「エラーハンドリング」という領域に関しては「コーディングを支える技術」で語られていたので再度読み直したいと思う。</p>
+
+<h2 id="golangっぽいところ2">Golangっぽいところ2</h2>
+
+<p>型、型推論が非常に便利な気がする。どこか小さく領域を見つけて実戦に投入してみようと決意した。</p>
+
+<h2 id="新しい言語を学ぶということに関して">新しい言語を学ぶということに関して</h2>
+
+<p>新しい言語を学ぶ際は、「やりたい事も挙動も確定している何か」ってのを題材に、ガッツリ作るのがやっぱりいい気がする。言語を使う事だけに集中できる。Vの方はRFCを何個か暗記してるからソレを実装するって言ってたし、「コーディングを支える技術」には新言語を学ぶときは特定のアルゴリズムを新しい言語で実装する、という事が書いてあった。</p>
+
+<p>まぁ、どちらもバケモノなので、自分は自分に合った何かを探そうと思います。</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

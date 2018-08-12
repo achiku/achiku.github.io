@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Golangへの道 #2</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>Golangへの道 #2</h2>
+			<time>2015/11/03</time>
+			<div>
+				
+
+<p>前回から大分時間が経ってしまったけど書く。もはやイマサラ感ありまくりだけど、今回は以前勉強したGolangの並行(concurrency)と並列(parallelism)について。</p>
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<ul>
+<li>並行と並列は別物だよ</li>
+<li>Golangは標準機能で処理に並行性を持たせるように組み、且つ並列で実行しやすいよ</li>
+</ul>
+
+<h2 id="並行と並列は別物">並行と並列は別物</h2>
+
+<p>とにかく以下の資料が最強に分かりやすい。</p>
+
+<ul>
+<li><a href="http://blog.golang.org/concurrency-is-not-parallelism">Concurrency is not parallelism</a></li>
+<li><a href="http://talks.golang.org/2012/concurrency.slide#1">Go Concurrency Patterns</a></li>
+</ul>
+
+<p>自分で咀嚼できているか確認する為、以下簡単に説明をしてみる。間違ってるかもしれないのでコメント歓迎。</p>
+
+<p>「並行性がある」というのはどういう状態かというと、各々独立して実行できる処理群が互いにコミュニケーションしながら処理を実行可能な状態、と言える。以下資料の中で一番しっくりきた言葉。</p>
+
+<blockquote>
+<p>Concurrency is a way to structure a program by breaking it into pieces that can be executed independently.</p>
+</blockquote>
+
+<p>並行性とは、各処理を分割し独立に実行可能なプログラムの構造の事、とでも訳せば良いのか。大切なのは「プログラムの構造」の話であって、実際の処理が同時に行えているかどうか(並列性)とは異なるという事。以下のGopherが本を運んで炉で燃やすという処理の例がとてもわかりやすかった。</p>
+
+<ul>
+<li><a href="https://talks.golang.org/2012/waza.slide#12">Gopher moving obsolete language manuals to the incinerator p.12</a></li>
+</ul>
+
+<p>1匹(?)のGopherがカートを使って本を炉に運んで燃やす、という処理にどうやったら「並行性」を持たせれるか、という観点で例が進んでいく。この例を辿って行くと確かに並行性というのは「問題をどうやって解くか」という事に近く、なんとなく同時に実行できるって事なんだろ的な雑い感じからは遠ざかる。そして上手い問題の解き方を構築することができれば(例えば複数のGopher達で役割分担すれば)、そしてそれらを独立してで実行できる計算リソースがあれば、本をカートで運んで炉で燃やすという処理をより早く行う事ができる。</p>
+
+<p>今回のGopherが本を処分していく例をWebのシステムに当てはめてみると、GopherがCPUで本の山がウェブコンテンツ、カートがマーシャリングやレンダリングもしくはネットワーキングで炉がプロキシやらブラウザやら他のコンシューマー、といった形。</p>
+
+<p>並行性を持たせるようにプログラムを構築することができたのならば、それぞれの処理を独立して並列に走らす事で目指す結果を素早く達成できる、って事らしい。以下の一文がとても良くサマリされていて、「並行と並列ってどっちがどっちだっけな」と迷った時に思い出す事にしている。</p>
+
+<blockquote>
+<p>Concurrency is about structure, parallelism is about execution.</p>
+</blockquote>
+
+<p>意訳すると、「並行性とは構造/デザインであり、並列性とは実行の事である」的な感じか。英語だとconcurrencyとparallelismとなり、明確に単語が異なるので分かりやすいけど、日本語にすると平行と並列ってなるので覚えにくい。</p>
+
+<h2 id="golangで並行と並列を実現する仕組み">Golangで並行と並列を実現する仕組み</h2>
+
+<p>上は結構抽象的な話になってしまっているので、ここから具体的にコードを書きながらGolangのどのような機能が並行と並列を実現しやすくしているのか説明してみる。一番最初に並行性を持つということはどういうことか、という事を書いたけど以下再掲。</p>
+
+<blockquote>
+<p>「並行性がある」というのはどういう状態かというと、各々独立して実行できる処理群が互いにコミュニケーションしながら処理を実行可能な状態、と言える。</p>
+</blockquote>
+
+<p>つまり、これらを行うためには少なくとも以下の機能が必要になる。</p>
+
+<ul>
+<li>独立した処理を複数実行できる</li>
+<li>独立した処理群が互いに連携できる</li>
+</ul>
+
+<p>それぞれ、Golangが持っている<code>goroutine</code>、<code>channel</code>、<code>select</code>という機能で実現できるようになっているので、以下それぞれ詳細について書く。</p>
+
+<h3 id="独立して処理を動かす仕組み-goroutine">独立して処理を動かす仕組み(Goroutine)</h3>
+
+<p><a href="https://talks.golang.org/2012/waza.slide#31">Concurrency is not Parallelism p.31</a></p>
+
+<blockquote>
+<p>A goroutine is a function running independently in the same address space as other goroutines</p>
+</blockquote>
+
+<p>Goroutineはスレッドとは違う。リソースもそんなに食わずに1スレッドの中に数百から数千のGoroutineを走らせる事もできるとの事。詳細な内部構造についてはあまり理解していないのだけど、一旦コードを書きながら話を進める。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>) {
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">100</span>)) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+	<span style="color:#a6e22e">greeting</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;Hello, &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;!&#34;</span>
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">greeting</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
+	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;8maki&#34;</span>, <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#e6db74">&#34;ide&#34;</span>}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">users</span> {
+		<span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
+}</code></pre></div>
+<p>上のコードでは<code>helloAPI</code>という英語で軽く挨拶をしてくれるAPIのモックが定義されており、これを<code>main</code>関数内で上から順番に実行する。<code>helloAPI</code>の中にはレスポンスタイムのブレを表現するためにランダムにsleepしてから文字列を返すようにしてある。実行結果は以下。確かに順番に挨拶してくれている。</p>
+
+<pre><code>Hello, 8maki!
+Hello, moqada!
+Hello, ide!
+done!
+</code></pre>
+
+<p>APIのコールは互いに独立なので並列(parallel)に実行したいのでここでgoroutineを使う。<code>helloAPI</code>を呼び出す前に<code>go</code>を付けるだけ。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
+	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;8maki&#34;</span>, <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#e6db74">&#34;ide&#34;</span>}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">users</span> {
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
+}</code></pre></div>
+<p>以下実行結果。</p>
+
+<pre><code>done!
+</code></pre>
+
+<p>なんかおかしいのもその通り、<code>go</code>を付けることで<code>helloAPI</code>はメインスレッドとは切り離されて実行されているので、<code>helloAPI</code>が結果を表示する前にメインスレッドが完了してしまっている。強引に<code>helloAPI</code>の結果を標準出力に出そうとするのならば<code>main</code>の中でsleepしてやるしかない。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
+	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;8maki&#34;</span>, <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#e6db74">&#34;ide&#34;</span>}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">users</span> {
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>)
+	}
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
+}</code></pre></div>
+<p>実行結果は以下の通りで<code>helloAPI</code>の結果を出力できた。</p>
+
+<pre><code>Hello, 8maki!
+Hello, moqada!
+Hello, ide!
+done!
+</code></pre>
+
+<p>このように<code>go</code>を関数の前に付けることで処理を独立に実行できる。<code>go</code>は関数だけじゃなくてコードのブロックや無名関数にも適用できる便利な道具だ。ただし、上で見たように「処理を独立して実行する」仕組みであるだけであり、雑に例えるならばシェルにアンパサンド付けて実行するのと同じような感じでしかない。</p>
+
+<p>見ての通り上のプログラムはあまりにもナイーブだ。<code>helloAPI</code>が過負荷でレスポンス返すのに時間がかかっていたらどうするのか、挨拶する対象のユーザが増えたらどうするのか、とにかく処理に1秒以上かかったら正しく動作しない。かと言って30秒待つのはあまりに非効率だし、そうなるとどこかで足切りの基準を設けてそれ以上時間がかかったらエラー通知して処理を進める、とかになるがまぁわかりにくい。</p>
+
+<p>そんなわけで、プログラムに並行性を持たせ独立な処理を組み合わせて処理を進めるには、独立した処理がお互いに(今回の場合は<code>main</code>と<code>helloAPI</code>)連携できる仕組みが必要になってくる。それが次に紹介する<code>channel</code>という仕組み。</p>
+
+<h3 id="独立して動く処理が互いに連携する仕組み-channel">独立して動く処理が互いに連携する仕組み(Channel)</h3>
+
+<p><code>channel</code>はGolangの中で「独立して動く処理が互いに連携する仕組み」という立ち位置だと認識している。どうやって独立した処理を連携させるかというと、イメージとしては処理同士がデータを受け渡しする経路を作ってやる、という感じ。ちょっと長いけどとりあえずコード。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>) {
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">100</span>)) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+	<span style="color:#a6e22e">greeting</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;Hello, &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;!&#34;</span>
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">greeting</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)
+	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;8maki&#34;</span>, <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#e6db74">&#34;ide&#34;</span>}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">users</span> {
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>, <span style="color:#a6e22e">c</span>)
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;You say: %q\n&#34;</span>, <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">c</span>)
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
+}</code></pre></div>
+<p>実行結果。</p>
+
+<pre><code>You say: &quot;Hello, 8maki!&quot;
+You say: &quot;Hello, moqada!&quot;
+You say: &quot;Hello, achiku!&quot;
+You say: &quot;Hello, ide!&quot;
+done!
+</code></pre>
+
+<p>最初に<code>main</code>の中で<code>channel</code>を作ってやる。Golangが提供する<code>channel</code>はファーストクラスオブジェクトで型を持っている。メインはこのチャネルを使って独立実行する<code>helloAPI</code>とデータのやり取りをする。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)</code></pre></div>
+<p>肝は以下の部分。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;You say: %q\n&#34;</span>, <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">c</span>)
+	}</code></pre></div>
+<p>ここでメインは<code>&lt;-c</code>を使って<code>go</code>で独立実行した処理がchannelを経由してデータを渡してくれるのを待っている。<code>helloAPI</code>が処理を完了して文字列を自身が引数で受け取ったチャネルに渡した瞬間に上記コードの<code>fmt.Println</code>が実行される。今回のケースではユーザの数分<code>helloAPI</code>を実行しているのでユーザの数分待ち合わせる事になる。チャネルは「データの受け渡し」と「処理の待ち合わせ」の両方の役割を担っている感じ。以下最強の資料から抜粋。</p>
+
+<blockquote>
+<p>When the main function executes &lt;–c, it will wait for a value to be sent.
+Similarly, when the boring function executes c &lt;– value, it waits for a receiver to be ready.
+A sender and receiver must both be ready to play their part in the communication. Otherwise we wait until they are.
+Thus channels both communicate and synchronize.</p>
+</blockquote>
+
+<p><a href="http://talks.golang.org/2012/concurrency.slide#21">Go Concurrency Patterns p.21</a></p>
+
+<p>この<code>channel</code>の仕組みを導入することで、メインスレッドと<code>go</code>で独立実行させた処理が「処理の待ち合わせ」と「データの受け渡し」ができるようになった。<code>goroutine</code>と<code>channel</code>の仕組みを使うことで「独立した処理実行」と「独立した処理同士の連携」ができるようになっており、それらが言語にデフォルトで組み込まれてる且つリソース効率が良いっていう事実こそ、Golangが並行と並列を強く意識した言語だと言われる所以なのかなと思う。</p>
+
+<p>最強の資料には<code>channel</code>のよくある使い方パターンも実際のコード含めて解説されているので本当に最強としか言いようがない。</p>
+
+<p><a href="http://talks.golang.org/2012/concurrency.slide#24">Go Concurrency Patterns p.24</a></p>
+
+<h3 id="独立して動く複数の処理同士の連携をコントロールする仕組み-select">独立して動く複数の処理同士の連携をコントロールする仕組み(Select)</h3>
+
+<p>Golangには更に便利な仕組みがある。<code>select</code>は<code>switch</code>文みたいなものだけど、値が同じだったらこの処理を実行、というのではなく、チャネルからデータが取得できたらこの処理を実行、という感じのもの。以下コード。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>) {
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">100</span>)) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+	<span style="color:#a6e22e">greeting</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;Hello, &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;!&#34;</span>
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">greeting</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">profileAPI</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">c</span> <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>) {
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">100</span>)) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+	<span style="color:#a6e22e">profile</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39;s profile&#34;</span>
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">profile</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
+	<span style="color:#a6e22e">helloChan</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)
+	<span style="color:#a6e22e">profChan</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)
+	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;8maki&#34;</span>, <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#e6db74">&#34;ide&#34;</span>, <span style="color:#e6db74">&#34;achiku&#34;</span>}
+
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">users</span> {
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>, <span style="color:#a6e22e">helloChan</span>)
+		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">profileAPI</span>(<span style="color:#a6e22e">u</span>, <span style="color:#a6e22e">profChan</span>)
+	}
+
+	<span style="color:#a6e22e">numAPI</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">2</span>
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>)<span style="color:#f92672">*</span><span style="color:#a6e22e">numAPI</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#66d9ef">select</span> {
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">hello</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">helloChan</span>:
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">hello</span>)
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">profile</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">profChan</span>:
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">profile</span>)
+		}
+	}
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
+}</code></pre></div>
+<p>実行結果。</p>
+
+<pre><code>Hello, moqada!
+Hello, 8maki!
+ide's profile
+Hello, achiku!
+moqada's profile
+achiku's profile
+Hello, ide!
+8maki's profile
+done!
+</code></pre>
+
+<p>肝は以下の部分。forループを何回回すかの部分が大分ナイーブだけど一旦説明の為に勘弁してほしい。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">numAPI</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">2</span>
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>)<span style="color:#f92672">*</span><span style="color:#a6e22e">numAPI</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#66d9ef">select</span> {
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">hello</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">helloChan</span>:
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">hello</span>)
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">profile</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">profChan</span>:
+			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">profile</span>)
+		}
+	}</code></pre></div>
+<p>これはユーザの数xそのユーザに対して実行するAPIの数分<code>select</code>を実行している。<code>helloChan</code>と<code>profChan</code>どちらに先にデータが届いても、届いたものから実行していく(同時に届いた場合はランダムに実行する処理を選択)。このように複数のチャネルを取り回して行く時<code>select</code>があると綺麗に書ける。</p>
+
+<h2 id="まとめ">まとめ</h2>
+
+<p>Golang楽しい。次回はもう少し<code>channel</code>を使った処理パターンにも踏み込んで書く。</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>プラグマティック関数プログラミング</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>プラグマティック関数プログラミング</h2>
+			<time>2009/07/08</time>
+			<div>
+				<p>実際の作業で「あるディレクトリ配下の全てのファイルのフルパス、ファイル名、タイムスタンプ（yyyymmddhhmmss）、ファイルサイズをタブ区切りにしてファイルに書き出せ。ちなみにあるディレクトリには数百ファイルあるぴょん。」というフザケたものがあった。</p>
+
+<p>無理。</p>
+
+<p>面倒くさすぎて無理。「面倒くさいことをしないためにはどんな面倒くさいこともする」っちゅー格言にしたがい、自分はスクリプトで何とかしようと考えた。一応完成してちゃんとやりたいことやってくれるようになってから試しにググってみたら、こんなものが見つかった。</p>
+
+<p><a href="http://www.shido.info/misc/misc.php?id=29">関数プログラミング的シェルスクリプト</a></p>
+
+<p>おおおおおお。シェルでも関数プログラミング的に書けるんだ。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#! /bin/bash
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">function</span> rec <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">for</span> FILE in <span style="color:#e6db74">`</span>ls <span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>
+        <span style="color:#66d9ef">do</span>
+           local FULL<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span>/<span style="color:#e6db74">${</span>FILE<span style="color:#e6db74">}</span>
+           <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> $1 $FULL
+           <span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> -d $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> rec $1 $FULL
+           <span style="color:#66d9ef">fi</span>
+        <span style="color:#66d9ef">done</span>
+<span style="color:#f92672">}</span>
+
+rec $1 <span style="color:#e6db74">`</span>pwd<span style="color:#e6db74">`</span>/<span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span></code></pre></div>
+
+<p>これを読んで一人感動した。関数プログラミングをもう少し深く理解した気分になった。上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。「関数プログラミングは拡張性・再利用性の高いものが書きやすい」ってのをほんの少し（たぶん自分が思っているよりもだいぶほんの少し）体感した気がする。</p>
+
+<p>いいこと学んだ！</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

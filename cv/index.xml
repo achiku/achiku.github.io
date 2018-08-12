@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cvs on 包丁一本さらしに巻いて</title>
+    <link>https://akirachiku.com/cv/</link>
+    <description>Recent content in Cvs on 包丁一本さらしに巻いて</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-jp</language>
+    <lastBuildDate>Mon, 24 Apr 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://akirachiku.com/cv/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>CV</title>
+      <link>https://akirachiku.com/cv/en_us/</link>
+      <pubDate>Mon, 24 Apr 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/cv/en_us/</guid>
+      <description>Akira Chiku GitHub / Speakerdeck / akira.chiku@gmail.com / Tokyo, Japan
+QUALIFICATIONS  https://github.com/achiku Fluent in Python, Golang, SQL, and shell script Solid understanding for relational database  EXPERIENCE  Kanmu, Inc., Tokyo, Japan (2013&amp;frasl;11 - present)  Tokyo based startup providing app based prepaid card service + card-linked offer (CLO)  Backend/Infrastfucture Engineer (Prepaid Card Service) (2015&amp;frasl;01 - present)  Conducted/designed user interviews for prepaid card service Built Python version of prototype for user interviews Designed base architecure of the backend infrastructure using AWS Automated server provisioning using Ansible Automated AWS operations using terraform Built Go version of prototype, and led development of backend API server Designed RDBMS tables, and schema management operation using SQLAlchemy + Alembic Led collaboration with external API vendors  Consultant for Credit Card Company (2014&amp;frasl;10 - 2014&amp;frasl;12)  Designed/built system for large data analytics using AWS EMR(Hadoop/Hive) + Presto + R Cleaned, re-formatted 1TB of data for analysis Created model to predict certain behaviors of credi card users Wrote report, and led meetings with clients  Backend/Infrastfucture Engineer (Card Linked Offer) (2013&amp;frasl;11 - 2015&amp;frasl;01)  Developed admin site using Django Built offer scoring system using Redis, MySQL, Python, Flask MySQL Performance tuning    Accenture Japan, Tokyo, Japan (2008&amp;frasl;08 - 2013&amp;frasl;11)  Leading global professional services company, providing a broad range of services and solutions in strategy, consulting, digital, technology and operations.</description>
+    </item>
+    
+    <item>
+      <title>履歴書</title>
+      <link>https://akirachiku.com/cv/ja_jp/</link>
+      <pubDate>Mon, 24 Apr 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/cv/ja_jp/</guid>
+      <description>基礎情報 氏名: 知久 翼(Akira Chiku) 誕生日: 1985/08/18 GitHub Speakerdeck Twitter Facebook 職務履歴 2008&amp;frasl;08 アクセンチュア株式会社入社 2013&amp;frasl;11 アクセンチュア株式会社退社 2013&amp;frasl;11 株式会社カンム入社 株式</description>
+    </item>
+    
+  </channel>
+</rss>

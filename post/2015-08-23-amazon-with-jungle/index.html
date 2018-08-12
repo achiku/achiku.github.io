@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>jungle: Simple UNIX-like AWS CLI</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>jungle: Simple UNIX-like AWS CLI</h2>
+			<time>2015/08/23</time>
+			<div>
+				
+
+<p>jungleというUNIX-likeにAWSを操作するCLIを作った。</p>
+
+<ul>
+<li><a href="https://github.com/achiku/jungle">https://github.com/achiku/jungle</a></li>
+</ul>
+
+<h2 id="利用方法抜粋">利用方法抜粋</h2>
+
+<ul>
+<li><a href="https://github.com/achiku/jungle/blob/master/README.md">https://github.com/achiku/jungle/blob/master/README.md</a></li>
+</ul>
+
+<p>Listing all EC2 instances</p>
+
+<pre><code>jungle ec2 ls
+</code></pre>
+
+<p>Filtering EC2 instances by Name tag using wildcard</p>
+
+<pre><code>jungle ec2 ls *web*
+</code></pre>
+
+<p>Starting instance</p>
+
+<pre><code>jungle ec2 up -i i-xxxxxx
+</code></pre>
+
+<p>Stopping instance</p>
+
+<pre><code>jungle ec2 down -i i-xxxxxx
+</code></pre>
+
+<p>SSH login to instance specified by instance id</p>
+
+<pre><code>jungle ec2 ssh -i i-xxxxxx --key-file /path/to/key.pem
+</code></pre>
+
+<p>SSH login to instance specified by Tag Name</p>
+
+<pre><code>jungle ec2 ssh -n blog-web-server-01 --key-file /path/to/key.pem
+</code></pre>
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<ul>
+<li>もっとUNIX-likeにAWSを操作するCLIが欲しかった</li>
+<li>AWSのTag:Nameを起点にsshログイン/情報取得できる機構が欲しかった</li>
+<li><a href="https://github.com/mitsuhiko/click">Click</a>というライブラリが良さそうだったから使ってみたかった</li>
+</ul>
+
+<h2 id="背景">背景</h2>
+
+<p>既存の公式<a href="https://github.com/aws/aws-cli">awscli</a>は最高にフレキシブルだし全AWSのサービスに対応しており、自分も大変お世話になっている。しかし、オプションがやたら長かったり、「それ要る？」っていう機能てんこ盛りだったりという特徴もある(これはawscliが「AWSサービスとの連携においてできないことは無い」ってのをたぶん目指して作られているのでしょうが無い)。その為、正直普段使いのCLIとしては、素のままに使いづらいと言わざるを得ない、と思った。</p>
+
+<p>また、今自分たちはAWSのTag:Nameを起点に色々なものを管理しており、サーバは作られては消えているので、IPやdomain等ではなくTag:Nameを使ってログイン/状態参照/ログ参照できるようにできたら便利だろう、というのがある。</p>
+
+<h2 id="解決策">解決策</h2>
+
+<ul>
+<li>それ<a href="https://github.com/mirakui/ec2ssh">ec2ssh</a>でできない？
+
+<ul>
+<li>EC2にログインする部分は対応できそうだけど、bastionサーバ経由してssh proxyしたりとかできないっぽいし、これは結局IPとDomainを更新し続ける使い方だなと思った</li>
+<li>追加で、ELBにぶら下がってるインスタンスのIDやらステータスやら確認したかった</li>
+<li>追加で、ASGやLCもCLIから確認したかった</li>
+<li>可能なら同じようなUIで</li>
+</ul></li>
+<li>それawscliでインスタンスID指定してjqでpublic_ipを取得してsshにパイプで渡せばいいんじゃない？
+
+<ul>
+<li>EC2にログインする部分は対応できそうな気がする</li>
+<li>ただ、その他微妙に他のAWSサービスでもやりたい事ある</li>
+</ul></li>
+<li>複雑なawscliのコマンドに分かりやすいaliasをつければよいのでは？
+
+<ul>
+<li>その通りそれでも可能だと思うけど、共有しづらくない？</li>
+</ul></li>
+<li>filterする部分とかは<code>--filters file://filters.json</code>とかでJSONにまとめておけばよいのでは？
+
+<ul>
+<li>その通りそれでも可能だと思うけど、共有しづらくない？</li>
+</ul></li>
+<li>awscliは「不可能なことは無い」ように作られてるけど、もっとそぎ落として日々のオペレーションで良く使うものだけまとめてPyPIで公開してpip installしてもらった方が楽なのでは？</li>
+</ul>
+
+<p>と、色々書いてみたけど恐らく色んな代替案があるし、どれを実行してもなんとなくうまくできそうな気はしている。ただ、自分がよく実行するオペレーションを覚えやすい形で、ある程度の柔軟性だけ持たせて保存しておきたかった。あと、Click使いたかったしPyPIに何か登録してみたかったので書いた感もある。</p>
+
+<p>ちょっと誰か使ってみて感想きかせて欲しいっす！！！！初Python OSSっす！！！！</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

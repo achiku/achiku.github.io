@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>AWS EMRでPrestoを動かしてshibからクエリ流してみる</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>AWS EMRでPrestoを動かしてshibからクエリ流してみる</h2>
+			<time>2014/12/25</time>
+			<div>
+				
+
+<p><a href="http://qiita.com/advent-calendar/2014/distributedcomputing">Spark, SQL on Hadoop etc. Advent Calendar 2014</a>の最終日です。</p>
+
+<h2 id="書くこと">書くこと</h2>
+
+<p>AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。</p>
+
+<h2 id="prestoについて">Prestoについて</h2>
+
+<p>Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。</p>
+
+<ul>
+<li>本家: <a href="http://prestodb.io/">Presto - Distributed SQL Query Engine for Big Data</a></li>
+<li>TDさんのわかりやすい解説: <a href="http://treasure-data.hateblo.jp/entry/2014/07/10/150250">『Prestoとは何か，Prestoで何ができるか』</a></li>
+</ul>
+
+<p>同じ系統のクエリエンジン括りだとImpalaやApache DrillがOSSとして開発されている。MPPクエリエンジン/データベースの大まかな流れや種類、それぞれの使いドコロについてははコチラの記事が最高にまとまっていて参考になる。
+<a href="http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/">MPP on Hadoop, Redshift, BigQuery</a></p>
+
+<p>Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。</p>
+
+<h2 id="shibについて">shibについて</h2>
+
+<p>PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。</p>
+
+<ul>
+<li>本家: <a href="https://github.com/tagomoris/shib">shib -WebUI for query engines: Hive and Presto</a></li>
+<li>なぜnodeか: <a href="http://d.hatena.ne.jp/tagomoris/20110805/1312536706">Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行</a></li>
+</ul>
+
+<h2 id="aws-emrについて">AWS EMRについて</h2>
+
+<p>AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。</p>
+
+<ul>
+<li>本家: <a href="http://aws.amazon.com/jp/elasticmapreduce/">AWS Elastic MapReduce</a></li>
+<li>知る限り最強のEMR資料: <a href="https://media.amazonwebservices.com/AWS_Amazon_EMR_Best_Practices.pdf">Best Practices for Amazon EMR</a></li>
+</ul>
+
+<p>前置きが長くなるとアレなので早速awscliを利用し環境を構築。</p>
+
+<h2 id="環境概要">環境概要</h2>
+
+<ul>
+<li>HadoopはEMRを使ってクラスタ起動</li>
+<li>AMI 3.3.1 (Hadoop Amazon 2.4.0, Hive 0.13.1)</li>
+<li>Hive/HueはEMRデフォルトの機能を使ってインストール</li>
+<li>Hiveメタストアは一旦ローカルで</li>
+<li>PrestoはEMRのBootstrap Actionを使ってインストール(v0.85)</li>
+<li>ShibはEMRのBootstrap Actionを使ってインストール(v0.3.8)</li>
+<li>S3上にあるファイルにPrestoからクエリを投げる</li>
+<li>S3からHDFS上にフラットファイルで持ってきてPrestoからクエリを投げる</li>
+<li>S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる</li>
+</ul>
+
+<h2 id="構築方法">構築方法</h2>
+
+<h3 id="aws-cliの準備">AWS CLIの準備</h3>
+
+<p>CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下</p>
+
+<ul>
+<li>Python 2.7.5</li>
+<li>virtualenv==1.10.1</li>
+<li>virtualenvwrapper==4.1.1</li>
+<li>awscli==1.6.10</li>
+</ul>
+
+<pre><code>$ mkvirtualenv emr
+(emr)$ pip install awscli
+(emr)$ pip freeze | grep awscli
+awscli==1.6.10
+(emr)$ mkdir ~/.awscli
+(emr)$ cat &lt;&lt;-EOF &gt;&gt;  ~/.awscli/config
+[profile development]
+aws_access_key_id=&lt;development_access_key&gt;
+aws_secret_access_key=&lt;development_secret_key&gt;
+region=ap-northeast-1
+EOF
+(emr)$ cat &lt;&lt;-EOF &gt;&gt;  $VIRTUAL_ENV/bin/activate
+export AWS_CONFIG_FILE=~/.awscli/config
+export AWS_DEFAULT_PROFILE=development
+source aws_zsh_completer.sh
+EOF
+</code></pre>
+
+<h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
+
+<p>2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。</p>
+
+<p>今回使ったソースは以下</p>
+
+<ul>
+<li><a href="https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz">presto-server-0.85.tar.gz</a></li>
+<li><a href="https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar">presto-cli-0.85-executable.jar</a></li>
+<li><a href="https://github.com/tagomoris/shib/tree/v0.3.8">shib v0.3.8</a></li>
+</ul>
+
+<p>上記をダウンロードし、適当なS3キーに配置しておきます。以下例。</p>
+
+<pre><code>$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
+$ aws s3 cp presto-server-0.85.tar.gz s3://yourbucket/libs/
+$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar
+$ aws s3 cp presto-cli-0.85-executable.jar s3://yourbucket/libs/
+$ wget https://github.com/tagomoris/shib/archive/v0.3.8.zip
+$ unzip v0.3.8.zip &amp;&amp; mv shib-0.3.8 shib
+$ tar cvfz shib.tar.gz shib
+$ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
+</code></pre>
+
+<h3 id="s3に必要な設定ファイルを配置">S3に必要な設定ファイルを配置</h3>
+
+<p>shibがPrestoにクエリするための設定ファイル。</p>
+
+<pre><code>var servers = exports.servers = {
+  listen: 3000,
+  fetch_lines: 1000,   // lines per fetch in shib
+  query_timeout: null, // shib waits queries forever
+  setup_queries: [],
+  storage: {
+    datadir: './var'
+  },
+  engines: [
+    { label: 'PrestoCluster',
+      executer: {
+        name: 'presto',
+        host: 'localhost',
+        port: 8080,
+        catalog: 'hive',  // required configuration argument
+        support_database: true,
+        default_database: 'default'
+      },
+      monitor: null
+    },
+  ],
+};
+</code></pre>
+
+<pre><code>$ aws s3 cp shib-config.js s3://yourbucket/libs/
+</code></pre>
+
+<h3 id="s3に必要なbootstrap-actionを配置">S3に必要なBootstrap Actionを配置</h3>
+
+<p>Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。</p>
+
+<h4 id="prestoのbootstrap-action">PrestoのBootstrap Action</h4>
+
+<p>こちらのAWS Labリポジトリにあるので流用します。</p>
+
+<ul>
+<li><a href="https://github.com/awslabs/emr-bootstrap-actions">awslabs/emr-bootstrap-actions</a></li>
+<li><a href="https://github.com/awslabs/emr-bootstrap-actions/tree/master/presto">Presto BootstrapAction</a></li>
+</ul>
+
+<p>PrestoのBootstrap Actionはそんなオフィシャルにサポートしてはいないですが、READMEもちゃんと書いてあるし、そこまで複雑ではないので要件によっては自作も有りかなと思います。</p>
+
+<pre><code>$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
+$ aws s3 cp install-presto.rb s3://yourbucket/libs/
+</code></pre>
+
+<h4 id="shibのbootstrap-action">shibのBootstrap Action</h4>
+
+<p>shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。</p>
+
+<ul>
+<li>install-shib.sh</li>
+</ul>
+
+<pre><code>#!/bin/bash
+
+shib_tarball_path=$1
+config_file_path=$2
+
+sudo yum -y update
+sudo yum install -y git
+sudo yum install -y nodejs npm --enablerepo=epel
+
+aws s3 cp ${shib_tarball_path} /home/hadoop/shib.tar.gz
+{
+  cd /home/hadoop &amp;&amp; tar xvfz /home/hadoop/shib.tar.gz
+  cd /home/hadoop/shib &amp;&amp; npm install
+}
+aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
+{
+  cd /home/hadoop/shib &amp;&amp; nohup npm start &amp;
+}
+</code></pre>
+
+<p>これも同様にS3にあげる。</p>
+
+<pre><code>$ aws s3 cp install-shib.sh s3://yourbucket/libs/
+</code></pre>
+
+<h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
+
+<ul>
+<li>create-cluster.sh</li>
+</ul>
+
+<pre><code>#!/bin/bash
+
+aws emr create-cluster --ami-version 3.3.1 \
+    --name &quot;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date '+%Y%m%d%H%M' )&quot; \
+    --tags Name=presto-on-emr environment=development \
+    --ec2-attributes KeyName=yourkey \
+    --applications Name=hive Name=hue \
+    --instance-groups file://./large-instance-setup.json \
+    --bootstrap-actions file://./bootstrap-presto.json \
+    --log-uri 's3://yourbucket/jobflow_logs/' \
+    --no-auto-terminate \
+    --use-default-roles \
+    --visible-to-all-users
+</code></pre>
+
+<p>※AWSアカウントによっては&ndash;use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。</p>
+
+<p>instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。</p>
+
+<ul>
+<li>large-instance-setup.json</li>
+</ul>
+
+<pre><code>[
+  {
+     &quot;Name&quot;: &quot;emr-master-production&quot;,
+     &quot;InstanceGroupType&quot;: &quot;MASTER&quot;,
+     &quot;InstanceCount&quot;: 1,
+     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
+  },
+  {
+     &quot;Name&quot;: &quot;emr-core-production&quot;,
+     &quot;InstanceGroupType&quot;: &quot;CORE&quot;,
+     &quot;InstanceCount&quot;: 2 ,
+     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
+  }
+]
+</code></pre>
+
+<ul>
+<li>bootstrap-presto.json</li>
+</ul>
+
+<pre><code>[
+  {
+    &quot;Name&quot;: &quot;Install/Setup Shib&quot;,
+    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-shib.sh&quot;,
+    &quot;Args&quot;: [
+        &quot;s3://yourbucket/libs/shib.tar.gz&quot;,
+        &quot;s3://yourbucket/libs/shib-config.js&quot;
+    ]
+  },
+  {
+    &quot;Name&quot;: &quot;Install/Setup Presto&quot;,
+    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-presto.rb&quot;,
+    &quot;Args&quot;: [
+        &quot;--s3-path-to-presto-server-bin&quot;,&quot;s3://yourbucket/libs/presto-server-0.85.tar.gz&quot;,
+        &quot;--s3-path-to-presto-cli&quot;, &quot;s3://yourbucket/libs/presto-cli-0.85-executable.jar&quot;
+    ]
+  }
+]
+</code></pre>
+
+<h2 id="shib-hueアクセス方法">Shib/Hueアクセス方法</h2>
+
+<h3 id="foxyproxyとsshトネリングを利用">FoxyProxyとSSHトネリングを利用</h3>
+
+<p>FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。</p>
+
+<ul>
+<li><p><a href="http://getfoxyproxy.org/">FoxyProxy - Firefox/Chrome</a></p></li>
+
+<li><p>sample-emr-proxy.xml</p></li>
+</ul>
+
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;foxyproxy&gt;
+    &lt;proxies&gt;
+        &lt;proxy name=&quot;emr-socks-proxy&quot; id=&quot;2322596116&quot; notes=&quot;&quot; fromSubscription=&quot;false&quot; enabled=&quot;true&quot; mode=&quot;manual&quot; selectedTabIndex=&quot;2&quot; lastresort=&quot;false&quot; animatedIcons=&quot;true&quot; includeInCycle=&quot;true&quot; color=&quot;#0055E5&quot; proxyDNS=&quot;true&quot; noInternalIPs=&quot;false&quot; autoconfMode=&quot;pac&quot; clearCacheBeforeUse=&quot;false&quot; disableCache=&quot;false&quot; clearCookiesBeforeUse=&quot;false&quot; rejectCookies=&quot;false&quot;&gt;
+            &lt;matches&gt;
+                &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.amazonaws.com*&quot; pattern=&quot;*ec2*.amazonaws.com*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+                &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.compute*&quot; pattern=&quot;*ec2*.compute*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+                &lt;match enabled=&quot;true&quot; name=&quot;10.*&quot; pattern=&quot;http://10.*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+            &lt;/matches&gt;
+            &lt;manualconf host=&quot;localhost&quot; port=&quot;8157&quot; socksversion=&quot;5&quot; isSocks=&quot;true&quot; username=&quot;&quot; password=&quot;&quot; domain=&quot;&quot; /&gt;
+        &lt;/proxy&gt;
+    &lt;/proxies&gt;
+&lt;/foxyproxy&gt;
+</code></pre>
+
+<pre><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
+</code></pre>
+
+<p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
+
+<ul>
+<li><a href="http://youremrhost.compute.amazonaws.com:3000">http://youremrhost.compute.amazonaws.com:3000</a></li>
+</ul>
+
+<p>また、以下のURLにアクセスするとHueにアクセスできます。</p>
+
+<ul>
+<li><a href="http://youremrhost.compute.amazonaws.com:8888">http://youremrhost.compute.amazonaws.com:8888</a></li>
+</ul>
+
+<h3 id="aws-securitygroupを変更">AWS SecurityGroupを変更</h3>
+
+<p>EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。</p>
+
+<h2 id="パフォーマンス">パフォーマンス</h2>
+
+<p>パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。</p>
+
+<h2 id="終わりに">終わりに</h2>
+
+<p>いかがでしたでしょうか。
+PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
+もうあと25日は2時間しか残ってませんがハッピーメリークリスマス！</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

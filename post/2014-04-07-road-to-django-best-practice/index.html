@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Django Best Practice への道 #3</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>Django Best Practice への道 #3</h2>
+			<time>2014/04/07</time>
+			<div>
+				
+
+<p>DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。本記事は三部作の三つ目となります。</p>
+
+<ul>
+<li><a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">#1 Djangoプロジェクト/アプリケーション/設定ファイル構成</a></li>
+<li><a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">#2 Djangoテスト戦術</a></li>
+<li><a href="http://achiku.github.io/2014/04/14/django-pytest-webtest.html">#2 補足編</a></li>
+<li><a href="http://achiku.github.io/2014/04/07/road-to-django-best-practice.html">#3 Django Model/View/From/Template戦術</a></li>
+</ul>
+
+<h2 id="書くこと">書くこと</h2>
+
+<p>Djangoの基本的な構成要素である、models.py, views.py, urls.py, forms.pyに関して、最初から知ってればよかったと思った事を書いていきます。だいぶ文章にもっさり感と字が多い感がでてますが、自分の言葉で説明することで理解を深めるという目的もあるのでご容赦ください。</p>
+
+<p>あと、是非意見が欲しいっす。Django使ってる人日本に沢山いるはずなのにこの類の情報ってあんまり無いイメージがあり、以下に書いてある事を考えている人たちとお話してみたいっす(当たり前過ぎてそんなもの書く価値ねぇよ、な場合はすみません)。</p>
+
+<h1 id="前提">前提</h1>
+
+<ul>
+<li>既に本番リリースされてる</li>
+<li>Django 1.5で作られてる</li>
+<li>中/小規模Webアプリケーション(テーブルサイズ10 - 20)</li>
+<li>開発/運用1人(achiku), アドバイザー/レビューアー1人(moquada)</li>
+<li>バックエンド処理ロジックは比較的シンプル</li>
+<li>Celeryを使った非同期タスクとして動く処理がある</li>
+<li>JSはクリティカルな処理では使ってない(表示整形くらい)</li>
+<li>トラフィックは少ない</li>
+<li>インフラはAWS(VPC + ELB + EC2 + RDS)</li>
+</ul>
+
+<h1 id="urls-py">urls.py</h1>
+
+<h2 id="役割">役割</h2>
+
+<ul>
+<li>URLとViewの紐付け</li>
+</ul>
+
+<p>urls.pyは本当にこれだけを担えば問題なし。逆にこの役割以外の事をやらないように現在開発をしている。urls.pyにQuerySetが書いてあったり、ロジックが書いてあったりするのは見通しが悪く、好みではない。楽に書けるからいいじゃなない！という意見もあるが、書く時楽になる(≒スピードアップ)と、その後の見通しの悪さを比べたら、あまり割のいいトレードオフではないと思う。なぜなら、この部分にロジック書くのも、views.pyにロジック書くのも労力的に大差無いから大してスピードアップしない。</p>
+
+<p>今後上記基本姿勢を変更した方が良いか否かは、その時のコンテクストに合わせて適切に判断したい。</p>
+
+<p><em>参考文献</em></p>
+
+<ul>
+<li><a href="https://docs.djangoproject.com/en/dev/topics/http/urls/">URL dispatcher</a></li>
+<li><a href="https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design">Django Design Philosophies: URL</a></li>
+</ul>
+
+<p>urls.pyを書く際に一番悩むのは前からずっとURL設計の部分。&rdquo;Cool URLs don&rsquo;t change.&ldquo;とはよく言ったもので、ここをしっかりやろうとするとそれなりに時間が必要であった。まだイマイチしっくり来ていない部分が多く、今はテンプレみたいなものが欲しい。こういう場合はこう、みたいな。</p>
+
+<p><em>参考文献</em></p>
+
+<p><a href="http://www.w3.org/Provider/Style/URI">Cool URIs don&rsquo;t change</a></p>
+
+<p>あとはAPPEND_SLASHという仕組みに注意することと、ちゃんと名前をつけてreverseで引けるようにするってことぐらいな気がします。</p>
+
+<p><a href="https://docs.djangoproject.com/en/dev/ref/settings/#append-slash">APPEND_SLASH</a></p>
+
+<p>なぜAPPEND_SLASHなのか。</p>
+
+<blockquote>
+<p>Technically, foo.com/bar and foo.com/bar/ are two different URLs, and search-engine robots (and some Web traffic-analyzing tools) would treat them as separate pages. Django should make an effort to “normalize” URLs so that search-engine robots don’t get confused.  <a href="https://docs.djangoproject.com/en/dev/misc/design-philosophies/#url-design">Django Design Philosophies: URL</a></p>
+</blockquote>
+
+<h1 id="forms-py">forms.py</h1>
+
+<h2 id="役割-1">役割</h2>
+
+<p>いくつかforms.pyを書いてみて、コイツの役割は大体以下の2点に集約されるように思う。</p>
+
+<ul>
+<li>HTMLのform用に「どの項目を、どのような色や形で、どの順序で」表示するかを司る</li>
+<li>ユーザ入力のバリデーションを行う(DBの制約で行える部分以外で)</li>
+</ul>
+
+<p>以下formsの役割ではない(少なくともformsに役割として課さないほうがいいなと思う)事。</p>
+
+<ul>
+<li>models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)</li>
+<li>データ登録/編集のロジック(複数モデルを扱いながら)を記述する</li>
+</ul>
+
+<h2 id="担うべき役割">担うべき役割</h2>
+
+<p>まず大前提としてformsの中に書くforms.Formを継承しているカスタムクラスは大きく2つに分類できる。</p>
+
+<ol>
+<li>modelと密接に結びついているもの(e.g. Blogのエントリー, コメント、本の著者名、等)</li>
+<li>modelと密接に結びついていないもの(e.g. お問い合わせフォーム、オブジェクトのIDをhidden属性つけてサーバサイドにPOSTしたい時、等)</li>
+</ol>
+
+<p>1つ目に関しては断固としてforms.ModelFormを使い、Metaクラス内のmodel属性で対象のmodelをバインドし、fields属性で表示する項目を指定、widgetsでスタイル用のclassを指定、という鉄板の流れで作るのがいいと思う。そして、models.py内で定義されるModelクラスのverbose_name, help_textをしっかり書く。こうすることで、「基礎的な制約と項目説明に関してはModel側で、複雑な制約と表示形式はForm側で」という役割分担が明確になる。一時期弊社内では、Model側で定義している制約を再度Form側で定義しており、Model側を修正したらForm側を修正し、そのFormが継承されているFormを修正し、という、まぁ、端的に言えば大変無駄な作業が発生していた。</p>
+
+<p>「基礎的な制約はModel側で」という事にしているが、じゃあ「複雑な制約」ってなんなんだという基準は以下3つ。</p>
+
+<ul>
+<li>modelの制約(≒DBの制約)だけでは不十分な要件がある場合(e.g. 文字列を保存したいが、hoge_で始まる文字列は弾きたい場合、等)</li>
+<li>1モデルの複数項目に渡って検証する必要が有る場合(e.g. 開始日は終了日の前でなければならない、等)</li>
+<li>過去に登録されたレコードとの整合性を検証する必要が有る場合(e.g. 購入のリクエストで在庫数を確認する、等)</li>
+</ul>
+
+<p>もちろんmodelにもカスタムバリデーターを登録することは可能だけど、現時点ではしていない。理由は、DjangoのmodelはどちらかというとRDBMSにおけるテーブルのPython表現っぽい、という風にとらえているから。modelって名前、ややこしいね。もし本当にpersistent storageレベルで必要なバリデーションがあるのであれば、それはpersistent storageレベルで設定されるべきな気がしている(Oracleのcheck制約とか、MySQLのENUM型とか)。それはPython(Django ORM)以外からデータが扱われる事があったとしても適切にデータの整合性を守ってくれることとなる。</p>
+
+<p>上記をそれとなく守って現在は開発している。が、まだあまり納得はいってない。この部分の方針は随時更新していきたいです。</p>
+
+<p><em>参考文献</em></p>
+
+<ul>
+<li><a href="https://docs.djangoproject.com/en/dev/topics/forms/modelforms/">Creating forms from models</a></li>
+<li><a href="http://stackoverflow.com/questions/2303268/djangos-forms-form-vs-forms-modelform">Django forms.Form vs forms.ModelForm</a></li>
+<li><a href="http://stackoverflow.com/questions/3828025/django-advantage-forms-form-vs-forms-modelform">Django Advantage forms.Form vs forms.ModelForm</a></li>
+</ul>
+
+<p>2つ目の「modelと密接に結びついていないもの」はそこまで出番が無いように思える。これに関してはforms.Formを利用して素直に必要な項目と、項目に対する制約を記述すればいいと思う。大して言うことは無い。</p>
+
+<p><em>参考文献</em></p>
+
+<p><a href="https://docs.djangoproject.com/en/dev/topics/forms/">Working with forms</a></p>
+
+<h2 id="担わない方がいいと思う役割">担わない方がいいと思う役割</h2>
+
+<p><strong>models側で制約をかけてるのに、forms側でも同じ制約をかける(e.g. 文字数制限、等)</strong></p>
+
+<p>上記は「担うべき役割」でも説明したように、やらない方が得する事が比較的明確だと思っている。問題は以下。</p>
+
+<p><strong>データ登録/編集のロジック(複数モデルを扱いながら)を記述する</strong></p>
+
+<p>ココは賛否両論あり得ると思う。上記のような抽象的な話ではなく、forms.FormPreviewのdoneメソッドの話なのかもしれない(普通のModleFormやForm内でデータ変更を実装することはほぼ無いと思う)。上記でFormが担うべき役割をある程度明確にしたのに、いきなりここでデータの変更をされる、というすごい気持ち悪い状態になる。「データをどこで変更しているのか」を考える時に見なければいけない範囲が格段に広がるので、コードをたどるのが非常にダルくなる。が、Previewがどうしても必要なんだ！という場合もある。その場合は涙をのんでFormPreviewを使う(ちなみにデフォルトではFormPreviewではFileFieldはプレビューできない)。非常にダルい。ダルいのでそれをCBVにしようってのが以下のライブラリ。まだセキュリティー含めて検証中で実戦に投入はできていないが、CBVとしてPreview機能を実装しているので、Formの中にデータ変更処理が入る事なく、いい感じで書けそうな気がしている。</p>
+
+<ul>
+<li><a href="https://github.com/ryankask/django-cbv-formpreview">django-cbv-formpreview</a></li>
+</ul>
+
+<p>FileFieldもプレビューできるようにする実装のサンプル。これはそのまま実戦投入はできそうだけど、実装のコンセプトとして参考になる。</p>
+
+<ul>
+<li><a href="https://github.com/razum2um/django-file-formpreview">Django File FormPreview</a></li>
+</ul>
+
+<p>DjangoのFormについては泣かされた部分も多いのでだいぶ長くなってしまいましたが、現状こんな感じです。</p>
+
+<h2 id="form関連のオススメライブラリ">Form関連のオススメライブラリ</h2>
+
+<ul>
+<li><a href="https://github.com/maraujop/django-crispy-forms">django-crispy-forms</a></li>
+</ul>
+
+<h2 id="form関連のオススメしないライブラリ">Form関連のオススメしないライブラリ</h2>
+
+<ul>
+<li><a href="https://github.com/maraujop/django-crispy-forms">django-bootstrap-toolkit</a></li>
+</ul>
+
+<p>パフォーマンス問題が発生するケースがある。おそらくfieldに直接bootstrap filterを適用する場合。弊社ではコレが発生したので利用を取りやめました。ライブラリの利用は必ずOpenなIssueを確認し、作者に改善に意志があるかを見てからにしようと心に誓った出来事です。
+<a href="https://github.com/dyve/django-bootstrap-toolkit/issues/103">Performance issue : to many get_template</a></p>
+
+<h1 id="models-py">models.py</h1>
+
+<h2 id="役割-2">役割</h2>
+
+<p>ここもまだまだしっくりきてる、とは言えない部分が多いのですが、以下のような感じだと思ってる。</p>
+
+<ul>
+<li>DjangoにおけるActiveRecordパターンを担う</li>
+</ul>
+
+<p>デザインパターン便利。名前言うだけでなんか賢く見えるし。でも、これだとActiveRecordパターンを正確に理解できてないといけないし(自分はそこまで理解してない)、理解するまで何か書けないというのは辛いので以下、自分の言葉で表すとこうなります、というのをやってみる。</p>
+
+<ul>
+<li>RDBMSにおけるテーブルのPython表現</li>
+</ul>
+
+<p><em>参考</em></p>
+
+<p><a href="http://www.martinfowler.com/eaaCatalog/activeRecord.html">Active Record by Martin Fowler</a></p>
+
+<h2 id="担うべき役割-1">担うべき役割</h2>
+
+<ul>
+<li>1モデルが表現する1テーブルの各属性について責任を持って更新管理する</li>
+<li>1モデルが表現する1テーブルへの問い合わせに責任を持つ</li>
+<li>1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ</li>
+</ul>
+
+<p>順に解説していきます。</p>
+
+<p><strong>1モデルが表現する1テーブルの各属性について責任を持って更新管理する</strong></p>
+
+<p>これはDjango ORMが勝手にってくれることなので特に言う事ないです。</p>
+
+<p><strong>1モデルが表現する1テーブルへの問い合わせに責任を持つ</strong></p>
+
+<p>これもDjango ORMが勝手にってくれることなので特に言う事ないです。</p>
+
+<p><strong>1モデルが表現する1テーブル内にある属性から導出される、そのモデルの属性について責任を持つ</strong></p>
+
+<p>大事だなと思ったのはこの3つ目の役割と、3つ以外の役割をmodelに任せないこと、だと思うのでちょっと解説。まずはこの3つ目の役割の具体例として、例えば、何かの記事を書く機能があったとして、その記事は著者と承認者が両方チェック完了したらオンライン上に公開可能になる、という要件を仮定します。その要件からざっくり以下のmodelを作成(verbose_name, help_text, Metaクラスは省略してます)。このmodelの属性である、author_checkとapprover_checkがTrueになれば公開可能な状態という意味とする。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Article</span>(models<span style="color:#f92672">.</span>Model):
+    body <span style="color:#f92672">=</span> TextField()
+    author <span style="color:#f92672">=</span> CharField(max_lenght<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>)
+    author_check <span style="color:#f92672">=</span> BooleanField()
+    approver_check <span style="color:#f92672">=</span> BooleanField()
+    published <span style="color:#f92672">=</span> BooleanField()
+    date_created <span style="color:#f92672">=</span> DateTimeField()
+    date_published <span style="color:#f92672">=</span> DateTimeField(null<span style="color:#f92672">=</span>True, blank<span style="color:#f92672">=</span>True)</code></pre></div>
+
+<p>このモデルには著者と承認者がオッケーを出した事を表現する属性はない。あってもいいけど、要件が上のものだけなのであれば不要なのでシンプルに無い方を採用。「公開可能か否か」という属性はapprover_checkとauthor_checkから導出できる属性となる。それをDjango ORMでどのように表現するかというと、以下。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Article</span>(models<span style="color:#f92672">.</span>Model):
+    body <span style="color:#f92672">=</span> TextField()
+    author <span style="color:#f92672">=</span> CharField(max_lenght<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>)
+    author_check <span style="color:#f92672">=</span> BooleanField()
+    approver_check <span style="color:#f92672">=</span> BooleanField()
+    published <span style="color:#f92672">=</span> BooleanField()
+    date_created <span style="color:#f92672">=</span> DateTimeField()
+    date_published <span style="color:#f92672">=</span> DateTimeField(null<span style="color:#f92672">=</span>True, blank<span style="color:#f92672">=</span>True)
+
+    <span style="color:#a6e22e">@property</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_ready_to_publish</span>(self):
+        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>author_check <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>approver_check</code></pre></div>
+
+<p>実際にis_ready_to_publishがTrueならば公開する(≒published属性をTrueに設定、date_publishedに現在の時間を登録)、という処理も、このmodelの属性に関わる事なので、modelのメソッドに実装する。</p>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Article</span>(models<span style="color:#f92672">.</span>Model):
+    body <span style="color:#f92672">=</span> TextField()
+    author <span style="color:#f92672">=</span> CharField(max_lenght<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>)
+    author_check <span style="color:#f92672">=</span> BooleanField()
+    approver_check <span style="color:#f92672">=</span> BooleanField()
+    published <span style="color:#f92672">=</span> BooleanField()
+    date_created <span style="color:#f92672">=</span> DateTimeField()
+    date_published <span style="color:#f92672">=</span> DateTimeField(null<span style="color:#f92672">=</span>True, blank<span style="color:#f92672">=</span>True)
+
+    <span style="color:#a6e22e">@property</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_ready_to_publish</span>(self):
+        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>author_check <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>approver_check
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">publish</span>(self):
+        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>published:
+            <span style="color:#66d9ef">raise</span> AlreadyPublishedException()
+        <span style="color:#66d9ef">elif</span> self<span style="color:#f92672">.</span>is_ready_to_publish:
+            self<span style="color:#f92672">.</span>published <span style="color:#f92672">=</span> True
+            self<span style="color:#f92672">.</span>date_published <span style="color:#f92672">=</span> datetime<span style="color:#f92672">.</span>datetime<span style="color:#f92672">.</span>now()
+        <span style="color:#66d9ef">else</span>:
+            <span style="color:#66d9ef">raise</span> NotPublishableException()</code></pre></div>
+
+<p>色々いじってみて、Django ORMにおいては1モデル1テーブル、1インスタンス1レコードという概念を念頭に置いた方がいい気がしている。各レコード毎の属性はmodelに、各レコード毎に既存レコードから導出できる属性はmodelに、各レコード毎の属性の値によって処理が変わり、且つその処理がタッチするのが当該モデルに閉じる場合はmodelのメソッドに、といった感じ。</p>
+
+<p>以下の記事は複数モデルが絡み合うロジックを完全に無視して書いているので、あと一歩な感じなのですが、記事へのコメントがかなりいい感じに補完してくれているので全体として大変参考になる。</p>
+
+<p><a href="http://redbeacon.github.io/2014/01/28/Fat-Models-a-Django-Code-Organization-Strategy/">Fat Models - A Django Code Organization Strategy</a></p>
+
+<h2 id="担わない方がいいと思う役割-1">担わない方がいいと思う役割</h2>
+
+<ul>
+<li>複数モデルが絡み合うロジック</li>
+<li>処理が対象のモデルの中核をなすものでは無いロジック</li>
+<li>AWS等の外部サービスとやりとりするロジック</li>
+</ul>
+
+<p>これはmodelのメソッド内で完結するのは難しいし、そもそもmodel全然関係無い場合もある。先にも述べたようにDjango ORM自体、1モデル1テーブルを基準にして作られているから。なので上記は別の部分に切り出して書くのがいい気がしている。やはりDjangoのmodelはRDBMSにおけるテーブルのPython表現、くらいのプリミティブなものだと捉えておいた方が何かといいのではないかと思う。</p>
+
+<p>以下の記事はRuby on Railsに関する記事だけど、考え方が非常に参考になった。(ちなみにRuby on Railsは全く触ったこと無い。っていうかDjango以外にWAFを真面目に触ったことが無いという雑魚っぷりです)</p>
+
+<ul>
+<li><a href="http://blog.codeclimate.com/blog/2012/10/17/7-ways-to-decompose-fat-activerecord-models/">7 Patterns to Refactor Fat ActiveRecord Models</a></li>
+<li><a href="http://techracho.bpsinc.jp/hachi8833/2013_11_19/14738">肥大化したActiveRecordモデルをリファクタリングする7つの方法(翻訳)</a></li>
+</ul>
+
+<h1 id="views-py">views.py</h1>
+
+<h2 id="役割-3">役割</h2>
+
+<ul>
+<li>何かリクエストを受けて、リクエストに対して何か処理をして、何かレスポンスを返す</li>
+</ul>
+
+<p>雑に書いているわけではなく、このレイヤーは抽象的な処理に徹するべきだと思う。そして、可能な限り見通しよく、薄く作るのが、最終的にメンテナンスしやすい気がする。</p>
+
+<p>「何か処理」の部分は1インスタンスに閉じる処理であればmodelのメソッドを使うし、バリデーションに関係する部分はformを使う。複数modelが絡み合う処理が必要な場合はmodelではなくutils.pyやservices.pyに処理を委譲。最終的に何をレスポンスとして返すか、という部分だけハンドリングする、といった感じ。</p>
+
+<p>CBVやFBVをどこでどうやって使うべきか、という話は、<a href="http://pydanny.com/announcing-two-scoops-of-django-1.6.html">Two Scoops of Django</a>に非常に詳しく書いてあり、とても参考になった。この本は本当に素晴らしい。</p>
+
+<h1 id="django全体通して">Django全体通して</h1>
+
+<p>最後に、Django全体を通した思想っぽいものを紹介して、Djangoに対する感想など述べながら締めます。</p>
+
+<p><a href="https://docs.djangoproject.com/en/dev/faq/general/#django-appears-to-be-a-mvc-framework-but-you-call-the-controller-the-view-and-the-view-the-template-how-come-you-don-t-use-the-standard-names">MTV Framework?</a></p>
+
+<ul>
+<li><strong>M</strong> Django modelの事。「データ」の部分を担当(?)。本文にあまり記述は無い。</li>
+<li><strong>V</strong> Django Viewの事。「どのデータを」の部分を担当。</li>
+
+<li><p><strong>T</strong> Django templateの事。「どのように表示するか」の部分を担当。</p>
+
+<p>Well, the standard names are debatable.</p>
+
+<p>In our interpretation of MVC, the “view” describes the data that gets presented to the user. It’s not necessarily how the data looks, but which data is presented. The view describes which data you see, not how you see it. It’s a subtle distinction.</p>
+
+<p>So, in our case, a “view” is the Python callback function for a particular URL, because that callback function describes which data is presented.</p>
+
+<p>Furthermore, it’s sensible to separate content from presentation – which is where templates come in. In Django, a “view” describes which data is presented, but a view normally delegates to a template, which describes how the data is presented.</p>
+
+<p>Where does the “controller” fit in, then? In Django’s case, it’s probably the framework itself: the machinery that sends a request to the appropriate view, according to the Django URL configuration.</p>
+
+<p>If you’re hungry for acronyms, you might say that Django is a “MTV” framework – that is, “model”, “template”, and “view.” That breakdown makes much more sense.</p>
+
+<p>At the end of the day, of course, it comes down to getting stuff done. And, regardless of how things are named, Django gets stuff done in a way that’s most logical to us.</p></li>
+</ul>
+
+<p>という、DjangoはMTVなフレームワークだ！という主張。</p>
+
+<p>この文章、あまりmodelには触れてない。modelのMはMVCで言うところのモデル、つまりはビジネスロジックなのか、Django ORMによって定義されるmodelなのかはこの文章からだけではよくわからない。ただしばらく触ってみた感じだと、MTVのMがMVCのMと同じだとするならば、それはmodelインスタンス単体ではなく、存在するmodelインスタンスを組み合わせながら処理を行うどっか別の部分に定義される処理な気がする。デフォルトでは入ってないけどservices.pyとか作ってそこに処理を定義、みたいな。もしMTVのMがMVCのMではなく、ただのデータを永続化するだけの仕組み+ちょっとしたメソッドだとしたら、それはDjango ORM単体で事足りる。</p>
+
+<p>Djangoはもともとニュース系のサイトを管理する目的で開発されたらしい。その出自が影響しているのかどうか不明だけど、確かにニュースサイトで複数インスタンスが複雑に絡み合い、外部サービスと連携しながら特定の処理を行う事ってあんまり想像できない。Djangoそのままのmodels.py/views.py/urls.py/forms.pyだけを使って作る事を想定しているのは、そういった、データ+ちょっとした処理くらい、に最適化されてるんじゃないかなぁという印象を持った。</p>
+
+<p>もちろん工夫しだいで複雑にもできる作りになってる。</p>
+
+<h1 id="まとめ">まとめ</h1>
+
+<p>ここまで書いてなんですが、書いてきたことが本当にBest Practiceへ通じているのか、正直全くわからない。こちとらエンジニア4ヶ月目で、Djangoに関して真面目に取り組んで3ヶ月目で、だいたい毎日死にはぐってます。わからん部分はmoqada氏と話しながら発展させてきた考えをまとめてみたのですが、いざ文章にしてみるとイマイチな感じがする部分等でてきております(ちなみにmoqadaさんはかわいい奥さんとイタリアに新婚旅行中で幸せ満喫中らしい。羨ましい。)</p>
+
+<p>このまとめを書こうかなと思ったのは、大きなリリースが一段落ついた、という事もあるのですが、ずっと心に残っていた文章に対する自分なりの一つの答えでもあります。</p>
+
+<p><a href="http://d.hatena.ne.jp/nishiohirokazu/20110309/1299598527">西尾さんの2011新卒準備カレンダーの記事</a></p>
+
+<p>今回書いたDjango Best Practiceへの道の三本の記事には沢山のリンクが貼ってあります。これらのリンク、全てから自分は勉強させてもらっており、自分が学んでいるということはカンムという会社がクオリティー高いプロダクトをスピーディーに市場に届ける事に貢献しており、カンムが本当に市場に必要とされるプロダクトを作っている限り、世の中の便利さを向上させている事になります。そんな教材が、インターネットにアクセスするだけで死ぬほど手に入るという事に、今更ながら驚愕してます。</p>
+
+<p>そういう記事の末席に、このまとめも加われれば幸い。加わらなくても書くだけで自分の脳みそ整理できたので元は取れてる。</p>
+
+<p>勉強させてもらった記事を書いてくれた方々、ライブラリを公開してくれている方々に感謝。また、この記事を書くために時間ある程度使ってもいいよと言ってくれたシャチョーに感謝です。</p>
+
+<p>わからんことだらけでヤバイので、異論大歓迎です！尖すぎるマサカリは怖いですが、良いマサカリであれば泣きながら受け止めます！</p>
+
+<p>(追伸：Templateまで届きませんでした。)</p>
+
+<ul>
+<li><a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">#1 Djangoプロジェクト/アプリケーション/設定ファイル構成</a></li>
+<li><a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">#2 Djangoテスト戦術</a></li>
+<li><a href="http://achiku.github.io/2014/04/14/django-pytest-webtest.html">#2 補足編</a></li>
+<li><a href="http://achiku.github.io/2014/04/07/road-to-django-best-practice.html">#3 Django Model/View/From/Template戦術</a></li>
+</ul>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

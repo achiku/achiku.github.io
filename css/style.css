@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+}
+
+#container {
+  font-family: "HelveticaNeue-Light","Helvetica Neue Light","Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+  color: #555;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 30px;
+  text-decoration:none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+  text-size-adjust: 100%;
+  max-width: 900px;
+  margin: auto;
+}
+
+article, header, footer, aside, #pagenation {
+  padding: 20px;
+  width: 90%;
+  line-height: 1.5;
+}
+
+pre {
+  white-space: pre-wrap;
+  overflow: scroll;
+  width: auto;
+}
+
+a:link { color: orange; }
+a:visited { color: orange; }
+a:hover { color: orange; }
+a:active { color: orange; }
+a { text-decoration: none; }
+
+a.post-title { color: #555; }
+a.post-title:hover { color: orange; }

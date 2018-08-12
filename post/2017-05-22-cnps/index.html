@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>cnps イベントに来る人をよりよく知るツール</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>cnps イベントに来る人をよりよく知るツール</h2>
+			<time>2017/05/22</time>
+			<div>
+				
+
+<p>はじめてイベントを企画してconnpassで募集したんだけど、ざっと見て「この人抽選で当たったとして、本当に来るのか&hellip;」みたいに感じる人がそれなりにいた。以下は「勉強会ゴロ」という言葉を生み出した記事で、分類に関してはまだ自分で実感したことないんだけど(あまり勉強会に行ったことがない)、まぁそういう風な人がいるんだろうな、という感じ。</p>
+
+<ul>
+<li><a href="http://anond.hatelabo.jp/20160829192722">勉強会ゴロについて語ってみる</a></li>
+</ul>
+
+<p>ただ、「意識高い系」や「会社の偉い人系」とか以前に「この人本当に来るのか&hellip;来るとしても素性が全くわからんし、不気味なぐらい勉強会参加数が多いしなんなら過去に同日イベントに登録してるな&hellip;」みたいな人が多かったので、さくっとツールを作ってそういう人達を一覧化できるようにした。</p>
+
+<p><a href="https://github.com/achiku/cnps">cnps - See who&rsquo;s comming to your event through connpass</a></p>
+
+<p>Pythonで作ったCLIツールなので<a href="https://github.com/mitsuhiko/pipsi">pipsi</a>と一緒に使うと便利だと思う。</p>
+
+<h3 id="cnpsの使い方">cnpsの使い方</h3>
+
+<p>まずはイベントのURLを指定して参加希望者のデータをJSONに吐き出す。</p>
+
+<pre><code>cnps dump https://fintech-engineers-drink-up.connpass.com/event/56057/ &gt; user.json
+</code></pre>
+
+<p>そうするとこういう感じのデータが取れる。(参加希望者のデータはスクレイピングしてるので、無茶はしないで)。参加希望者の直近参加申請したイベントの日付、ソーシャルリンク等が含まれてる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">  {
+    <span style="color:#f92672">&#34;event_dates&#34;</span>: [
+      <span style="color:#e6db74">&#34;2017-05-30 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2017-05-26 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2017-05-16 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2017-05-11 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2017-03-28 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2016-11-16 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2016-11-01 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2016-08-01 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2016-06-02 00:00:00&#34;</span>, 
+      <span style="color:#e6db74">&#34;2016-05-31 00:00:00&#34;</span>
+    ], 
+    <span style="color:#f92672">&#34;social_links&#34;</span>: [
+      {
+        <span style="color:#f92672">&#34;twitter&#34;</span>: <span style="color:#e6db74">&#34;http://twitter.com/keysket&#34;</span>
+      }, 
+      {
+        <span style="color:#f92672">&#34;facebook&#34;</span>: <span style="color:#e6db74">&#34;https://www.facebook.com/app_scoped_user_id/1431545096/&#34;</span>
+      }
+    ], 
+    <span style="color:#f92672">&#34;user_id&#34;</span>: <span style="color:#e6db74">&#34;KeisukeKogure&#34;</span>, 
+    <span style="color:#f92672">&#34;user_url&#34;</span>: <span style="color:#e6db74">&#34;https://connpass.com/user/KeisukeKogure/&#34;</span>
+  }</code></pre></div>
+<p>あとは出力したファイルの中のデータを好きな条件でフィルタする。例えば直近10件のイベントで、同日に別イベントに登録してる人。(この辺はキャンセルしたとか時間帯が違うとかはあんまし考慮できてないので今後の課題です)</p>
+
+<pre><code>cnps filter ./tests/data/user.json  --duplicate-event
+</code></pre>
+
+<p>例えばソーシャルリンクが一つも無い人。</p>
+
+<pre><code>cnps filter ./tests/data/user.json  --no-facebook-link --no-github-link --no-twitter-link
+</code></pre>
+
+<p>例えばGitHubのリンクはある人。</p>
+
+<pre><code>cnps filter ./tests/data/user.json --github-link
+</code></pre>
+
+<p>例えばソーシャルリンクが一つも無くて、直近10件のイベントの平均インターバルが3日以下の人。</p>
+
+<pre><code>cnps filter ./tests/data/user.json --avg-event-interval=3 --no-facebook-link --no-twitter-link --no-github-link
+</code></pre>
+
+<h3 id="結論">結論</h3>
+
+<p>はやく会社の知名度を上げて参加費300円とかにしても沢山人が来てくれるようにしたい。</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

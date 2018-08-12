@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Go 1.8開発環境整備</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>Go 1.8開発環境整備</h2>
+			<time>2017/06/26</time>
+			<div>
+				
+
+<p>一年くらいたったので再度まとめ。</p>
+
+<h3 id="前提">前提</h3>
+
+<ul>
+<li>Mac OS X 10.11.6</li>
+<li>homebrew</li>
+<li>Go 1.8.3</li>
+<li>zsh</li>
+<li>neovim v0.2.0</li>
+</ul>
+
+<h3 id="go自体の管理">Go自体の管理</h3>
+
+<p>Go 1.8からデフォルトの <code>GOPATH</code> は <code>$HOME/go</code> に設定されている。</p>
+
+<ul>
+<li><a href="https://github.com/golang/go/issues/17262">cmd/go: assume GOPATH=$HOME/go if not set</a></li>
+</ul>
+
+<p>今から入るならこれでも良いかなと思うけど、自分はまだGoのバージョンをパスに含めて開発するスタイルでやっていっている。Goは後方互換をめちゃくちゃ大事にしてくれるのでGoのバージョン変えて急に挙動がズレる事はそんなに無いとは思うんだけど、一度バージョンを上げてコンパイルしたバイナリを暫く検証環境で走らす、パフォーマンステストする等の作業が主に仕事で発生して、複数バージョンローカルに持っておきたいケースがあるので以下のようなスタイルになってる。</p>
+
+<p>homebrewでインストール。</p>
+
+<pre><code>$ brew install go
+$ go version
+go version go1.6 darwin/amd64
+$ which go
+/usr/local/bin/go
+</code></pre>
+
+<p>.zshrcに以下の環境変数を設定。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang
+</span><span style="color:#75715e"></span>export GOVERSION<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.8.3
+export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
+export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
+<p>Goのバージョンを切り替えるときは以下の <code>brew switch</code> を使ってシンボリックリンクを切り替えてる。</p>
+
+<pre><code>$ go version
+go version go1.8.3 darwin/amd64
+$ brew switch --help
+brew switch name version:
+    Symlink all of the specific version of name's install to Homebrew prefix.
+$ brew switch go 1.7.3
+3 links created for /usr/local/Cellar/go/1.7.3
+$ go version
+go version go1.7.3 darwin/amd64
+</code></pre>
+
+<h3 id="vendoring">vendoring</h3>
+
+<ul>
+<li><a href="https://github.com/golang/dep">Dep is a prototype dependency management tool</a></li>
+</ul>
+
+<p>今は <code>dep</code> がオフィシャルなツールチェインの仲間入りを目指しているのでこれを使えば良い気がする。ただロードマップやGitHub上の議論を見ると、「これがGoの公式依存性解決ツールだ！！！！」みたいなのではなく、あくまでもそういう立ち位置を目指してるという状態が正しいので、まったりissue上げたりPRしていくのが良いのではないかと思う。以下ロードマップ。</p>
+
+<ul>
+<li><a href="https://github.com/golang/dep/wiki/Roadmap">Roadmap</a></li>
+</ul>
+
+<h3 id="エディタ-基礎">エディタ(基礎)</h3>
+
+<p>現在エディタはneovimをメインで利用。この部分はvimでも良さそうな気がしてる。ベーシックな部分は全て <a href="https://github.com/fatih/vim-go">vim-go</a> におまかせしている。特に <code>:GoRename</code> コマンドと、 <code>&lt;Leader&gt;dt &lt;Plug&gt;(go-def-tab)</code> には大変お世話になっている。 <code>:GoRename</code> 、本当に精神に良くて、これがあるから名前をある程度雑に決めて前に進む事ができる。「あとで別概念が出てくるかも。出てくるとしたら何か。」という思考に使うコストをほぼカットできるのは本当に良い。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34; vim-go</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> =<span style="color:#75715e"> &#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_functions</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_methods</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_structs</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_operators</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_term_enabled</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_build_constraints</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_auto_type_info</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">GolangSettings</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span>!<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gb</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">build</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">test</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">ds</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">split</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">tab</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gd</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">highlight</span> <span style="color:#a6e22e">goErr</span> <span style="color:#a6e22e">cterm</span>=bold <span style="color:#a6e22e">ctermfg</span>=<span style="color:#ae81ff">214</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">match</span> <span style="color:#a6e22e">goErr</span> <span style="color:#e6db74">/\&lt;err\&gt;/</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">END</span></code></pre></div>
+<h3 id="エディタ-linter">エディタ(Linter)</h3>
+
+<p>以前、Go 1.6では <code>syntastic</code> を使ってlintしていたんだけど、流石に同期でlintするのは辛くなってきたので、Go 1.7に上げたタイミングぐらいで <code>vim-go</code> から<a href="https://github.com/alecthomas/gometalinter">gometalinter</a> を使う方式に変更した。</p>
+
+<p><code>gometalinter</code> は簡単に説明すると「数多あるGoのLinterを並列に走らせて結果をまとめて表示してくれるやつ」だ。オプションはそれなりに設定可能なのも熱い。</p>
+
+<p>ただ、<code>vim-go</code> の <code>gometalinter</code> 機能はファイル保存時に非同期実行する際のみオプションをあまりいじれなかった。(<code>:GoMetalinter</code> コマンドは <code>gometalinter</code> に与えるオプションを変更可能。<code>g:go_metalinter_autosave_enabled</code> と <code>g:go_metalinter_enabled</code> が別れてたりする。これはコマンド実行時に走らすlinterとファイル保存時に走らすlinterを分ける為にあるらしい。ただ、肝心なオプションをいじる <code>g:go_metalinter_command</code> が片方(つまりは <code>:GoMetalinter</code> コマンドの方)にしか効かないようになってる。<a href="https://github.com/fatih/vim-go/blob/v1.13/autoload/go/lint.vim#L40-L56">このへん</a>。今ふと思ったんだけどvim自体の機能で<code>.go</code>開いてる時は保存したら<code>:GoMetalinter</code>実行する、とかはできそうな気がしてきた)。</p>
+
+<p>とにかく、自分はGoでテストを書いてるときもlinterに走ってほしかったのだけど、大好きな <code>gotype</code> コマンドは <code>-a</code> を渡さないと <code>*_test.go</code> を検査してくれず、 <code>gometalinter</code> から走らす <code>gotype</code> に <code>-a</code> を渡すには <code>gometalinter</code> 自体に <code>-t</code> もしくは <code>--tests</code> を渡さなければならず、 <code>gometalinter</code> のオプションがいじれる且つ非同期でlinterを走らせてくれるプラグインを探した。そして現状以下に落ち着いてる。</p>
+
+<ul>
+<li><a href="https://github.com/w0rp/ale">github.com/w0rp/ale</a></li>
+</ul>
+
+<p>年初に一度試してみたけど結構辛かったが、先月くらいに再度試したらちゃんと動いた。まだまだ開発は活発。また、流石に書いてる途中に警告されるのはウザいので以下のように設定し、保存時に指定のlinterが走るように設定している。GoとPythonは仕事で書いてるけど、JavaScriptは趣味。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34;&#34; ale</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_lint_on_text_changed</span> = <span style="color:#e6db74">&#39;never&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_lint_on_enter</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_lint_on_save</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_sign_column_always</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_set_loclist</span> = <span style="color:#ae81ff">0</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_set_quickfix</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_linters</span> = {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\   <span style="color:#e6db74">&#39;javascript&#39;</span>: [<span style="color:#e6db74">&#39;eslint&#39;</span>, <span style="color:#e6db74">&#39;flow&#39;</span>],<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\   <span style="color:#e6db74">&#39;python&#39;</span>: [<span style="color:#e6db74">&#39;flake8&#39;</span>],<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\   <span style="color:#e6db74">&#39;go&#39;</span>: [<span style="color:#e6db74">&#39;gometalinter&#39;</span>],<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\}<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_go_gometalinter_options</span> = <span style="color:#e6db74">&#39;--vendored-linters --disable-all --enable=gotype --enable=vet --enable=golint -t&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_open_list</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_sign_error</span> = <span style="color:#e6db74">&#39;✗&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_sign_warning</span> = <span style="color:#e6db74">&#39;⚠&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_statusline_format</span> = [<span style="color:#e6db74">&#39;⨉ %d&#39;</span>, <span style="color:#e6db74">&#39;⚠ %d&#39;</span>, <span style="color:#e6db74">&#39;⬥ ok&#39;</span>]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_echo_msg_error_str</span> = <span style="color:#e6db74">&#39;E&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_echo_msg_warning_str</span> = <span style="color:#e6db74">&#39;W&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_echo_msg_format</span> = <span style="color:#e6db74">&#39;[%linter%] %s [%severity%]&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">ale_python_flake8_args</span> = <span style="color:#e6db74">&#39;--max-line-length=120&#39;</span></code></pre></div>
+<p>どのGo系linterを走らすかは好みの問題だとも思うんだけど、自分は <code>gotype</code>, <code>vet</code>、<code>golint</code> で十分かなという気がしている。十分速いし。あとは <code>gosimple</code> も良くて、今は正規設定に入れるか検討中。CIの中ではもっと色々走らせても良いと思う。興味がある人は <code>gometalinter</code> のREADMEとかを読むと様々なlinterが存在している事を知れて楽しい。</p>
+
+<h3 id="エディタ-コード補完">エディタ(コード補完)</h3>
+
+<p>ここは相変わらず以下二つのプラグインに大変お世話になっております。</p>
+
+<ul>
+<li><a href="https://github.com/Shougo/deoplete.nvim">github.com/Shougo/deoplete.nvim</a></li>
+<li><a href="https://github.com/zchee/deoplete-go">github.com/zchee/deoplete-go</a></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34;&#34; deoplete</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_at_startup</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#75715e">
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">&#34;&#34;&#34; deoplete-go</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">align_class</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">sort_class</span> = [<span style="color:#e6db74">&#39;package&#39;</span>, <span style="color:#e6db74">&#39;func&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;var&#39;</span>, <span style="color:#e6db74">&#39;const&#39;</span>]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">package_dot</span> = <span style="color:#ae81ff">1</span></code></pre></div>
+<h3 id="エディタ-テスト">エディタ(テスト)</h3>
+
+<p>エディタで書いてテストして、というサイクルを高速に回すために <code>vim-test</code> というプラグインを入れている。これまた最高のプラグインのうちの一つだと思っててGoに限らずPythonを書くときにも多用している。特にカーソルに一番近いテストを実行してくれる <code>:TestNerest</code> が良い。9割くらいはコレですましている。さらに <code>neoterm</code> というプラグインを入れ、 <code>vim-test</code> がテスト実行時に開く terminal を neovim の機能をフルに活かした良い感じのやつにしている(テスト結果のterminalを開きっぱなしにしたり、その中をvimのキーバインドで移動できたり、もう一回テスト実行したら同じterminal内部で実行してくれたり、色々良いneoterm)。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34;&#34; neoterm</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">neoterm_size</span> = <span style="color:#ae81ff">15</span><span style="color:#75715e">
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">&#34;&#34;&#34; vim-test</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">strategy</span> = <span style="color:#e6db74">&#39;neoterm&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">preserve_screen</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">f</span> :<span style="color:#a6e22e">TestNearest</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">i</span> :<span style="color:#a6e22e">TestFile</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">a</span> :<span style="color:#a6e22e">TestSuite</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">l</span> :<span style="color:#a6e22e">TestLast</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">g</span> :<span style="color:#a6e22e">TestVisit</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">python</span>#<span style="color:#a6e22e">pytest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\}<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">gotest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>\}</code></pre></div>
+<ul>
+<li><a href="https://github.com/janko-m/vim-test">github.com/janko-m/vim-test</a></li>
+<li><a href="https://github.com/kassio/neoterm">github.com/kassio/neoterm</a></li>
+</ul>
+
+<p>以上現在のGo 1.8開発環境でした。</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>net/httpで作るGo APIサーバー #4</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>net/httpで作るGo APIサーバー #4</h2>
+			<time>2017/04/08</time>
+			<div>
+				
+
+<p>この一連の記事では<code>net/http</code>を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
+
+<ul>
+<li><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
+<li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+<li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+</ul>
+
+<p>上記3つの記事で<code>net/http</code>単体でもある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。但し、現代的なAPIサーバーを構築する上で必要になる部分が幾つか欠けている。今回の記事では欠けているポイントのうちの一つであるHTTPルーターの話を書く。</p>
+
+<h3 id="httpルーター">HTTPルーター</h3>
+
+<p>ここで言うHTTPルーターとは以下の事ができるものである事とする。</p>
+
+<ul>
+<li>HTTP Method+URLと<code>http.Handler</code>の紐付けができ、クライアントからのHTTPリクエストに対して適切な処理をディスパッチできる</li>
+<li>URLの一部として含まれるパラメタをパースし<code>http.Handler</code>側に渡す機能を持っている</li>
+</ul>
+
+<h3 id="context導入以前">context導入以前</h3>
+
+<p>上記のような事ができるHTTPルーターはいくつかあるが、もう一つ観点として「標準ライブラリと組み合わせて使えるか」というものがある。例えば、Goの標準ライブラリとして<code>context</code>が導入される以前は<code>x/net/context</code>を組み込んだHTTPルーターがそれなりにあった。同様に<code>x/net/context</code>は使わずに独自構造体でリクエストスコープな値を管理するライブラリもある。自分が良いなと思っていたのは以下のライブラリ(テストヘルパー関数だけどコントリビュートしたこともある)。</p>
+
+<ul>
+<li><a href="https://github.com/rs/xmux">xmux</a></li>
+<li><a href="https://github.com/rs/xhandler">xhandler</a></li>
+</ul>
+
+<p>xmuxは元は<a href="https://github.com/julienschmidt/httprouter">httprouter</a>というradix treeを使った高速なディスパッチを売りにするライブラリをベースにして、<code>ServeHTTPC(context.Context, w http.ResponseWriter, r *http.Request)</code>という独自のインターフェースを持ち、標準ライブラリとの間にはアダプタを挟んで良い感じでリクエストスコープの値を<code>http.Handler</code>的なインターフェースである<code>xhandler.HandlerC</code>まで渡してくれる。詳細は以下の作者ブログが詳しい。</p>
+
+<ul>
+<li><a href="http://engineering.dailymotion.com/our-way-to-go/">Our way to Go</a></li>
+</ul>
+
+<p>ただしこの類の独自インターフェース拡張方式、独自リクエストスコープな値用の構造体を持つ方式は<code>context</code>が標準ライブラリである<code>http.Request</code>に追加された後にはもはや役目を終えている感がある。<code>context</code>に関しては誤解が多い領域なので予め明記しておくが、「goroutineのキャンセルをうまいことやる」という事を主眼に置いた仕組みであり「どんな値もぶち込める便利な場所」ではない。以下の議論/記事をよく読んで、それでもリクエストスコープな値、複数のgoroutineに渡していきたい値を精査した後に持たせる値を決めるのが良いと思う。</p>
+
+<ul>
+<li><a href="http://deeeet.com/writing/2017/02/23/go-context-value/">Golangのcontext.Valueの使い方</a></li>
+<li><a href="http://peter.bourgon.org/blog/2016/07/11/context.html">Context</a></li>
+<li><a href="https://twitter.com/peterbourgon/status/752022730812317696">peterborgon tweets</a></li>
+</ul>
+
+<p>ちなみに<a href="https://github.com/julienschmidt/httprouter">httprouter</a>も「V2では<code>context</code>対応するぜ！」と言っているが<a href="https://github.com/julienschmidt/httprouter/pull/147">このPR</a>が一向にマージされないので自分は使うのを諦めた経緯がある。</p>
+
+<h3 id="context導入以後">context導入以後</h3>
+
+<p>今使っているのは以下のライブラリ。</p>
+
+<ul>
+<li><a href="https://github.com/gorilla/mux">gorilla/mux</a></li>
+</ul>
+
+<p>ビルドタグを使ってGo 1.6以前は独自構造体を使う、Go 1.7以降は標準ライブラリの<code>http.Request</code>の中に入っている<code>context.Context</code>を使う、という形になっている。</p>
+
+<ul>
+<li><a href="https://github.com/gorilla/mux/blob/master/context_native.go#L1">mux/context_nativ.go</a></li>
+</ul>
+
+<p>以下サンプルコード。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// for gorilla/mux
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/staticName&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">publicChain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/{name}&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>}))
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:8080&#34;</span>, <span style="color:#a6e22e">router</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+	}</code></pre></div>
+<p><code>PathPrefix</code>を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で<code>{name}</code>の用にパラメタを設定でき、<code>http.Handler</code>の中で以下のようにして取得することができる。注意点1として、<code>mux.Vars</code>で取得できるURLパラメタは<code>map[string]string</code>なのでその後の処理に応じて適切な型にキャストして利用する必要がある。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// GreetingWithName greeting with name
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">app</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">GreetingWithName</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">val</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Vars</span>(<span style="color:#a6e22e">r</span>)
+	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HelloService</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>(), <span style="color:#a6e22e">val</span>[<span style="color:#e6db74">&#34;name&#34;</span>], <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>())
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;error: %s&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ErrorResponse</span>{
+			<span style="color:#a6e22e">Code</span>:    <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>,
+			<span style="color:#a6e22e">Message</span>: <span style="color:#e6db74">&#34;something went wrong&#34;</span>,
+		}
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">e</span>, <span style="color:#a6e22e">err</span>
+	}
+	<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ok: %v&#34;</span>, <span style="color:#a6e22e">res</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">res</span>, <span style="color:#66d9ef">nil</span>
+}</code></pre></div>
+<p>注意点2としては、URLパラメタを含むURLと同じ階層で静的なURLを使いたい場合、静的なURLを先に登録する必要がある、という事。ちなみに<a href="https://github.com/julienschmidt/httprouter">httprouter</a>は現時点でURLパラメタと同じ階層に静的なURLを登録できない(これもhttprouter使うのを諦めた理由の一つではある)。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">    <span style="color:#75715e">// /hello/staticNameが先、/hello/{name}は後
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/staticName&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">publicChain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/{name}&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>}))</code></pre></div>
+<h3 id="テストを書く">テストを書く</h3>
+
+<p>これが若干悩ましい。何が悩ましいかというと「muxの中でURLパラメタをパースして<code>context.Context</code>に値をセットするAPIが開発者には公開されていない」という事。パッケージ作成者としてはgorilla/muxが管理する<code>context.Context</code>のキーを外部に公開しないというのは非常に分かるし、推奨される方法だ(意図せず同一のキーで上書きされるのを防ぐため)。しかし<a href="https://github.com/gorilla/mux/issues/167">このIssue</a>で提案されているコードはやっぱり冗長だし、何よりテストコードの中に本質的でないURLと<code>http.Handler</code>を書かなければいけないのが良くないのではと思う。URL書き間違えたらテストの意味が無いし、URLのルーティング含めたテストは<code>http.Handler</code>単体のテスト(アプリケーション固有ロジックのテスト)とは別途書かれるべきなのではないか、という思いがある。まだ正直この部分は悩み中。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">    <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+    <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/hello/{name}&#34;</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintln</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Hello, client&#34;</span>)
+    }))
+
+    <span style="color:#a6e22e">ts</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewServer</span>(<span style="color:#a6e22e">r</span>)
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ts</span>.<span style="color:#a6e22e">Close</span>()
+
+    <span style="color:#75715e">// Table driven test
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">names</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;kate&#34;</span>, <span style="color:#e6db74">&#34;matt&#34;</span>, <span style="color:#e6db74">&#34;emma&#34;</span>}
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">name</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">names</span> {
+        <span style="color:#a6e22e">url</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ts</span>.<span style="color:#a6e22e">URL</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/hello/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span>
+        <span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">url</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+        }
+
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Code</span>; <span style="color:#a6e22e">status</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span> {
+            <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;wrong status code: got %d want %d&#34;</span>, <span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
+        }
+    }</code></pre></div>
+<p>一応自分でも「<code>context.Context</code>に値をセットできるようなPublic Test APIを作成したら良いのでは？」と<a href="https://github.com/gorilla/mux/issues/233">このIssue</a>で提案してみたが、作者は上記の方法には興味無さそう(もう少しPushしてみるのはありかもしれない)。</p>
+
+<p>なのでこんな感じのPublic Test APIを付けたforkを現在は利用している。</p>
+
+<ul>
+<li><a href="https://github.com/achiku/mux/commit/f8f4828232971c798713d8c4f7bb9739f9950dc4">achiku/mux</a></li>
+</ul>
+
+<p>これを使うとどのように書けるかというと、以下。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestGreetingWithName</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+	<span style="color:#a6e22e">app</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">testNewApp</span>(<span style="color:#a6e22e">t</span>)
+	<span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">struct</span> {
+		<span style="color:#a6e22e">Name</span>            <span style="color:#66d9ef">string</span>
+		<span style="color:#a6e22e">ExpectedMessage</span> <span style="color:#66d9ef">string</span>
+		<span style="color:#a6e22e">ExpectedName</span>    <span style="color:#66d9ef">string</span>
+	}{
+		{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;achiku&#34;</span>, <span style="color:#a6e22e">ExpectedMessage</span>: <span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#a6e22e">ExpectedName</span>: <span style="color:#e6db74">&#34;achiku&#34;</span>},
+		{<span style="color:#a6e22e">Name</span>: <span style="color:#e6db74">&#34;moqada&#34;</span>, <span style="color:#a6e22e">ExpectedMessage</span>: <span style="color:#e6db74">&#34;sup&#34;</span>, <span style="color:#a6e22e">ExpectedName</span>: <span style="color:#e6db74">&#34;my man&#34;</span>},
+	}
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">d</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">data</span> {
+		<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">MethodGet</span>, <span style="color:#e6db74">&#34;/api/hello/&#34;</span><span style="color:#f92672">+</span><span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#66d9ef">nil</span>)
+		<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">TestSetURLParam</span>(<span style="color:#a6e22e">req</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">Name</span>})
+		<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>(<span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>(), <span style="color:#a6e22e">r</span>)
+        <span style="color:#f92672">...</span>
+}</code></pre></div>
+<p>このように<code>mux.TestSetURLParam(*http.Request, map[string]string)</code>を使うことで<code>http.Request</code>の中の<code>context.Context</code>にテスト用の値を注入してテストを流せる。まぁ書いてみて思ったけどこれもまだ<code>http.Request</code>を作る時にURL書いてるし微妙な気がしてきた。この辺みんなどうやってテストしてるのか聞いてみたい。</p>
+
+<h3 id="合わせて読みたい">合わせて読みたい</h3>
+
+<ul>
+<li><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
+<li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+<li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+</ul>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

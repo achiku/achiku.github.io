@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>関数的であるということ</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/style.css">
+	<link rel="stylesheet" href="https://akirachiku.comcss/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>関数的であるということ</h2>
+			<time>2010/01/30</time>
+			<div>
+				
+
+<p>イマイチしっくりとこなかったんだけど、Pythonを使ってみて何となく、ほんのちょこっと関数的であるということが分かってきた気がする。今自分が実感できる「関数的」なことは大きく分けると二つ。1.抽象化する、2.手続きではなく定義を書く</p>
+
+<p>こっから先はプログラミング歴2年の、しかも仕事でプログラミングあんましてない趣味プログラマが書くことなので、色々間違い・勘違い等含まれていると思うので注意して読まれたし。</p>
+
+<h3 id="抽象化する">抽象化する</h3>
+
+<p>以前にもkshで関数的に書くっていうエントリを書いた。</p>
+
+<p><a href="{% post_url 2009-07-08-pragmatic-functional-programming %}">プラグマティック関数プログラミング</a></p>
+
+<p>言いたい事はほぼ、このエントリの中にあるんだけど、もう一度まとめる。プログラムがおおきくなるにつれて、プログラムを変更、追加する必要がある場面が増える。そういった時に簡単に変更、追加を行えるようにプログラム同士はなるべく緩くつながっていて欲しいという需要がでてきた。緩くつながるってのはどういうことか。簡単に言うと「取り替えるのが簡単」ってことだ。オブジェクト指向はこの取り替えがなるべく簡単にできるように、クラス、オブジェクト、継承ってのを使ってアプローチしている。関数的なものは、言うに及ばず、関数を使ってこの「取り替えるのが簡単」っていうベネフィットにアプローチする。以下、上記エントリの引用。</p>
+
+<blockquote>
+<p>上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。</p>
+</blockquote>
+
+<p>つまり、「ほげほげ」の部分を空白にしておくことで、いろんな関数を取り替え可能にしておく事ができる。この様にして関数的なプログラミング言語は「取り替えるのが簡単」っていう利点を作り出している。</p>
+
+<h3 id="手続きではなく定義を書く">手続きではなく定義を書く</h3>
+
+<p>これは最近自分でしっくりきた感覚。感覚なので、なかなか伝えるのが難しいんだけど、トライしてみます。「手続き」っていうのは、「アレとコレを比べる。比べた結果、アレの方が大きかった場合、foo処理をする。比べた結果、コレの方が大きかった場合、bar処理をする。」っていう機械に語りかけるような、そんな感じのものだと認識している。関数的なものの場合、「foo処理とは、アレとコレを比べてアレの方が大きい場合の処理。bar処理とはアレとコレを比べてコレの方が大きい場合の処理。」ってな感じ。。。だんだん怪しくなってきた。。。たぶんどっちでやっても同じような事をするプログラムは書けるんだろうと思う。</p>
+
+<p>書いてたらわからんくなってきた。一時中断する。またなんかふといい説明方法が思いついたら書く！</p>
+
+<p>どなたかわかりやすげな説明できる方、よろしくお願いします！ひろくんとか！</p>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-05-22-cnps/">cnps イベントに来る人をよりよく知るツール</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+
