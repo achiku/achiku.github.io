@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>net/httpで作るGo APIサーバー #6</title>
+	
+	
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+	<link rel="stylesheet" href="https://akirachiku.com/css/style.css">
+	<link rel="stylesheet" href="https://akirachiku.com/css/pygment_github.css">
+	
+	<meta name="generator" content="Hugo 0.46" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+	<header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+	</header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>net/httpで作るGo APIサーバー #6</h2>
+			<time>2018/08/11</time>
+			<div>
+				
+
+<p>この一連の記事では <code>net/http</code> を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
+
+<ul>
+<li><a href="https://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
+<li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
+<li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
+<li><a href="https://akirachiku.com/2017/04/08/go-net-http-api-server-4.html">net/httpで作るGo APIサーバー #4</a></li>
+<li><a href="https://akirachiku.com/2018/06/23/go-net-http-api-server-5.html">net/httpで作るGo APIサーバー #5</a></li>
+</ul>
+
+<p>上記5つの記事で <code>net/http</code> 単体でも小さいライブラリを利用しながらある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。今回はエラーハンドリングについて書く。サーバーサイドのエラーハンドリングを中心に書くが、この領域はフロントエンドとも密に連携していく必要があるため、その辺りの仕組みをどうするかに関しても言及していく。</p>
+
+<h3 id="エラー-と呼ばれるものの種類と扱い方">&ldquo;エラー&rdquo;と呼ばれるものの種類と扱い方</h3>
+
+<p>Goで&rdquo;エラー&rdquo;という言葉が表すものを恣意的に二種類に分類した。それぞれの定義と簡易的な扱い方を以下に書く。</p>
+
+<h4 id="ハンドリングの余地の無いエラー">ハンドリングの余地の無いエラー</h4>
+
+<ul>
+<li>例: 存在しないスライスのインデックスにアクセスした、等</li>
+<li>アプリケーション側ではこれ以上どうしようもない、という状態になるエラー</li>
+<li>このタイプのエラーは <code>panic</code> を利用する</li>
+</ul>
+
+<p><a href="https://github.com/golang/go/wiki/CodeReviewComments#dont-panic">Code Review Comment</a> にもあるようにアプリケーションコードの中で利用することはあまり無いかなという印象。たまにGoの <code>error</code> を扱うのがダルいので <code>error</code> を返さずに <code>panic</code> で終了！みたいなコードをライブラリ内で見ることがあるけど、そのような使い方をしてしまうとライブラリ利用側でそのエラーが発生した際にどのような挙動をするべきか決めるという自由を奪い強制的に終了することになるので、少なくとも利用には慎重になるのが大切かなと思う。(もちろん <code>error</code> を返すよりも <code>panic</code> で落とすケースの方が適切な場合もあると思うのであくまで <code>panic</code> 使う前に慎重になる、という意味)</p>
+
+<h4 id="ハンドリングの余地の有るエラー">ハンドリングの余地の有るエラー</h4>
+
+<ul>
+<li>例: 存在しないユーザーIDがリクエストされてきた、等</li>
+<li>アプリケーション側で発生したエラーによって挙動、メッセージを変更したいエラー</li>
+<li>このタイプのエラーは <code>error</code> を利用し適切なハンドリングをする</li>
+</ul>
+
+<p>Goで <code>error</code> はビルトインのインターフェース型の一つ。以下の形を満たせばどのような構造体でも関数でも <code>error</code> として扱える。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">error</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span>
+}</code></pre></div>
+<p>また標準ライブラリの <code>errors</code>　パッケージの中を覗いてみるとこういうコードになっている。<a href="https://golang.org/src/errors/errors.go">src/errors/errors.go</a>。非常にシンプルだが拡張性のある形になっている。ただし、それが故に以下2点に関しては少し工夫が必要になる。</p>
+
+<ul>
+<li><code>error</code> に付加情報を持たせる
+
+<ul>
+<li>関数の深いところから <code>error</code> が返ってくる場合に <code>error</code> インターフェースを満たしながら各階層でコンテクストを付加して呼び出し元に渡したい場合がある</li>
+<li>これは処理がGoの中で閉じるならよほどのことが無い限り <a href="https://github.com/pkg/errors">github.com/pkg/errors</a> を利用すれば良いと思う
+
+<ul>
+<li><code>errors.Wrap</code> もしくは <code>errors.Wrapf</code> で呼び出した関数から上がってきた <code>error</code> に何某かの付加情報を付与して返す形になる</li>
+<li>これをやることで <code>no such file or directory</code> だけのエラーが返ってくる事がなくなり、どこで何の関数が失敗したのかわかりやすくなる</li>
+<li>ただしフロントエンドに返すエラーとなると話が違うので後ほど詳細に書く</li>
+</ul></li>
+</ul></li>
+<li><code>error</code> に種類を持たせる
+
+<ul>
+<li><code>error</code> が呼び出した関数から返ってきた場合、具体的に何のエラーかによって呼び出し元で処理を分けたい場合がある</li>
+<li>実装方法は大きく分けて3つあり、それぞれにメリット/デメリットがある
+
+<ul>
+<li>この記事が最高に参考になる</li>
+<li><a href="https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully">Don&rsquo;t just check errors, handle them gracefully</a></li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p>「 <code>error</code> に付加情報を持たせる」に関してはあまり大きな論点が無いのでそのままにするとして、「 <code>error</code> に種類を持たせる」の部分はもう少し詳細に書く。</p>
+
+<h3 id="どのようにerrorに種類を持たせるか">どのようにerrorに種類を持たせるか</h3>
+
+<p>原則 <a href="https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully">Don&rsquo;t just check errors, handle them gracefully</a> を読めばいけるんだけどざっくりと要約すると以下になる。</p>
+
+<ul>
+<li>daveの結論
+
+<ul>
+<li>Opaque Errorを使うとパッケージ間の依存を極限まで減らせて便利</li>
+</ul></li>
+<li>エラーに種類を持たせ、種類によって呼び出し元の処理を変える方法は大きく3つあり、それぞれメリットとデメリットがある</li>
+<li>Sentinel Error
+
+<ul>
+<li>エラーを値としてパッケージ内に持つ (例: <code>io.EOF</code>)</li>
+<li>値なので <code>==</code> で比較して呼び出し元の処理を分ける</li>
+<li>メリット
+
+<ul>
+<li>あんまりない</li>
+</ul></li>
+<li>デメリット
+
+<ul>
+<li>エラーに追加で情報をもたせたりする事ができなくなる
+
+<ul>
+<li><code>var EOF = errors.New(&quot;EOF&quot;)</code> で定義されているので</li>
+</ul></li>
+<li>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</li>
+</ul></li>
+</ul></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">ErrSomething</span> { <span style="color:#960050;background-color:#1e0010">…</span> }</code></pre></div>
+<ul>
+<li>Error Type
+
+<ul>
+<li>エラーを型を持つ構造体としてパッケージ内に持つ (例: <code>os.PathError</code>)</li>
+<li>Type Assertionを使って呼び出し元の処理を分ける</li>
+<li>メリット
+
+<ul>
+<li>型なので属性を増やせば追加でエラーのメタデータを増やせる
+
+<ul>
+<li><code>os.PathError</code> には <code>Op</code> , <code>Path</code> というメタデータが存在している</li>
+</ul></li>
+</ul></li>
+<li>デメリット
+
+<ul>
+<li>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</li>
+</ul></li>
+</ul></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyError</span> <span style="color:#66d9ef">struct</span> {
+        <span style="color:#a6e22e">Msg</span> <span style="color:#66d9ef">string</span>
+        <span style="color:#a6e22e">File</span> <span style="color:#66d9ef">string</span>
+        <span style="color:#a6e22e">Line</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyError</span>) <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span> { 
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s:%d: %s”, e.File, e.Line, e.Msg)
+</span><span style="color:#e6db74">}
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">return &amp;MyError{&#34;</span><span style="color:#a6e22e">Something</span> <span style="color:#a6e22e">happened</span><span style="color:#e6db74">&#34;, “server.go&#34;</span>, <span style="color:#ae81ff">42</span>}</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">something</span>()
+<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#66d9ef">type</span>) {
+<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">nil</span>:
+        <span style="color:#75715e">// call succeeded, nothing to do
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyError</span>:
+        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#960050;background-color:#1e0010">“</span><span style="color:#66d9ef">error</span> <span style="color:#a6e22e">occurred</span> <span style="color:#a6e22e">on</span> <span style="color:#a6e22e">line</span>:<span style="color:#960050;background-color:#1e0010">”</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Line</span>)
+<span style="color:#66d9ef">default</span>:
+<span style="color:#75715e">// unknown error
+</span><span style="color:#75715e"></span>}</code></pre></div>
+<ul>
+<li>Opaque Error
+
+<ul>
+<li>特定のインターフェースをパッケージ内に持つ (例: <code>net.Error</code>)</li>
+<li>Type Assertionを使って呼び出し元の処理を分ける</li>
+<li>メリット
+
+<ul>
+<li>インターフェースなのでパッケージ外に出る際付加情報を加える事も容易(インターフェースを満たす構造体をエラーとして利用)</li>
+<li>呼び出し側は特定の型を別パッケージからimportする必要無くエラー発生時に処理を分岐させれる</li>
+</ul></li>
+<li>デメリット
+
+<ul>
+<li>あんまりない</li>
+</ul></li>
+</ul></li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">temporary</span> <span style="color:#66d9ef">interface</span> {
+        <span style="color:#a6e22e">Temporary</span>() <span style="color:#66d9ef">bool</span>
+}
+ 
+<span style="color:#75715e">// IsTemporary returns true if err is temporary.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">IsTemporary</span>(<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) <span style="color:#66d9ef">bool</span> {
+        <span style="color:#a6e22e">te</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">temporary</span>)
+        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">te</span>.<span style="color:#a6e22e">Temporary</span>()
+}</code></pre></div>
+<p>こっからは自分の主観。Opaque Errorは確かに便利で標準ライブラリでも良く利用されているパターンだと思うんだけど、アプリケーション内部で使うにはそこまでパッケージの結合度合いを考えないで良いのではないかなぁという思いがある(特にアプリケーション構築初期には)。なので自分はHTTP APIサーバーを作るというコンテクストでは Error Type 推し。ただ Opaque Error を使うと1関数から複数の Error Type が返ってくる想定で且つそれぞれの Error Type が <code>Tempolary()</code> と <code>Timeout()</code> を持っている場合、横断的なエラーハンドリングがしやすくはなるなとは思う。余談だけど、このタイプのメソッドは <code>Tempolary()</code> と <code>Timeout()</code> くらいしか見たことがなく自分の知見が狭いだけな可能性があるため、他にもこういう形のエラーハンドリングを使ってる場所があれば知りたい。</p>
+
+<h3 id="http-apiサーバーという文脈でそれらをどのように扱うか">HTTP APIサーバーという文脈でそれらをどのように扱うか</h3>
+
+<p>長かった。HTTP APIサーバーの中で <code>error</code> をどうやって使うかという話を書く。結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則 <code>error</code> のみ利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする。エラーログの出力は <code>ServeHTTP</code> の中で実施する。」という形をとっている。一つづついきます。</p>
+
+<h4 id="apiサーバーの中では原則errorのみ利用し-本当に必要な場合は-error-type-を使う">APIサーバーの中では原則errorのみ利用し、本当に必要な場合は Error Type を使う</h4>
+
+<p>現状のパッケージ構成はいまだこの構成のまま。</p>
+
+<script async class="speakerdeck-embed" data-slide="10" data-id="9c6e284d996840b1a542b2beaf5ca30e" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+<p>また、特にパッケージ毎にエラーを定義せずに原則 <code>error</code> を <code>errors.Wrap</code> して <code>model</code> -&gt; <code>service</code> -&gt; <code>handler</code> に伝播させていっている。Error Type を使わなかった理由は特に無くて、ただただアプリケーション作るだけならあんまし必要なくね、って思ったから。</p>
+
+<p>例えば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, error)</code> という関数があったとして、その関数から <code>UserNotFoundError</code> や <code>UserSuspendedError</code> を返す事もできる。</p>
+
+<h4 id="フロントとのやり取りをするためにはそれ用の-error-type-を定義してやりとりする">フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする</h4>
+
+<h4 id="エラーログの出力はservehttpの中で実施する">エラーログの出力はServeHTTPの中で実施する</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// ServeHTTPC for iapi
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#a6e22e">IapiHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">encoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#a6e22e">w</span>)
+	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
+
+	<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">h</span>.<span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
+	<span style="color:#66d9ef">switch</span> {
+	<span style="color:#75715e">// 204 でbodyにWriteすると以下のエラーが発生するので 204 の場合はwriteしない
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// http: request method or response status code does not allow body
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusNoContent</span>:
+		<span style="color:#66d9ef">return</span>
+	<span style="color:#75715e">// 300系はとりあえずリダイレクト
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusFound</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusMovedPermanently</span>:
+		<span style="color:#a6e22e">redirectURL</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">res</span>.(<span style="color:#66d9ef">string</span>)
+		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#e6db74">&#34;failed to convert res to redirectURL&#34;</span>)
+			<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)
+			<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
+			<span style="color:#66d9ef">return</span>
+		}
+		<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Redirect</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>, <span style="color:#a6e22e">redirectURL</span>, <span style="color:#a6e22e">status</span>)
+		<span style="color:#66d9ef">return</span>
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">status</span> &lt; <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>:
+		<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Warn</span>(<span style="color:#a6e22e">err</span>)
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>:
+		<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
+	}
+
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">status</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>)
+		<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)
+		<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">errorResponseUnknown</span>)
+		<span style="color:#66d9ef">return</span>
+	}
+	<span style="color:#66d9ef">return</span>
+}</code></pre></div>
+<h3 id="効率的に扱うための仕組み">効率的に扱うための仕組み</h3>
+
+<h3 id="参考資料">参考資料</h3>
+
+<ul>
+<li><a href="https://middlemost.com/failure-is-your-domain/">Failure is your Domain</a></li>
+<li><a href="https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully">Don&rsquo;t just check errors, handle them gracefully</a></li>
+<li><a href="https://blog.golang.org/error-handling-and-go">Error handling and Go</a></li>
+<li><a href="https://deeeet.com/writing/2016/04/25/go-pkg-errors/">Golangのエラー処理とpkg/errors</a></li>
+<li><a href="https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html">Error handling in Upspin</a></li>
+</ul>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>LATEST POSTS</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2018-08-11-go-net-http-api-server-6/">net/httpで作るGo APIサーバー #6</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
+					
+					<li><a href="https://akirachiku.com/about/">About</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2017-06-26-go18-development/">Go 1.8開発環境整備</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

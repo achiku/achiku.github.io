@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 23 Jun 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 11 Aug 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>net/httpで作るGo APIサーバー #6</title>
+      <link>https://akirachiku.com/post/2018-08-11-go-net-http-api-server-6/</link>
+      <pubDate>Sat, 11 Aug 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2018-08-11-go-net-http-api-server-6/</guid>
+      <description>この一連の記事では net/http を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。 net/httpで作るGo</description>
+    </item>
     
     <item>
       <title>net/httpで作るGo APIサーバー #5</title>
