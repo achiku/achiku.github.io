@@ -207,13 +207,6 @@
         <span style="color:#a6e22e">te</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">temporary</span>)
         <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">te</span>.<span style="color:#a6e22e">Temporary</span>()
 }</code></pre></div>
-<<<<<<< HEAD
-<p>こっからは自分の主観。Opaque Errorは確かに便利で標準ライブラリでも良く利用されているパターンだと思うんだけど、アプリケーション内部で使うにはそこまでパッケージの結合度合いを考えないで良いのではないかなぁという思いがある(特にアプリケーション構築初期には)。なので自分はHTTP APIサーバーを作るというコンテクストでは Error Type 推し。ただ Opaque Error を使うと1関数から複数の Error Type が返ってくる想定で且つそれぞれの Error Type が <code>Tempolary()</code> と <code>Timeout()</code> を持っている場合、横断的なエラーハンドリングがしやすくはなるなとは思う。余談だけど、このタイプのメソッドは <code>Tempolary()</code> と <code>Timeout()</code> くらいしか見たことがなく自分の知見が狭いだけな可能性があるため、他にもこういう形のエラーハンドリングを使ってる場所があれば知りたい。</p>
-
-<h3 id="http-apiサーバーという文脈でそれらをどのように扱うか">HTTP APIサーバーという文脈でそれらをどのように扱うか</h3>
-
-<p>長かった。HTTP APIサーバーの中で <code>error</code> をどうやって使うかという話を書く。結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則 <code>error</code> のみ利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする。エラーログの出力は <code>ServeHTTP</code> の中で実施する。」という形をとっている。一つづついきます。</p>
-=======
 <p>こっからは自分の主観。Opaque Errorは確かに便利で標準ライブラリでも良く利用されているパターンだと思うんだけど、アプリケーション内部で使うにはそこまでパッケージの結合度合いを考えないで良いのではないかなぁという思いがある(特にアプリケーション構築初期には)。また、以下のようにエラーの扱いに困っている人とかもいたりして、確かに初見だと <code>XXXXError</code> みたいな型がパッケージのドキュメントにあった方が確かにわかりやすいよなぁという感想を持った。 <a href="https://utcc.utoronto.ca/~cks/space/blog/programming/GoNetErrorsUndocumented">Go&rsquo;s net package doesn&rsquo;t have opaque errors, just undocumented ones</a></p>
 
 <p>なので自分はHTTP APIサーバーを作るというコンテクストでは Error Type 推し。ただ Opaque Error を使うと1関数から複数の Error Type が返ってくる想定で且つそれぞれの Error Type が <code>Tempolary()</code> と <code>Timeout()</code> を持っている場合、横断的なエラーハンドリングがしやすくはなるなとは思う。余談だけど、このタイプのメソッドは <code>Tempolary()</code> と <code>Timeout()</code> くらいしか見たことがなく自分の知見が狭いだけな可能性があるため、他にもこういう形のエラーハンドリングを使ってる場所があれば知りたい。</p>
@@ -221,7 +214,6 @@
 <h3 id="http-apiサーバーという文脈でそれらをどのように扱うか">HTTP APIサーバーという文脈でそれらをどのように扱うか</h3>
 
 <p>長かった。HTTP APIサーバーの中で <code>error</code> をどうやって使うかという話を書く。結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則 <code>error</code> をWrapしながら利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の型( Error Type じゃない)を定義してやりとりする。エラーログの出力は <code>ServeHTTP</code> の中で実施する。」という形をとっている。一つづついきます。</p>
->>>>>>> 82b9a8e... 20180902
 
 <h4 id="apiサーバーの中では原則errorのみ利用し-本当に必要な場合は-error-type-を使う">APIサーバーの中では原則errorのみ利用し、本当に必要な場合は Error Type を使う</h4>
 
@@ -231,15 +223,6 @@
 
 <p>また、特にパッケージ毎にエラーを定義せずに原則 <code>error</code> を <code>errors.Wrap</code> して <code>model</code> -&gt; <code>service</code> -&gt; <code>handler</code> に伝播させていっている。Error Type を使わなかった理由は特に無くて、ただただアプリケーション作るだけならあんまし必要なくね、って思ったから。</p>
 
-<<<<<<< HEAD
-<p>例えば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, error)</code> という関数があったとして、その関数から <code>UserNotFoundError</code> や <code>UserSuspendedError</code> を返す事もできる。</p>
-
-<h4 id="フロントとのやり取りをするためにはそれ用の-error-type-を定義してやりとりする">フロントとのやり取りをするためにはそれ用の Error Type を定義してやりとりする</h4>
-
-<h4 id="エラーログの出力はservehttpの中で実施する">エラーログの出力はServeHTTPの中で実施する</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// ServeHTTPC for iapi
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#a6e22e">IapiHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-=======
 <p>例えば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, error)</code> という関数があったとして、その関数から <code>UserNotFoundError</code> や <code>UserSuspendedError</code> を返す事もできる。できるけど、<code>xxNotFound</code> 系のエラー型を作ってしまうとその他のエラー型もすべて作る事になってしまう(作らなくてもいいけど大きく一貫性を損なう)。それでも良いと言えば良いのだけど、メリットが少ないと感じている。それならば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, bool, error)</code> として戻り値2つ目を見つかったかどうかの真偽値にし、呼び出し側で処理を分岐するのが楽かなと思う。また、「ユーザーのステータスが <code>suspended</code> であるかどうか」というのは、取得されたユーザーデータを元に呼び出し元で判定し、適切なエラーをフロントエンドに返す、という形にすれば不要になる。この関数 <code>model.GetUserByID</code> の役割にもよるが、どうしても呼び出し元で複数のエラーハンドリングをしないといけない場合、関数を分割することを検討するなどし、現状はなるべく Error Type を作らずに分岐可能な情報を返すような方針で設計している。</p>
 
 <p>ただし、特に外部APIにアクセスするGoのクライアントライブラリに関しては返ってくるエラーに様々なパターンがあり且つそれらのパターン別にフロントエンドに返すメッセージを分けたいことが多い為、独自の Error Type を定義して利用することがある。もちろん失敗した事だけわかれば良い外部APIであれば error をそのまま返す形になっている。</p>
@@ -297,7 +280,6 @@
 
 <span style="color:#75715e">// ServeHTTPC for api
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#a6e22e">ApiHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
->>>>>>> 82b9a8e... 20180902
 	<span style="color:#a6e22e">encoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#a6e22e">w</span>)
 	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
 
@@ -307,11 +289,7 @@
 </span><span style="color:#75715e"></span>	<span style="color:#75715e">// http: request method or response status code does not allow body
 </span><span style="color:#75715e"></span>	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusNoContent</span>:
 		<span style="color:#66d9ef">return</span>
-<<<<<<< HEAD
-	<span style="color:#75715e">// 300系はとりあえずリダイレクト
-=======
 	<span style="color:#75715e">// 300系はリダイレクト。そのさいは interface{} は redirect先URL で返してもらうようにする。
->>>>>>> 82b9a8e... 20180902
 </span><span style="color:#75715e"></span>	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusFound</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusMovedPermanently</span>:
 		<span style="color:#a6e22e">redirectURL</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">res</span>.(<span style="color:#66d9ef">string</span>)
 		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
@@ -337,15 +315,11 @@
 	}
 	<span style="color:#66d9ef">return</span>
 }</code></pre></div>
-<<<<<<< HEAD
-<h3 id="効率的に扱うための仕組み">効率的に扱うための仕組み</h3>
-=======
 <p>400系は全てwarning log、500系はerror logとして扱っている。この辺りのエラーを運用でどうやって整備しているのかの話はまた別記事で書きたいのでここでは深入りはしない。</p>
 
 <h3 id="まとめ">まとめ</h3>
 
 <p>エラーハンドリングは本当にむずい。</p>
->>>>>>> 82b9a8e... 20180902
 
 <h3 id="参考資料">参考資料</h3>
 
@@ -391,8 +365,6 @@
 		</div>
 	</aside>
 
-<<<<<<< HEAD
-=======
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -402,7 +374,6 @@
   ga('send', 'pageview');
 </script>
 
->>>>>>> 82b9a8e... 20180902
 	<footer class="pure-u-1 pure-u-md-1">
 		<p>&copy; 2018 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
 	</footer>
