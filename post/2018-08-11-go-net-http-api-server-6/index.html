@@ -213,19 +213,31 @@
 
 <h3 id="http-apiサーバーという文脈でそれらをどのように扱うか">HTTP APIサーバーという文脈でそれらをどのように扱うか</h3>
 
-<p>長かった。HTTP APIサーバーの中で <code>error</code> をどうやって使うかという話を書く。結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則 <code>error</code> をWrapしながら利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の型( Error Type じゃない)を定義してやりとりする。エラーログの出力は <code>ServeHTTP</code> の中で実施する。」という形をとっている。一つづついきます。</p>
+<p>長かった。HTTP APIサーバーの中で <code>error</code> をどうやって使うかという話を書く。まずは前提。</p>
 
-<h4 id="apiサーバーの中では原則errorのみ利用し-本当に必要な場合は-error-type-を使う">APIサーバーの中では原則errorのみ利用し、本当に必要な場合は Error Type を使う</h4>
+<ul>
+<li>バンドルカードAPIの前提
+
+<ul>
+<li>エンドポイントの数は102個</li>
+<li>テーブル数185個</li>
+<li>フルタイムバックエンドエンジニア2名</li>
+</ul></li>
+</ul>
+
+<p>結論から書くと、カンムが提供するバンドルカードのAPIは「APIサーバーの中では原則ビルトインの <code>error</code> をWrapしながら利用し、本当に必要な場合は Error Type を使う。フロントとのやり取りをするためにはそれ用の型( Error Type じゃない)を定義してやりとりする。エラーログの出力は <code>ServeHTTP</code> の中で実施する。」という形をとっている。一つづついきます。</p>
+
+<h4 id="apiサーバーの中では原則ビルトインのerrorのみ利用し-本当に必要な場合は-error-type-を使う">APIサーバーの中では原則ビルトインのerrorのみ利用し、本当に必要な場合は Error Type を使う</h4>
 
 <p>現状のパッケージ構成はいまだこの構成のまま。</p>
 
 <script async class="speakerdeck-embed" data-slide="10" data-id="9c6e284d996840b1a542b2beaf5ca30e" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
 
-<p>また、特にパッケージ毎にエラーを定義せずに原則 <code>error</code> を <code>errors.Wrap</code> して <code>model</code> -&gt; <code>service</code> -&gt; <code>handler</code> に伝播させていっている。Error Type を使わなかった理由は特に無くて、ただただアプリケーション作るだけならあんまし必要なくね、って思ったから。</p>
+<p>また、特にパッケージ毎にエラーを定義せずに原則 <code>error</code> を <code>errors.Wrap</code> して <code>model</code> -&gt; <code>service</code> -&gt; <code>handler</code> に伝播させていっている。Error Type を積極的に使わなかった理由は特に無くて、ただただ少人数でアプリケーション作るだけならあまり必要なさそうと思ったから。</p>
 
 <p>例えば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, error)</code> という関数があったとして、その関数から <code>UserNotFoundError</code> や <code>UserSuspendedError</code> を返す事もできる。できるけど、<code>xxNotFound</code> 系のエラー型を作ってしまうとその他のエラー型もすべて作る事になってしまう(作らなくてもいいけど大きく一貫性を損なう)。それでも良いと言えば良いのだけど、メリットが少ないと感じている。それならば、<code>model.GetUserByID(tx sql.Tx, id int64) (*model.User, bool, error)</code> として戻り値2つ目を見つかったかどうかの真偽値にし、呼び出し側で処理を分岐するのが楽かなと思う。また、「ユーザーのステータスが <code>suspended</code> であるかどうか」というのは、取得されたユーザーデータを元に呼び出し元で判定し、適切なエラーをフロントエンドに返す、という形にすれば不要になる。この関数 <code>model.GetUserByID</code> の役割にもよるが、どうしても呼び出し元で複数のエラーハンドリングをしないといけない場合、関数を分割することを検討するなどし、現状はなるべく Error Type を作らずに分岐可能な情報を返すような方針で設計している。</p>
 
-<p>ただし、特に外部APIにアクセスするGoのクライアントライブラリに関しては返ってくるエラーに様々なパターンがあり且つそれらのパターン別にフロントエンドに返すメッセージを分けたいことが多い為、独自の Error Type を定義して利用することがある。もちろん失敗した事だけわかれば良い外部APIであれば error をそのまま返す形になっている。</p>
+<p>ただし、特に外部APIにアクセスするGoのクライアントライブラリに関しては返ってくるエラーに様々なパターンがあり且つそれらのパターン別にフロントエンドに返すメッセージを分けたいことが多い為、独自の Error Type を定義して利用することがある。もちろん失敗した事だけわかれば良い外部APIであれば error をそのまま返す形になっている。( <code>errors.Wrap</code> されている場合は <code>errors.Cause</code> で大本のエラーを取得して分岐する)</p>
 
 <h4 id="フロントとのやり取りをするためにはそれ用の型-error-type-じゃない-を定義してやりとりする">フロントとのやり取りをするためにはそれ用の型( Error Type じゃない)を定義してやりとりする</h4>
 
