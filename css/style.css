@@ -18,7 +18,7 @@ body {
 
 article, header, footer, aside, #pagenation {
   padding: 20px;
-  width: 90%;
+  width: auto;
   line-height: 1.5;
 }
 
