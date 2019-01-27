@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Fri, 30 Nov 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 27 Jan 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>ソフトウェアと</title>
+      <link>https://akirachiku.com/post/2019-01-27-i-am-software-engineer/</link>
+      <pubDate>Sun, 27 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2019-01-27-i-am-software-engineer/</guid>
+      <description>2013: はじめに 約5年前にソフトウェアエンジニアになりたくて前の会社を辞めた。当時3人の会社の4人目として入社。Web系のソフトウェアエンジニアの</description>
+    </item>
     
     <item>
       <title>net/httpで作るGo APIサーバー #7</title>

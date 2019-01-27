@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   
-  <meta name="generator" content="Hugo 0.46" />
+  <meta name="generator" content="Hugo 0.53" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -60,8 +60,8 @@ $ which go
 </code></pre>
 
 <p><code>.zshrc</code>に以下の環境変数を設定。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang
-</span><span style="color:#75715e"></span>export GOVERSION<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.6
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang</span>
+export GOVERSION<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.6
 export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
 export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
 <p>一応バージョンをGOPATHに入れて新しいバージョンのGoがリリースされても最初から綺麗にディレクトリ分けてビルドできるようにしてる。後方互換結構大事にしているように見受けられるのであまり心配してないけど念の為。</p>
@@ -80,7 +80,7 @@ export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></d
 <p>この2点、意外にその他シンプルなvendoring toolは無視しがちだと思うんだけどグローバルに特定プロジェクトの開発にだけ使いたいツールいれるの嫌だなぁと思う人には嬉しい。</p>
 
 <p>gomにvendorディレクトリを意識させるには以下の設定が必要。Go 1.6でGO15VENDOREXPERIMENTがデフォルトでオンになっていてもgom自体は以下の環境変数見てるので設定しないといけない。(追記: この設定は不要になりました。Go 1.6以上であれば設定不要です。<a href="https://github.com/mattn/gom/pull/74">mattn/gom/pull/74</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export GO15VENDOREXPERIMENT<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>   # <span style="color:#66d9ef">for</span> gom</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export GO15VENDOREXPERIMENT<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>   <span style="color:#75715e"># for gom</span></code></pre></div>
 <p>これを設定しておくとgomが作るライブラリ入れるディレクトリが<code>vendor</code>になり、インストールするディレクトリもGo標準のvendoringを意識した形にしてくれる。</p>
 
 <p>Go標準のツール(go buildとかgo testとか)が<code>vendor</code>ディレクトリを意識してくれるので<code>gom build</code>や<code>gom test</code>は使わなくなり、ほぼ<code>gom install</code>と<code>gom exec</code>しか使ってない。この辺りの機能はGo 1.5以前から存在してるのでもはや役目を終えつつある。しかしながら考えぬかれた便利な道具だ。</p>
@@ -253,6 +253,8 @@ $ cat .config/gocode/config.json
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2019-01-27-i-am-software-engineer/">ソフトウェアと</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2019-01-06-go-net-http-api-server-7/">net/httpで作るGo APIサーバー #7</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2018-08-11-go-net-http-api-server-6/">net/httpで作るGo APIサーバー #6</a></li>
@@ -260,8 +262,6 @@ $ cat .config/gocode/config.json
 					<li><a href="https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/">net/httpで作るGo APIサーバー #5</a></li>
 					
 					<li><a href="https://akirachiku.com/about/">About</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2018-01-01-tsuyokuteyasashii/">強くて優しくありたい</a></li>
 					
 				</ul>
 			</div>
