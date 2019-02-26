@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sun, 27 Jan 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 23 Feb 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>カンム社員全員でSQL勉強会をやっている話</title>
+      <link>https://akirachiku.com/post/2019-02-23-spartan-sql/</link>
+      <pubDate>Sat, 23 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2019-02-23-spartan-sql/</guid>
+      <description>株式会社カンム では、毎週火曜日17:00 - 18:00の時間をとって全員参加のSQL講座をやっている。2018/4から続けているのでそろそろ1</description>
+    </item>
     
     <item>
       <title>ソフトウェアと</title>
