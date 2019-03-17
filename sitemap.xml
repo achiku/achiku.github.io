@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://akirachiku.com/post/2019-03-16-marketing-note/</loc>
+    <lastmod>2019-03-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://akirachiku.com/post/2019-02-23-spartan-sql/</loc>
     <lastmod>2019-02-23T00:00:00+00:00</lastmod>
   </url>
@@ -255,7 +260,7 @@
   
   <url>
     <loc>https://akirachiku.com/post/</loc>
-    <lastmod>2019-02-23T00:00:00+00:00</lastmod>
+    <lastmod>2019-03-16T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -266,7 +271,7 @@
   
   <url>
     <loc>https://akirachiku.com/</loc>
-    <lastmod>2019-02-23T00:00:00+00:00</lastmod>
+    <lastmod>2019-03-16T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja-jp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="google-site-verification" content="u9xcmSuNZGHAmIz_6BC3gkGEQBTPZCcLqqwXb_w4KYg" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="og:title" content="カンム社マーケチームが施策前に絶対書くノートの話" />
+  <meta name="og:description" content="前のポスト でカンム社全員SQLを書いている話をした。今回は自分が所属するマーケチームが施策を考える時に必ず書くノートの話を中心に、どういう事" />
+  <meta name="og:image" content="https://akirachiku.com/images/note.jpg" />
+  <meta name="twitter:url" content="https://akirachiku.com/post/2019-03-16-marketing-note/" />
+  <meta name="twitter:site" content="@_achiku" />
+  <meta name="twitter:creator" content="@_achiku" /> 
+  <title>カンム社マーケチームが施策前に絶対書くノートの話</title>
+  
+  
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+  <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
+  
+  <meta name="generator" content="Hugo 0.54.0" />
+</head>
+<body>
+  <div id="container" class="pure-g">
+  <header class="pure-u-1 pure-u-md-1">
+    <h1 class="post-title">包丁一本さらしに巻いて</h1>
+      <nav role='navigation'>
+        <div class="pure-menu pure-menu-horizontal">
+          <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="/" class="pure-menu-link">Top</a></li>
+            <li class="pure-menu-item"><a href="/about/" class="pure-menu-link">About</a></li>
+            <li class="pure-menu-item"><a href="/index.xml" class="pure-menu-link">Feed</a></li>
+          </ul>
+        </div>
+      </nav>
+  </header>
+
+	<main class="pure-u-1 pure-u-md-1">
+		<article>
+			<h2>カンム社マーケチームが施策前に絶対書くノートの話</h2>
+			<time>2019/03/16</time>
+			<div>
+				
+
+<p><a href="https://akirachiku.com/post/2019-02-23-spartan-sql/">前のポスト</a> でカンム社全員SQLを書いている話をした。今回は自分が所属するマーケチームが施策を考える時に必ず書くノートの話を中心に、どういう事をやっているのかを書く。</p>
+
+<h3 id="前提">前提</h3>
+
+<ul>
+<li>チームサイズ
+
+<ul>
+<li>自分含めて4名</li>
+</ul></li>
+<li>やってること
+
+<ul>
+<li>運用型広告(インハウス/代理店)</li>
+<li>メディア運用</li>
+<li>アプリ改善へのフィードバック</li>
+<li>キャンペーン設計</li>
+<li>アライアンス営業</li>
+<li>広報活動</li>
+</ul></li>
+<li>計測ツール環境
+
+<ul>
+<li>adjustレポート画面</li>
+<li>adjustからのリアルタイムコールバックからのredashでビジュアライズ</li>
+<li>Google Analytics</li>
+</ul></li>
+<li>予算規模
+
+<ul>
+<li>ﾅｲｼｮ</li>
+<li>(これが無いと中々全体プロセスをイメージし辛いと思うけど一旦ﾅｲｼｮです)</li>
+</ul></li>
+</ul>
+
+<h3 id="やりたいこと">やりたいこと</h3>
+
+<p>マーケティングチームを率いるとなったタイミングで、チームとして素早く探索的に新規施策を打ち、見込みのあるチャネルを開拓し続けていく事を目標にした。</p>
+
+<p>これは <a href="https://www.amazon.co.jp/dp/4873117224">トラクション</a> という本に書いてありめちゃくちゃ納得した事なのだけど、どのチャネルもどこかのタイミングでは飽和する、という話をベースにしている。理由はその場にいるユーザーにアプローチしつくしてしまった、他社が同じような施策を打ってきてCPAが高騰し始めた、等様々だが、どんなチャネルもどこかのタイミングで枯れる。そしてプロダクトのステージが変われば適切なチャネルも移動していくという話だ。ソフトウェアのボトルネックが1つ解消する度に移動していく話に似ている。</p>
+
+<p>また、数年区切りの時代に何個かマーケティングには発明が生まれている。takejunさんが書いている <a href="https://note.mu/takejune/n/n107e217f3794">仕組みをハックすること、マーケティングの型を発明すること</a> というポストにもあるように「CPI数十円」というとんでもないチャネルが必ずどこかに存在している。</p>
+
+<blockquote>
+<p>特にアーリーステージのスタートアップには「ふつうに広告を出して、ふつうの成果で満足」するのではなく、仕組みをハックし「再現性を持ったマーケティングの発明」にトライする野心を持ってほしいなと思っています。
+from <a href="https://note.mu/takejune/n/n107e217f3794">仕組みをハックすること、マーケティングの型を発明すること</a></p>
+</blockquote>
+
+<p>フリルの話も凄い好きなのだけど、自分が感動した例はKurashiruのインスタ動画広告だ。動画広告は作るのにコストがかかるが、Kurashiruではその動画そのものがコンテンツなので実質広告に利用できる動画は無数に存在しており、なおかつそのフォーマットが当時開始直後くらいのインスタの動画広告フォーマットにの小奇麗な感じにバッチリはまって劇的に伸びたという話を聞いて一人で感動していた。発明やんけそんなの。インスタ動画広告フォーマットから逆算してプロダクト作る人達が生まれるくらい発明やんけ。</p>
+
+<p>これらを考慮した際に、枯れる前から一定時間を割いてチームが素早く次のチャネルを開拓していけると強いなと思った為、あくまでもチームとして学習しながら探索できるような形にしたいと考えた。</p>
+
+<h3 id="やったこと0">やったこと0</h3>
+
+<p>去年始めくらいに社長に「COOやってくれ、そんでマーケ側見てくれ」と言われたとき、自分はマーケティングのマの字も知らない状態だった。とりあえずAmazonで何冊か本を注文したのだが、その時すでに上記であげた <a href="https://www.amazon.co.jp/dp/4873117224">トラクション</a> という本が会社の本棚にあったので、じゃ一旦これで&hellip;と手にとってとにかく読み込んだ。(「とりあえず会社にある本適当に読むか」みたいな人間にマーケティング側を任せていいのか&hellip;死ぬぞ&hellip;) という心の声を飲み込みながら2回読んだ。2回読んで完全に理解した気になり↑の「やりたいこと」をある程度固めた。</p>
+
+<h3 id="やったこと1">やったこと1</h3>
+
+<p>やりたいことはある程度思い描けたので、マーケティング、デザイナー陣合わせて『トラクション』に書いてあるカテゴリ別に一旦実現可能性を無視してブレストし、施策の一覧を作った。通称「108の施策」というSpreadsheetがあるんだけど今でも困るとここを覗き込んでアイディアを出そうとしている。</p>
+
+<p>そこから更に本をいくつか読んでみて、チームとして読んでくれと頼んだ本が2つある。</p>
+
+<ul>
+<li><a href="https://www.amazon.co.jp/gp/product/B07HXKFQWQ">グロースハック完全読本</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/4596551227">ジョブ理論</a></li>
+</ul>
+
+<p>『グロースハック完全読本』に関して言うと正直「グロースハックだぁ？バズワードをタイトルにつけやがって」くらいの気持ちで手にとったんだけど、完全に自分が間違っていた。本当にいい本だった。この本にはプロダクトの成功したディストリビューション例の詳細が書かれている。また、そのような作戦を取れるチームとはどういう性質を持つのかも書いてある。何も無いところから新しいディストリビューションの案を出す事は非常に難しい為、このような例が集まっている知識をチームが持っていることで「Dropboxのリファラルのような」みたいにコンテキストを圧縮した会話が出来ることは価値だと思う。</p>
+
+<p>『ジョブ理論』においては言わずもがなだと思う。とにかく読んでくれ。結局自分がいるような小さな会社は何かの領域で圧勝しなければならない。本当に自分たちは「決済」という領域で戦っているのか？実はATMと比較されているのではないか？等の問いを常に頭に描きながら訴求を調整していくこと。これはディストリビューション効率のみを見ていると忘れてしまいがちだけど、顧客に届けるという部分を受け持っているからこそジョブの観点からプロダクトにフィードバックを行っていく必要があると思っている。</p>
+
+<p>個人として読んで良かったなと思う本は以下。これもいつかなぜ良いと思ったのか書いてみたい。</p>
+
+<ul>
+<li><a href="https://www.amazon.co.jp/gp/product/B07GXKC3SG">ブランディングの科学</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/B0797SKWRJ">欲望する「ことば」</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/B077FD2CM3">マネタイズ戦略</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/B00L7HRL4S">リスティング広告 成功の法則</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/B00K1W67SQ">広報・PRの基本</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/B0725S55H2">逆襲の広報PR</a></li>
+<li><a href="https://www.amazon.co.jp/gp/product/4478104409">マーケティングの教科書――ハーバード・ビジネス・レビュー 戦略マーケティング論文ベスト10</a></li>
+</ul>
+
+<h3 id="やったこと2">やったこと2</h3>
+
+<p>108の施策から筋のありそうなものをいくつか実行してみた。ここで「これって本当に効果あったんだっけ」や「前やったあれの結果どうだったっけ。てかどういう前提条件だったんだっけ。」みたいな事が発生し始めた。このような状態ではうまくいかなかったという学びも蓄積されず、その実験によってどこの地平が新たに開拓されたのかも不明瞭になり、メンバーが新規に入ってきたら結局口伝で伝えなければいけない。チームに学びが蓄積していかない状態だ。</p>
+
+<p>考えた際に出てきたのが「新規施策ノート」を書く事だった。結論から言うと以下のようなノートを必ず新規施策実施前に書きレビューを通す事にしている。例は今適当に考えたが項目としては以下で固定。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-md" data-lang="md"><span style="color:#75715e">##</span> 前提
+
+<span style="color:#66d9ef">-</span> Twitterで誕生日の風船が飛んでるとスクショ取ってツイートしたくなる<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> 祝われたいという思いを風船が飛んでる！というアレで覆って公の場に放つ的な<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 仮説
+
+<span style="color:#66d9ef">-</span> 誕生日のお祝いプレゼントとそのスクショはエンゲージメントを高め、新規ユーザー獲得にもプラスに働くのではないか仮説<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 実施方法
+
+<span style="color:#66d9ef">-</span> 誕生日に100円プレゼント+アニメーション+Twへの拡散動線つける<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> バックエンドから誕生日確認jobをエンキューし、毎日12時くらいに定期実行させるようにする<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> フロントでなんか楽しげなアニメーション出す<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> フロントからTwへの動線つける<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 想定効果
+
+<span style="color:#66d9ef">-</span> Tw上でのエンゲージメントがn RT/ m Likeくらい集まるのでは<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> SNSでの拡散が50人に1人<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> n万人稼働会員がいるとして誕生日は一様分布とすると1日x人くらい→z人/日くらい？<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> スクショ乗ってるTwからの流入がx人/日くらいあるのでは<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> 今やってるキャンペーンではy人/日くらい入ってきてるので<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 効果検証方法
+
+<span style="color:#66d9ef">-</span> Twへの投稿数とエンゲージメントを確認する<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> これは手動で一旦やってみる<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> redashでorganic登録の7日間移動平均の変動を確認<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> [redash url]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> 対象URLから流入した人のアクティビティを確認する<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> [redash url]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> スケジュール
+
+<span style="color:#66d9ef">-</span> 開発、リリース: 2018/xx/xx<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> 検証期間: 2018/xx/xx - 2018/xx/xx<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">###</span> 効果検証
+
+<span style="color:#66d9ef">-</span> 振り返り時に記載<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">###</span> 考察
+<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>- 振り返り時に記載</code></pre></div>
+<p>以下順番に項目の説明をする。</p>
+
+<h4 id="前提-1">前提</h4>
+
+<p>前提は「その実験をしようと思った背景」と言い換える事ができる。なぜその新しいチャネル/施策が有望そうだと思ったのかを既知の事実に絡めて書く。ここで前回書いた <a href="https://akirachiku.com/post/2019-02-23-spartan-sql/">カンム社員全員でSQL勉強会をやっている話</a> が活きてくる。既に観測できているユーザーの動向を全員が見れるようになっていることはやはり価値だなと思う。</p>
+
+<h4 id="仮説">仮説</h4>
+
+<p>施策の裏にある仮説を真か偽か判定できる形を意識して書く。</p>
+
+<h4 id="実施方法">実施方法</h4>
+
+<p>施策を具体的に書く。施策に必要になるソフトウェア側の修正もある程度見越して書く。</p>
+
+<h4 id="想定効果">想定効果</h4>
+
+<p>既知の事実や聞いた話から想定効果を書く。これを真面目に検討すると圧倒的にコスパ見合わないかもね、みたいなのが事前に見えてくる。</p>
+
+<h4 id="効果検証方法">効果検証方法</h4>
+
+<p>上記の想定効果をどのように定量化して検証するのかを書く。より込み入った実験になれば実験対象ユーザーのグループ分けも詳細に書く。<a href="https://akirachiku.com/post/2019-02-23-spartan-sql/">カンム社員全員でSQL勉強会をやっている話</a> で学んだSQLがここでも遺憾なく発揮される。可能な限りレビュー前に効果検証用のクエリを作成しておき、それもレビューを通す。</p>
+
+<h4 id="スケジュール">スケジュール</h4>
+
+<p>スケジュールを書く。いつまでダラダラやってんだみたいな形にしない基本。</p>
+
+<h4 id="振り返り">振り返り</h4>
+
+<p>効果検証方法に従い、実際どうだったのかをまとめる。</p>
+
+<h4 id="効果検証">効果検証</h4>
+
+<p>効果検証方法に従い、実際どうだったのかをまとめる。</p>
+
+<h4 id="考察">考察</h4>
+
+<p>この実験によって何が学べたのかを書く。別にうまくいかなかったらうまくいかなかったで良いが学習できた内容を中心に書く。ソフトウェアエンジニアの文化にある障害発生時にポストモーテムを書くことに似ている。</p>
+
+<h3 id="ノートを書くようになった効果">ノートを書くようになった効果</h3>
+
+<p>これらのノートがまとまった場所に存在していれば、「どういう前提で仮説を立てて、それがどういう方法で検証され、棄却されたのか受け入れられたのか、また棄却された場合に得た学びは何か」ということが一枚のノートと検証用SQLにまとまる。更にこのノートが増えていけば後々見返すことも可能だし、後から入ってきた人が参考にすることも可能。以前似たような施策を打ったときにどういう効果があったのか、なぜうまく行かなかったのかを考える元になる。</p>
+
+<p>さらに副次的な効果として、「実験前にレビューが可能になった」というのが結構大きい。ソフトウェアエンジニア側から「こういうデータがあるから検証できる」やデザイナー側から「それを検証したいのであればこういう形はどうか」みたいな建設的議論が出来るようになったと感じる。また、施策案をレビューする自分の立場からしてもフォーマットが統一されている為、「これどうやって検証するの？」みたいな基礎的な指摘が激減した。</p>
+
+<p>現状はこういう形で検証サイクルを回しているが、これが100%正解だとも思っていない。まだまだ改善できる部分はかなりあると感じているし、継続的に「本当にこういう書き方でいいのか」みたいなところは議論していきたい。</p>
+
+<h3 id="まとめ">まとめ</h3>
+
+<p>極論、何が当たるかみたいなのはわからん。ただ「わからん」と「わかる」は単純な二値ではなくグラデーションになっており、「わかる」の範囲を広げ、「わからん」の中に潜むまだ誰も見たことのないチャネルや施策をチームとして発掘しにいく、どのように進むのが良いか、という問いは常に頭の中に保持し続けていきたい。そもそも既存のデータからはなんもわからん！！とにかく良いと思うからコレをやる！！！が正解な局面だってあるだろう。その「良いと思うこと」が小さく実験を行えるものではない場合、今回紹介した方法は使えない。</p>
+
+<p>可能な限り理性を使って検証していこうという姿勢はどのようなケースにおいても基礎として大切にし、いざとなったら大きく「良い」と思う方へ舵を切って施策を打つ、みたいな事ができれば良いなぁと思っている。まだまだ修行が足りない。</p>
+
+<p>「良いプロダクト」というのはそのプロダクトのディストリビューションも含めた総合的なものであるという意識を忘れず、作る側であるソフトウェアエンジニアやデザイナーと協同しながら、届ける側の挟持を持って今後も「良いプロダクト」を作っていきたい。</p>
+
+<p>そんなカンムのマーケチームは絶賛採用募集中です！！！興味がある方はお話だけでもいかがでしょうか！！</p>
+
+<ul>
+<li><a href="https://www.wantedly.com/projects/207136">FinTechのアプリマーケター募集！</a></li>
+<li><a href="https://www.wantedly.com/projects/291321">100万ダウンロードの金融サービスを加速させるオンライン広告担当者募集！</a></li>
+<li><a href="https://www.wantedly.com/projects/207116">エンジニア出身でアプリマーケティングの経験を積みたい人募集！</a></li>
+</ul>
+
+			</div>
+			<div>
+				<ul id="tags">
+					
+				</ul>
+			</div>
+			<div>
+				
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fakirachiku.com%2fpost%2f2019-03-16-marketing-note%2f" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=%e3%82%ab%e3%83%b3%e3%83%a0%e7%a4%be%e3%83%9e%e3%83%bc%e3%82%b1%e3%83%81%e3%83%bc%e3%83%a0%e3%81%8c%e6%96%bd%e7%ad%96%e5%89%8d%e3%81%ab%e7%b5%b6%e5%af%be%e6%9b%b8%e3%81%8f%e3%83%8e%e3%83%bc%e3%83%88%e3%81%ae%e8%a9%b1&url=https%3a%2f%2fakirachiku.com%2fpost%2f2019-03-16-marketing-note%2f&via=_achiku" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"/></svg>
+    </div>
+  </div>
+</a>
+
+			</div>
+		</article>
+	</main>
+	<aside class="pure-u-1 pure-u-md-1">
+		<div>
+			<div>
+				<h3>最新の記事</h3>
+			</div>
+			<div>
+				<ul>
+					
+					<li><a href="https://akirachiku.com/post/2019-03-16-marketing-note/">カンム社マーケチームが施策前に絶対書くノートの話</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2019-02-23-spartan-sql/">カンム社員全員でSQL勉強会をやっている話</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2019-01-27-i-am-software-engineer/">ソフトウェアと</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2019-01-06-go-net-http-api-server-7/">net/httpで作るGo APIサーバー #7</a></li>
+					
+					<li><a href="https://akirachiku.com/post/2018-08-11-go-net-http-api-server-6/">net/httpで作るGo APIサーバー #6</a></li>
+					
+				</ul>
+			</div>
+		</div>
+	</aside>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-50431971-1', 'akirachiku.com');
+  ga('send', 'pageview');
+</script>
+
+	<footer class="pure-u-1 pure-u-md-1">
+		<p>&copy; 2019 <a href="https://akirachiku.com">包丁一本さらしに巻いて</a></p>
+	</footer>
+  </div>
+</body>
+</html>
+

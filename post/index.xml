@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 23 Feb 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 16 Mar 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>カンム社マーケチームが施策前に絶対書くノートの話</title>
+      <link>https://akirachiku.com/post/2019-03-16-marketing-note/</link>
+      <pubDate>Sat, 16 Mar 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2019-03-16-marketing-note/</guid>
+      <description>前のポスト でカンム社全員SQLを書いている話をした。今回は自分が所属するマーケチームが施策を考える時に必ず書くノートの話を中心に、どういう事</description>
+    </item>
     
     <item>
       <title>カンム社員全員でSQL勉強会をやっている話</title>
