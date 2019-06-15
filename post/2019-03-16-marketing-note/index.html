@@ -18,8 +18,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
-  
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.55.6" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -131,51 +130,51 @@ from <a href="https://note.mu/takejune/n/n107e217f3794">仕組みをハックす
 <p>108の施策から筋のありそうなものをいくつか実行してみた。ここで「これって本当に効果あったんだっけ」や「前やったあれの結果どうだったっけ。てかどういう前提条件だったんだっけ。」みたいな事が発生し始めた。このような状態ではうまくいかなかったという学びも蓄積されず、その実験によってどこの地平が新たに開拓されたのかも不明瞭になり、メンバーが新規に入ってきたら結局口伝で伝えなければいけない。チームに学びが蓄積していかない状態だ。</p>
 
 <p>考えた際に出てきたのが「新規施策ノート」を書く事だった。結論から言うと以下のようなノートを必ず新規施策実施前に書きレビューを通す事にしている。例は今適当に考えたが項目としては以下で固定。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-md" data-lang="md"><span style="color:#75715e">##</span> 前提
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-md" data-lang="md"><span style="color:#75715e">## 前提
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> Twitterで誕生日の風船が飛んでるとスクショ取ってツイートしたくなる
+    <span style="color:#66d9ef">-</span> 祝われたいという思いを風船が飛んでる！というアレで覆って公の場に放つ的な
 
-<span style="color:#66d9ef">-</span> Twitterで誕生日の風船が飛んでるとスクショ取ってツイートしたくなる<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> 祝われたいという思いを風船が飛んでる！というアレで覆って公の場に放つ的な<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 仮説
+<span style="color:#75715e">## 仮説
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> 誕生日のお祝いプレゼントとそのスクショはエンゲージメントを高め、新規ユーザー獲得にもプラスに働くのではないか仮説
 
-<span style="color:#66d9ef">-</span> 誕生日のお祝いプレゼントとそのスクショはエンゲージメントを高め、新規ユーザー獲得にもプラスに働くのではないか仮説<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 実施方法
+<span style="color:#75715e">## 実施方法
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> 誕生日に100円プレゼント+アニメーション+Twへの拡散動線つける
+    <span style="color:#66d9ef">-</span> バックエンドから誕生日確認jobをエンキューし、毎日12時くらいに定期実行させるようにする
+    <span style="color:#66d9ef">-</span> フロントでなんか楽しげなアニメーション出す
+    <span style="color:#66d9ef">-</span> フロントからTwへの動線つける
 
-<span style="color:#66d9ef">-</span> 誕生日に100円プレゼント+アニメーション+Twへの拡散動線つける<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> バックエンドから誕生日確認jobをエンキューし、毎日12時くらいに定期実行させるようにする<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> フロントでなんか楽しげなアニメーション出す<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">-</span> フロントからTwへの動線つける<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 想定効果
+<span style="color:#75715e">## 想定効果
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> Tw上でのエンゲージメントがn RT/ m Likeくらい集まるのでは
+    <span style="color:#66d9ef">*</span> SNSでの拡散が50人に1人
+    <span style="color:#66d9ef">*</span> n万人稼働会員がいるとして誕生日は一様分布とすると1日x人くらい→z人/日くらい？
+<span style="color:#66d9ef">-</span> スクショ乗ってるTwからの流入がx人/日くらいあるのでは
+    <span style="color:#66d9ef">*</span> 今やってるキャンペーンではy人/日くらい入ってきてるので
 
-<span style="color:#66d9ef">-</span> Tw上でのエンゲージメントがn RT/ m Likeくらい集まるのでは<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> SNSでの拡散が50人に1人<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> n万人稼働会員がいるとして誕生日は一様分布とすると1日x人くらい→z人/日くらい？<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> スクショ乗ってるTwからの流入がx人/日くらいあるのでは<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> 今やってるキャンペーンではy人/日くらい入ってきてるので<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> 効果検証方法
+<span style="color:#75715e">## 効果検証方法
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> Twへの投稿数とエンゲージメントを確認する
+    <span style="color:#66d9ef">*</span> これは手動で一旦やってみる
+<span style="color:#66d9ef">-</span> redashでorganic登録の7日間移動平均の変動を確認
+    <span style="color:#66d9ef">*</span> [redash url]
+<span style="color:#66d9ef">-</span> 対象URLから流入した人のアクティビティを確認する
+    <span style="color:#66d9ef">*</span> [redash url]
 
-<span style="color:#66d9ef">-</span> Twへの投稿数とエンゲージメントを確認する<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> これは手動で一旦やってみる<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> redashでorganic登録の7日間移動平均の変動を確認<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> [redash url]<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> 対象URLから流入した人のアクティビティを確認する<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">*</span> [redash url]<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">##</span> スケジュール
+<span style="color:#75715e">## スケジュール
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> 開発、リリース: 2018/xx/xx
+<span style="color:#66d9ef">-</span> 検証期間: 2018/xx/xx - 2018/xx/xx
 
-<span style="color:#66d9ef">-</span> 開発、リリース: 2018/xx/xx<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">-</span> 検証期間: 2018/xx/xx - 2018/xx/xx<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">###</span> 効果検証
+<span style="color:#75715e">### 効果検証
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">-</span> 振り返り時に記載
 
-<span style="color:#66d9ef">-</span> 振り返り時に記載<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">###</span> 考察
-<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>- 振り返り時に記載</code></pre></div>
+<span style="color:#75715e">### 考察
+</span><span style="color:#75715e"></span>
+- 振り返り時に記載</code></pre></div>
 <p>以下順番に項目の説明をする。</p>
 
 <h4 id="前提-1">前提</h4>

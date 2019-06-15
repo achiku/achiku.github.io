@@ -18,8 +18,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
-  
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.55.6" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -107,8 +106,8 @@
 <li>Python 2.7.5</li>
 <li>virtualenv==1.10.1</li>
 <li>virtualenvwrapper==4.1.1</li>
-<li>awscli==1.6.10</li>
-</ul>
+
+<li><p>awscli==1.6.10</p>
 
 <pre><code>$ mkvirtualenv emr
 (emr)$ pip install awscli
@@ -126,7 +125,8 @@ export AWS_CONFIG_FILE=~/.awscli/config
 export AWS_DEFAULT_PROFILE=development
 source aws_zsh_completer.sh
 EOF
-</code></pre>
+</code></pre></li>
+</ul>
 
 <h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
 
@@ -207,8 +207,7 @@ $ aws s3 cp install-presto.rb s3://yourbucket/libs/
 <p>shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。</p>
 
 <ul>
-<li>install-shib.sh</li>
-</ul>
+<li><p>install-shib.sh</p>
 
 <pre><code>#!/bin/bash
 
@@ -221,14 +220,15 @@ sudo yum install -y nodejs npm --enablerepo=epel
 
 aws s3 cp ${shib_tarball_path} /home/hadoop/shib.tar.gz
 {
-  cd /home/hadoop &amp;&amp; tar xvfz /home/hadoop/shib.tar.gz
-  cd /home/hadoop/shib &amp;&amp; npm install
+cd /home/hadoop &amp;&amp; tar xvfz /home/hadoop/shib.tar.gz
+cd /home/hadoop/shib &amp;&amp; npm install
 }
 aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
 {
-  cd /home/hadoop/shib &amp;&amp; nohup npm start &amp;
+cd /home/hadoop/shib &amp;&amp; nohup npm start &amp;
 }
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>これも同様にS3にあげる。</p>
 
@@ -238,71 +238,69 @@ aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
 <h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
 
 <ul>
-<li>create-cluster.sh</li>
-</ul>
+<li><p>create-cluster.sh</p>
 
 <pre><code>#!/bin/bash
 
 aws emr create-cluster --ami-version 3.3.1 \
-    --name &quot;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date '+%Y%m%d%H%M' )&quot; \
-    --tags Name=presto-on-emr environment=development \
-    --ec2-attributes KeyName=yourkey \
-    --applications Name=hive Name=hue \
-    --instance-groups file://./large-instance-setup.json \
-    --bootstrap-actions file://./bootstrap-presto.json \
-    --log-uri 's3://yourbucket/jobflow_logs/' \
-    --no-auto-terminate \
-    --use-default-roles \
-    --visible-to-all-users
-</code></pre>
+--name &quot;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date '+%Y%m%d%H%M' )&quot; \
+--tags Name=presto-on-emr environment=development \
+--ec2-attributes KeyName=yourkey \
+--applications Name=hive Name=hue \
+--instance-groups file://./large-instance-setup.json \
+--bootstrap-actions file://./bootstrap-presto.json \
+--log-uri 's3://yourbucket/jobflow_logs/' \
+--no-auto-terminate \
+--use-default-roles \
+--visible-to-all-users
+</code></pre></li>
+</ul>
 
 <p>※AWSアカウントによっては&ndash;use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。</p>
 
 <p>instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。</p>
 
 <ul>
-<li>large-instance-setup.json</li>
-</ul>
+<li><p>large-instance-setup.json</p>
 
 <pre><code>[
-  {
-     &quot;Name&quot;: &quot;emr-master-production&quot;,
-     &quot;InstanceGroupType&quot;: &quot;MASTER&quot;,
-     &quot;InstanceCount&quot;: 1,
-     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
-  },
-  {
-     &quot;Name&quot;: &quot;emr-core-production&quot;,
-     &quot;InstanceGroupType&quot;: &quot;CORE&quot;,
-     &quot;InstanceCount&quot;: 2 ,
-     &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
-  }
+{
+ &quot;Name&quot;: &quot;emr-master-production&quot;,
+ &quot;InstanceGroupType&quot;: &quot;MASTER&quot;,
+ &quot;InstanceCount&quot;: 1,
+ &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
+},
+{
+ &quot;Name&quot;: &quot;emr-core-production&quot;,
+ &quot;InstanceGroupType&quot;: &quot;CORE&quot;,
+ &quot;InstanceCount&quot;: 2 ,
+ &quot;InstanceType&quot;: &quot;m3.xlarge&quot;
+}
 ]
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>bootstrap-presto.json</li>
-</ul>
+<li><p>bootstrap-presto.json</p>
 
 <pre><code>[
-  {
-    &quot;Name&quot;: &quot;Install/Setup Shib&quot;,
-    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-shib.sh&quot;,
-    &quot;Args&quot;: [
-        &quot;s3://yourbucket/libs/shib.tar.gz&quot;,
-        &quot;s3://yourbucket/libs/shib-config.js&quot;
-    ]
-  },
-  {
-    &quot;Name&quot;: &quot;Install/Setup Presto&quot;,
-    &quot;Path&quot;: &quot;s3://yourbucket/libs/install-presto.rb&quot;,
-    &quot;Args&quot;: [
-        &quot;--s3-path-to-presto-server-bin&quot;,&quot;s3://yourbucket/libs/presto-server-0.85.tar.gz&quot;,
-        &quot;--s3-path-to-presto-cli&quot;, &quot;s3://yourbucket/libs/presto-cli-0.85-executable.jar&quot;
-    ]
-  }
+{
+&quot;Name&quot;: &quot;Install/Setup Shib&quot;,
+&quot;Path&quot;: &quot;s3://yourbucket/libs/install-shib.sh&quot;,
+&quot;Args&quot;: [
+    &quot;s3://yourbucket/libs/shib.tar.gz&quot;,
+    &quot;s3://yourbucket/libs/shib-config.js&quot;
 ]
-</code></pre>
+},
+{
+&quot;Name&quot;: &quot;Install/Setup Presto&quot;,
+&quot;Path&quot;: &quot;s3://yourbucket/libs/install-presto.rb&quot;,
+&quot;Args&quot;: [
+    &quot;--s3-path-to-presto-server-bin&quot;,&quot;s3://yourbucket/libs/presto-server-0.85.tar.gz&quot;,
+    &quot;--s3-path-to-presto-cli&quot;, &quot;s3://yourbucket/libs/presto-cli-0.85-executable.jar&quot;
+]
+}
+]
+</code></pre></li>
+</ul>
 
 <h2 id="shib-hueアクセス方法">Shib/Hueアクセス方法</h2>
 
@@ -313,26 +311,26 @@ aws emr create-cluster --ami-version 3.3.1 \
 <ul>
 <li><p><a href="http://getfoxyproxy.org/">FoxyProxy - Firefox/Chrome</a></p></li>
 
-<li><p>sample-emr-proxy.xml</p></li>
-</ul>
+<li><p>sample-emr-proxy.xml</p>
 
 <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;foxyproxy&gt;
-    &lt;proxies&gt;
-        &lt;proxy name=&quot;emr-socks-proxy&quot; id=&quot;2322596116&quot; notes=&quot;&quot; fromSubscription=&quot;false&quot; enabled=&quot;true&quot; mode=&quot;manual&quot; selectedTabIndex=&quot;2&quot; lastresort=&quot;false&quot; animatedIcons=&quot;true&quot; includeInCycle=&quot;true&quot; color=&quot;#0055E5&quot; proxyDNS=&quot;true&quot; noInternalIPs=&quot;false&quot; autoconfMode=&quot;pac&quot; clearCacheBeforeUse=&quot;false&quot; disableCache=&quot;false&quot; clearCookiesBeforeUse=&quot;false&quot; rejectCookies=&quot;false&quot;&gt;
-            &lt;matches&gt;
-                &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.amazonaws.com*&quot; pattern=&quot;*ec2*.amazonaws.com*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
-                &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.compute*&quot; pattern=&quot;*ec2*.compute*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
-                &lt;match enabled=&quot;true&quot; name=&quot;10.*&quot; pattern=&quot;http://10.*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
-            &lt;/matches&gt;
-            &lt;manualconf host=&quot;localhost&quot; port=&quot;8157&quot; socksversion=&quot;5&quot; isSocks=&quot;true&quot; username=&quot;&quot; password=&quot;&quot; domain=&quot;&quot; /&gt;
-        &lt;/proxy&gt;
-    &lt;/proxies&gt;
+&lt;proxies&gt;
+    &lt;proxy name=&quot;emr-socks-proxy&quot; id=&quot;2322596116&quot; notes=&quot;&quot; fromSubscription=&quot;false&quot; enabled=&quot;true&quot; mode=&quot;manual&quot; selectedTabIndex=&quot;2&quot; lastresort=&quot;false&quot; animatedIcons=&quot;true&quot; includeInCycle=&quot;true&quot; color=&quot;#0055E5&quot; proxyDNS=&quot;true&quot; noInternalIPs=&quot;false&quot; autoconfMode=&quot;pac&quot; clearCacheBeforeUse=&quot;false&quot; disableCache=&quot;false&quot; clearCookiesBeforeUse=&quot;false&quot; rejectCookies=&quot;false&quot;&gt;
+        &lt;matches&gt;
+            &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.amazonaws.com*&quot; pattern=&quot;*ec2*.amazonaws.com*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+            &lt;match enabled=&quot;true&quot; name=&quot;*ec2*.compute*&quot; pattern=&quot;*ec2*.compute*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+            &lt;match enabled=&quot;true&quot; name=&quot;10.*&quot; pattern=&quot;http://10.*&quot; isRegEx=&quot;false&quot; isBlackList=&quot;false&quot; isMultiLine=&quot;false&quot; caseSensitive=&quot;false&quot; fromSubscription=&quot;false&quot; /&gt;
+        &lt;/matches&gt;
+        &lt;manualconf host=&quot;localhost&quot; port=&quot;8157&quot; socksversion=&quot;5&quot; isSocks=&quot;true&quot; username=&quot;&quot; password=&quot;&quot; domain=&quot;&quot; /&gt;
+    &lt;/proxy&gt;
+&lt;/proxies&gt;
 &lt;/foxyproxy&gt;
 </code></pre>
 
 <pre><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
 

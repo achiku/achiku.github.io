@@ -3,8 +3,20 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://akirachiku.com/post/</loc>
+    <lastmod>2019-04-07T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://akirachiku.com/post/2019-04-07-ranchi/</loc>
     <lastmod>2019-04-07T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://akirachiku.com/</loc>
+    <lastmod>2019-04-07T00:00:00+00:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -65,6 +77,12 @@
   <url>
     <loc>https://akirachiku.com/cv/en_us/</loc>
     <lastmod>2017-04-24T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://akirachiku.com/cv/</loc>
+    <lastmod>2017-04-24T00:00:00+00:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -258,25 +276,7 @@
   </url>
   
   <url>
-    <loc>https://akirachiku.com/cv/</loc>
-    <lastmod>2017-04-24T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://akirachiku.com/post/</loc>
-    <lastmod>2019-04-07T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://akirachiku.com/tags/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://akirachiku.com/</loc>
-    <lastmod>2019-04-07T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
