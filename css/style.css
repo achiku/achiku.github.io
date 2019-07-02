@@ -28,6 +28,10 @@ pre {
   width: auto;
 }
 
+img {
+  width: 100%;
+}
+
 a:link { color: orange; }
 a:visited { color: orange; }
 a:hover { color: orange; }
