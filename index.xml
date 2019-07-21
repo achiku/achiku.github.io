@@ -6,10 +6,19 @@
     <description>Recent content on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sun, 30 Jun 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 21 Jul 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Akira Chiku</title>
+      <link>https://akirachiku.com/about/</link>
+      <pubDate>Sun, 21 Jul 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/about/</guid>
+      <description>  GitHub Twitter Facebook  CV  English Japanese  Work and Education  Kanmu, Inc. (2013&amp;frasl;11 - present) Accenture (2008&amp;frasl;08 - 2013&amp;frasl;11) The University of Texas at Austin B.A. Economics, Minor in Mathmatics (2006 - 2008) The Midwestern State University (2004 - 2006) Kariya High School, Aichi (2000 - 2004)  Juggling Movies  @ Midwestern State University @ Nico&amp;rsquo;s birthday party #1 @ Nico&amp;rsquo;s birthday party #2 @ Halloween Party in Austin @ Oklahoma  </description>
+    </item>
     
     <item>
       <title>メルカリの1on1ワークショップに行ってきた</title>
@@ -90,17 +99,6 @@
       
       <guid>https://akirachiku.com/post/2018-06-23-go-net-http-api-server-5/</guid>
       <description>この一連の記事では net/http を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。 net/httpで作るGo</description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>https://akirachiku.com/about/</link>
-      <pubDate>Tue, 24 Apr 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://akirachiku.com/about/</guid>
-      <description> Akira Chiku
-Birthday: 1985/08/18
- GitHub Twitter Facebook  CV  English Japanese  Work and Education  Kanmu, Inc. (2013&amp;frasl;11 - present) Accenture (2008&amp;frasl;08 - 2013&amp;frasl;11) The University of Texas at Austin B.A. Economics, Minor in Mathmatics (2006 - 2008) The Midwestern State University (2004 - 2006) Kariya High School, Aichi (2000 - 2004)  Juggling Movies  @ Midwestern State University @ Nico&amp;rsquo;s birthday party #1 @ Nico&amp;rsquo;s birthday party #2 @ Halloween Party in Austin @ Oklahoma  </description>
     </item>
     
     <item>
