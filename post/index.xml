@@ -6,10 +6,19 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sun, 22 Sep 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 04 Nov 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>カンム流redashを使ったプロモーションDashboardの作り方 その1</title>
+      <link>https://akirachiku.com/post/2019-11-04-promotion-dashboard/</link>
+      <pubDate>Mon, 04 Nov 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2019-11-04-promotion-dashboard/</guid>
+      <description>カンムではredashを使い倒している。とにかくお世話になっているredashではあるけど、特にマーケティングチームはかなりお世話になってい</description>
+    </item>
     
     <item>
       <title>マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</title>
