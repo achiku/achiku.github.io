@@ -157,7 +157,7 @@
 
 <ul>
 <li>月次目標管理</li>
-<li>異常値検出/対応</li>
+<li>変動検出</li>
 <li>流入経路別ユーザーアクション/属性分析</li>
 <li>過去の振り返り</li>
 </ul>
@@ -283,6 +283,128 @@
 
 <p>これはPaid Cost/Paid獲得出せばいけるし、Blendedは分母にOrganic獲得を入れれば出せる。ネットワーク別日別Paid CPAもサクッと出せるので一旦ここではSQL省く。</p>
 
+<h2 id="変動検出">変動検出</h2>
+
+<h3 id="直近3日間時間別累積登録数">直近3日間時間別累積登録数</h3>
+
+<p><img src="/images/20191130-promotion-dashboard/3-days-running-total.jpg" alt="" />
+※ダミーデータです</p>
+
+<p>一日の登録件数を積み上げで見る際に利用。ざっくり直近3日間と比較して当日どれくらいで進捗しているのかを確認する為に利用する。朝イチで更新してここが上振れていると一日が幸せになる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  a.dt
+  , a.hr
+  , <span style="color:#66d9ef">sum</span>(a.cnt) over (partition <span style="color:#66d9ef">by</span> a.dt <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> a.hr)
+<span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span>
+    to_char(date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, i.registered_at) <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>, <span style="color:#e6db74">&#39;YYYY/MM/DD&#39;</span>) dt
+    , to_char(date_trunc(<span style="color:#e6db74">&#39;hour&#39;</span>, i.registered_at), <span style="color:#e6db74">&#39;HH24&#39;</span>) hr
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> your_service_user i
+  <span style="color:#66d9ef">where</span> i.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-3days&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dt, hr
+) a</code></pre></div>
+<p>直近3日間だけだと曜日変動を考慮できないので以下のように3週前の同様日比較のグラフも作っている。月別同日比較もある(グラフの形は直近3日と同じなので省く)。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  a.dt
+  , a.hr
+  , a.w
+  , <span style="color:#66d9ef">sum</span>(a.cnt) over (partition <span style="color:#66d9ef">by</span> a.dt <span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> a.hr)
+<span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span>
+    to_char(date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, e.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>), <span style="color:#e6db74">&#39;YYYY/MM/DD&#39;</span>) dt
+    , to_char(e.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>, <span style="color:#e6db74">&#39;HH24&#39;</span>) hr
+    , <span style="color:#66d9ef">extract</span>(dow <span style="color:#66d9ef">from</span> e.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>) w
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> your_service_user e
+  <span style="color:#66d9ef">where</span> e.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-3weeks&#39;</span>)
+  <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">extract</span>(dow <span style="color:#66d9ef">from</span> e.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>) <span style="color:#f92672">=</span> <span style="color:#66d9ef">extract</span>(dow <span style="color:#66d9ef">from</span> <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dt, hr, w
+) a</code></pre></div>
+<h3 id="直近3日間時間別登録数">直近3日間時間別登録数</h3>
+
+<p><img src="/images/20191130-promotion-dashboard/3-days-hourly.jpg" alt="" />
+※ダミーデータです</p>
+
+<p>直近3日間の時間別登録数。これは累積ではなく、その1時間に何件の登録があったかを見る為に作っている。ここが直近3日間と比較して上がっている/下がっている場合何か発生している可能性が高い。上下している理由の深堀りはネットワーク別に見る必要があるが、変動を見るのには非常に便利なグラフ。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  to_char(date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, i.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span>), <span style="color:#e6db74">&#39;YYYY/MM/DD&#39;</span>) dt
+  , to_char(date_trunc(<span style="color:#e6db74">&#39;hour&#39;</span>, i.registered_at <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span>), <span style="color:#e6db74">&#39;HH24&#39;</span>) hr
+  , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+<span style="color:#66d9ef">from</span> coolec_user i
+<span style="color:#66d9ef">where</span> i.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-3days&#39;</span>)
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dt, hr
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> dt, hr</code></pre></div>
+<h3 id="直近3日間時間別登録率">直近3日間時間別登録率</h3>
+
+<p><img src="/images/20191130-promotion-dashboard/3-days-registration-rate.jpg" alt="" />
+※ダミーデータです(データの作りが悪くて100%超えてる部分もあるけどそれは見逃して欲しい)</p>
+
+<p>フラウドが発生している場合、登録自体は変動が無いが登録率が極端に下がる事が多い。登録数/インストール数を登録率とした際に直近3日間の時間帯別変動を見て、登録率が極端に下がっている場合はネットワーク別にどの登録率が下がっているかを確認し即時対応していく。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  inst.dt
+  , inst.hr
+  , <span style="color:#66d9ef">cast</span>(reg.cnt <span style="color:#66d9ef">as</span> float) <span style="color:#f92672">/</span> <span style="color:#66d9ef">cast</span>(inst.cnt <span style="color:#66d9ef">as</span> float) registration_rate
+<span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span>
+    to_char(date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, i.installed_at) <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>, <span style="color:#e6db74">&#39;YYYY/MM/DD&#39;</span>) dt
+    , to_char(date_trunc(<span style="color:#e6db74">&#39;hour&#39;</span>, i.installed_at), <span style="color:#e6db74">&#39;HH24&#39;</span>) hr
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> adjust_install_event i
+  <span style="color:#66d9ef">where</span> i.installed_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-3days&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dt, hr
+) inst
+<span style="color:#66d9ef">join</span> (
+  <span style="color:#66d9ef">select</span>
+    to_char(date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, i.registered_at) <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span>, <span style="color:#e6db74">&#39;YYYY/MM/DD&#39;</span>) dt
+    , to_char(date_trunc(<span style="color:#e6db74">&#39;hour&#39;</span>, i.registered_at), <span style="color:#e6db74">&#39;HH24&#39;</span>) hr
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> adjust_registration_event i
+  <span style="color:#66d9ef">where</span> i.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;JST&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-3days&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dt, hr
+) reg
+<span style="color:#66d9ef">on</span> (reg.dt <span style="color:#f92672">=</span> inst.dt <span style="color:#66d9ef">and</span> reg.hr <span style="color:#f92672">=</span> inst.hr)
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> inst.dt, inst.hr</code></pre></div>
+<h3 id="ネットワーク別前日当日同時間登録数比較">ネットワーク別前日当日同時間登録数比較</h3>
+
+<p><img src="/images/20191130-promotion-dashboard/prev-day-network-comp.jpg" alt="" />
+※ダミーデータです</p>
+
+<p>直近3日間のグラフ等で変動を検知したらまずはネットワーク別に前日と比較してどこが上がってる/下がってるのかを確認したい。そんな時に便利な表がコレ。redashはクエリ結果内にHTMLを含めることができるので色付けしてわかりやすくした。新規登録者の絶対数でソートしているので最も変動に影響があるネットワークが先頭に来るようになっている。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  td.network_name
+  , td.cnt tdy
+  , coalesce(ye.cnt, <span style="color:#ae81ff">0</span>) yst
+  , td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>) diff
+  , <span style="color:#66d9ef">case</span>
+      <span style="color:#66d9ef">when</span> ye.cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">then</span> <span style="color:#ae81ff">0</span>
+      <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">abs</span>((td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>))) <span style="color:#f92672">/</span> <span style="color:#66d9ef">cast</span>(ye.cnt <span style="color:#66d9ef">as</span> float)
+    <span style="color:#66d9ef">end</span> rate
+  , <span style="color:#66d9ef">case</span>
+      <span style="color:#66d9ef">when</span> sign(td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">then</span> <span style="color:#e6db74">&#39;&lt;div class=&#34;bg-success text-center&#34;&gt;↑&lt;/div&gt;&#39;</span>
+      <span style="color:#66d9ef">when</span> sign(td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">then</span> <span style="color:#e6db74">&#39;&lt;div class=&#34;bg-info text-center&#34;&gt;→&lt;/div&gt;&#39;</span>
+      <span style="color:#66d9ef">when</span> sign(td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">then</span> <span style="color:#e6db74">&#39;&lt;div class=&#34;bg-danger text-center&#34;&gt;↓&lt;/div&gt;&#39;</span>
+    <span style="color:#66d9ef">end</span> status
+<span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span>
+    re.network_name
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> adjust_registration_event re
+  <span style="color:#66d9ef">where</span> re.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span>)
+  <span style="color:#66d9ef">and</span> re.registered_at <span style="color:#f92672">&lt;=</span> date_trunc(<span style="color:#e6db74">&#39;minutes&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> re.network_name
+) td
+<span style="color:#66d9ef">left</span> <span style="color:#66d9ef">join</span> (
+  <span style="color:#66d9ef">select</span>
+    re.network_name
+    , <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) cnt
+  <span style="color:#66d9ef">from</span> adjust_registration_event re
+  <span style="color:#66d9ef">where</span> re.registered_at <span style="color:#f92672">&gt;=</span> date_trunc(<span style="color:#e6db74">&#39;day&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-1day&#39;</span>)
+  <span style="color:#66d9ef">and</span> re.registered_at <span style="color:#f92672">&lt;=</span> date_trunc(<span style="color:#e6db74">&#39;minutes&#39;</span>, <span style="color:#66d9ef">current_timestamp</span> <span style="color:#66d9ef">at</span> time <span style="color:#66d9ef">zone</span> <span style="color:#e6db74">&#39;jst&#39;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-1day&#39;</span>)
+  <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> re.network_name
+) ye
+<span style="color:#66d9ef">on</span> td.network_name <span style="color:#f92672">=</span> ye.network_name
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> <span style="color:#66d9ef">abs</span>(td.cnt <span style="color:#f92672">-</span> coalesce(ye.cnt, <span style="color:#ae81ff">0</span>)) <span style="color:#66d9ef">desc</span></code></pre></div>
 <h2 id="まとめ">まとめ</h2>
 
 <p>全然最後まで到達できなかった。ちょっとデータ準備に時間使いすぎました。。一旦こういうのってみんなどうやってんのかずっと知りたかったので、まずはこっちから開示するスタイルで出します！続編は反響あれば書きます！</p>
