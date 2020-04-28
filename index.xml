@@ -6,10 +6,19 @@
     <description>Recent content on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Thu, 02 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 27 Apr 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://akirachiku.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>カンムでマーケティングチームがやってるユーザーインタビュー</title>
+      <link>https://akirachiku.com/post/2020-04-27-user-interview/</link>
+      <pubDate>Mon, 27 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2020-04-27-user-interview/</guid>
+      <description>自分達はバンドルカードというプロダクトを提供している。2016/09から提供しており、おかげさまで既に230万ダウンロードを超え、今も元気に</description>
+    </item>
     
     <item>
       <title>インターネットと文章</title>
