@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -66,7 +66,6 @@
 <h2 id="インストール">インストール</h2>
 
 <p>既に入ってるのでアップグレード。</p>
-
 <pre><code>$ brew upgrade go 
 ==&gt; Upgrading 1 outdated package, with result:
 go 1.2.2
@@ -86,15 +85,10 @@ To get `go vet` and `go doc` run:
   go get code.google.com/p/go.tools/cmd/vet
 
 You may wish to add the GOROOT-based install location to your PATH:
-  export PATH=$PATH:/usr/local/opt/go/libex
-</code></pre>
-
+  export PATH=$PATH:/usr/local/opt/go/libex</code></pre>
 <p>インストール後の確認</p>
-
 <pre><code>$ go version
-go version go1.2.2 darwin/amd64
-</code></pre>
-
+go version go1.2.2 darwin/amd64</code></pre>
 <h2 id="vim-plugin">Vim Plugin</h2>
 
 <p>ざっと見てコレが一番良さそうだったので入れる。</p>
@@ -107,22 +101,16 @@ export GOPATH<span style="color:#f92672">=</span>$HOME/.go
 export GOROOT<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span> go env GOROOT <span style="color:#66d9ef">)</span>
 export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
 <p>.vimrcに以下を追加。</p>
-
 <pre><code>set rtp+=$GOROOT/misc/vim
-exe &quot;set rtp+=&quot;.globpath($GOPATH, &quot;src/github.com/nsf/gocode/vim”)
-</code></pre>
-
+exe &#34;set rtp+=&#34;.globpath($GOPATH, &#34;src/github.com/nsf/gocode/vim”)</code></pre>
 <p>vim開くと色々インストールされる</p>
-
 <pre><code>vim-go: gocode not found. Installing github.com/nsf/gocode to folder /Users/achiku/.vim-go/
 vim-go: goimports not found. Installing code.google.com/p/go.tools/cmd/goimports to folder /Users/achiku/.vim-go/
 vim-go: godef not found. Installing code.google.com/p/rog-go/exp/cmd/godef to folder /Users/achiku/.vim-go/
 vim-go: oracle not found. Installing code.google.com/p/go.tools/cmd/oracle to folder /Users/achiku/.vim-go/
 vim-go: golint not found. Installing github.com/golang/lint/golint to folder /Users/achiku/.vim-go/
 vim-go: errcheck not found. Installing github.com/kisielk/errcheck to folder /Users/achiku/.vim-go/
-vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users/achiku/.vim-go/
-</code></pre>
-
+vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users/achiku/.vim-go/</code></pre>
 <p>おなじみのHello, Worldからはじまる。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
 
@@ -130,7 +118,8 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 
 <span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Hello, World!\n&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>Vimで編集してて、import &ldquo;fmt&rdquo;書いた後に:wでファイル保存したらその部分だけ削除されて、なんじゃこりゃってなってたけど、どうやら先ほど入れたVimプラグインが使ってるパッケージを自動検出してソースをフォーマットしてくれているらしい。逆にimport文ナシで上のソースを書いて保存したらimport &ldquo;fmt&rdquo;の部分は自動で追記された。IDEみたい。</p>
 
 <p>書いた後に、:GoBuildでビルド。:GoRunでビルドして実行。便利。</p>
@@ -207,6 +196,8 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -214,8 +205,6 @@ vim-go: gotags not found. Installing github.com/jstemmer/gotags to folder /Users
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

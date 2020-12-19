@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -82,7 +82,8 @@
 <p>Goで <code>error</code> はビルトインのインターフェース型の一つ。以下の形を満たせばどのような構造体でも関数でも <code>error</code> として扱える。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#66d9ef">error</span> <span style="color:#66d9ef">interface</span> {
     <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>また標準ライブラリの <code>errors</code>　パッケージの中を覗いてみるとこういうコードになっている。<a href="https://golang.org/src/errors/errors.go">src/errors/errors.go</a>。非常にシンプルだが拡張性のある形になっている。ただし、それが故に以下2点に関しては少し工夫が必要になる。</p>
 
 <ul>
@@ -124,7 +125,8 @@
 <li>Opaque Errorを使うとパッケージ間の依存を極限まで減らせて便利</li>
 </ul></li>
 <li>エラーに種類を持たせ、種類によって呼び出し元の処理を変える方法は大きく3つあり、それぞれメリットとデメリットがある</li>
-<li>Sentinel Error
+
+<li><p>Sentinel Error</p>
 
 <ul>
 <li>エラーを値としてパッケージ内に持つ (例: <code>io.EOF</code>)</li>
@@ -134,7 +136,8 @@
 <ul>
 <li>あんまりない</li>
 </ul></li>
-<li>デメリット
+
+<li><p>デメリット</p>
 
 <ul>
 <li>エラーに追加で情報をもたせたりする事ができなくなる
@@ -142,13 +145,14 @@
 <ul>
 <li><code>var EOF = errors.New(&quot;EOF&quot;)</code> で定義されているので</li>
 </ul></li>
-<li>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</li>
+
+<li><p>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">ErrSomething</span> { <span style="color:#960050;background-color:#1e0010">…</span> }
+</code></pre></div></li>
 </ul></li>
 </ul></li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">ErrSomething</span> { <span style="color:#960050;background-color:#1e0010">…</span> }</code></pre></div>
-<ul>
-<li>Error Type
+
+<li><p>Error Type</p>
 
 <ul>
 <li>エラーを型を持つ構造体としてパッケージ内に持つ (例: <code>os.PathError</code>)</li>
@@ -162,34 +166,36 @@
 <li><code>os.PathError</code> には <code>Op</code> , <code>Path</code> というメタデータが存在している</li>
 </ul></li>
 </ul></li>
-<li>デメリット
+
+<li><p>デメリット</p>
 
 <ul>
-<li>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</li>
-</ul></li>
-</ul></li>
-</ul>
+<li><p>このエラー自体をパブリックなAPIとして他のパッケージが利用してしまうので変更が難しくなる</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyError</span> <span style="color:#66d9ef">struct</span> {
-        <span style="color:#a6e22e">Msg</span> <span style="color:#66d9ef">string</span>
-        <span style="color:#a6e22e">File</span> <span style="color:#66d9ef">string</span>
-        <span style="color:#a6e22e">Line</span> <span style="color:#66d9ef">int</span>
+<span style="color:#a6e22e">Msg</span> <span style="color:#66d9ef">string</span>
+<span style="color:#a6e22e">File</span> <span style="color:#66d9ef">string</span>
+<span style="color:#a6e22e">Line</span> <span style="color:#66d9ef">int</span>
 }
 
 <span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyError</span>) <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span> { 
-        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s:%d: %s”, e.File, e.Line, e.Msg)
+<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s:%d: %s”, e.File, e.Line, e.Msg)
 </span><span style="color:#e6db74">}
 </span><span style="color:#e6db74">
-</span><span style="color:#e6db74">return &amp;MyError{&#34;</span><span style="color:#a6e22e">Something</span> <span style="color:#a6e22e">happened</span><span style="color:#e6db74">&#34;, “server.go&#34;</span>, <span style="color:#ae81ff">42</span>}</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">something</span>()
+</span><span style="color:#e6db74">return &amp;MyError{&#34;</span><span style="color:#a6e22e">Something</span> <span style="color:#a6e22e">happened</span><span style="color:#e6db74">&#34;, “server.go&#34;</span>, <span style="color:#ae81ff">42</span>}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">something</span>()
 <span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#66d9ef">type</span>) {
 <span style="color:#66d9ef">case</span> <span style="color:#66d9ef">nil</span>:
-        <span style="color:#75715e">// call succeeded, nothing to do
+<span style="color:#75715e">// call succeeded, nothing to do
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">case</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyError</span>:
-        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#960050;background-color:#1e0010">“</span><span style="color:#66d9ef">error</span> <span style="color:#a6e22e">occurred</span> <span style="color:#a6e22e">on</span> <span style="color:#a6e22e">line</span>:<span style="color:#960050;background-color:#1e0010">”</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Line</span>)
+<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#960050;background-color:#1e0010">“</span><span style="color:#66d9ef">error</span> <span style="color:#a6e22e">occurred</span> <span style="color:#a6e22e">on</span> <span style="color:#a6e22e">line</span>:<span style="color:#960050;background-color:#1e0010">”</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Line</span>)
 <span style="color:#66d9ef">default</span>:
 <span style="color:#75715e">// unknown error
-</span><span style="color:#75715e"></span>}</code></pre></div>
-<ul>
-<li>Opaque Error
+</span><span style="color:#75715e"></span>}
+</code></pre></div></li>
+</ul></li>
+</ul></li>
+
+<li><p>Opaque Error</p>
 
 <ul>
 <li>特定のインターフェースをパッケージ内に持つ (例: <code>net.Error</code>)</li>
@@ -200,22 +206,25 @@
 <li>インターフェースなのでパッケージ外に出る際付加情報を加える事も容易(インターフェースを満たす構造体をエラーとして利用)</li>
 <li>呼び出し側は特定の型を別パッケージからimportする必要無くエラー発生時に処理を分岐させれる</li>
 </ul></li>
-<li>デメリット
+
+<li><p>デメリット</p>
 
 <ul>
-<li>あんまりない</li>
-</ul></li>
-</ul></li>
-</ul>
+<li><p>あんまりない</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">temporary</span> <span style="color:#66d9ef">interface</span> {
-        <span style="color:#a6e22e">Temporary</span>() <span style="color:#66d9ef">bool</span>
+<span style="color:#a6e22e">Temporary</span>() <span style="color:#66d9ef">bool</span>
 }
  
 <span style="color:#75715e">// IsTemporary returns true if err is temporary.
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">IsTemporary</span>(<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) <span style="color:#66d9ef">bool</span> {
-        <span style="color:#a6e22e">te</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">temporary</span>)
-        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">te</span>.<span style="color:#a6e22e">Temporary</span>()
-}</code></pre></div>
+<span style="color:#a6e22e">te</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">temporary</span>)
+<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">te</span>.<span style="color:#a6e22e">Temporary</span>()
+}
+</code></pre></div></li>
+</ul></li>
+</ul></li>
+</ul>
+
 <p>こっからは自分の主観。Opaque Errorは確かに便利で標準ライブラリでも良く利用されているパターンだと思うんだけど、アプリケーション内部で使うにはそこまでパッケージの結合度合いを考えないで良いのではないかなぁという思いがある(特にアプリケーション構築初期には)。また、以下のようにエラーの扱いに困っている人とかもいたりして、確かに初見だと <code>XXXXError</code> みたいな型がパッケージのドキュメントにあった方が確かにわかりやすいよなぁという感想を持った。 <a href="https://utcc.utoronto.ca/~cks/space/blog/programming/GoNetErrorsUndocumented">Go&rsquo;s net package doesn&rsquo;t have opaque errors, just undocumented ones</a></p>
 
 <p>なので自分はHTTP APIサーバーを作るというコンテクストでは Error Type 推し。ただ Opaque Error を使うと1関数から複数の Error Type が返ってくる想定で且つそれぞれの Error Type が <code>Tempolary()</code> と <code>Timeout()</code> を持っている場合、横断的なエラーハンドリングがしやすくはなるなとは思う。余談だけど、このタイプのメソッドは <code>Tempolary()</code> と <code>Timeout()</code> くらいしか見たことがなく自分の知見が狭いだけな可能性があるため、他にもこういう形のエラーハンドリングを使ってる場所があれば知りたい。</p>
@@ -263,7 +272,8 @@
 		<span style="color:#a6e22e">UserDetail</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;user_detail,omitempty&#34;`</span>
 	} <span style="color:#e6db74">`json:&#34;errors,omitempty&#34;`</span>
 	<span style="color:#a6e22e">UserDetail</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;user_detail,omitempty&#34;`</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <ul>
 <li><code>Status</code> : HTTP Status Codeを入れる</li>
 <li><code>Type</code> : どの領域のエラーなのかを入れる (e.g. <code>card_activation</code>)</li>
@@ -335,7 +345,8 @@
 		<span style="color:#66d9ef">return</span>
 	}
 	<span style="color:#66d9ef">return</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>400系は全てwarning log、500系はerror logとして扱っている。この辺りのエラーを運用でどうやって整備しているのかの話はまた別記事で書きたいのでここでは深入りはしない。</p>
 
 <h3 id="まとめ">まとめ</h3>
@@ -386,6 +397,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -393,8 +406,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

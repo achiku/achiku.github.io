@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -60,17 +60,14 @@
 <h3 id="go自体の管理">Go自体の管理</h3>
 
 <p>homebrewでインストール。</p>
-
 <pre><code>$ brew install go
 $ go version
 go version go1.6 darwin/amd64
 $ which go
-/usr/local/bin/go
-</code></pre>
-
+/usr/local/bin/go</code></pre>
 <p><code>.zshrc</code>に以下の環境変数を設定。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang</span>
-export GOVERSION<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.6
+export GOVERSION<span style="color:#f92672">=</span>1.6
 export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
 export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
 <p>一応バージョンをGOPATHに入れて新しいバージョンのGoがリリースされても最初から綺麗にディレクトリ分けてビルドできるようにしてる。後方互換結構大事にしているように見受けられるのであまり心配してないけど念の為。</p>
@@ -112,14 +109,14 @@ export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></d
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;fatih/vim-go&#39;</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#75715e">
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34; syntastic</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_go_checkers</span> = [<span style="color:#e6db74">&#39;golint&#39;</span>, <span style="color:#e6db74">&#39;gotype&#39;</span>, <span style="color:#e6db74">&#39;govet&#39;</span>, <span style="color:#e6db74">&#39;go&#39;</span>]<span style="color:#75715e">
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_go_checkers</span> = [<span style="color:#e6db74">&#39;golint&#39;</span>, <span style="color:#e6db74">&#39;gotype&#39;</span>, <span style="color:#e6db74">&#39;govet&#39;</span>, <span style="color:#e6db74">&#39;go&#39;</span>]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34; vim-go</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> =<span style="color:#75715e"> &#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> = <span style="color:#e6db74">&#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_functions</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_methods</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_structs</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
@@ -153,15 +150,15 @@ export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></d
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;zchee/deoplete-go&#39;</span>, {<span style="color:#e6db74">&#39;build&#39;</span>: {<span style="color:#e6db74">&#39;unix&#39;</span>: <span style="color:#e6db74">&#39;make&#39;</span>}}<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#75715e">
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34;&#34; deoplete</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_at_startup</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">C</span>-<span style="color:#a6e22e">h</span>&gt; <span style="color:#a6e22e">deolete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#75715e">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">BS</span>&gt; <span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#75715e">&#34;\&lt;C-h&gt;&#34;
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">C</span>-<span style="color:#a6e22e">h</span>&gt; <span style="color:#a6e22e">deolete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">BS</span>&gt; <span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34;&#34; deoplete-go</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">align_class</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">sort_class</span> = [<span style="color:#e6db74">&#39;package&#39;</span>, <span style="color:#e6db74">&#39;func&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;var&#39;</span>, <span style="color:#e6db74">&#39;const&#39;</span>]<span style="color:#960050;background-color:#1e0010">
@@ -169,24 +166,15 @@ export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></d
 <p>これだけの設定をするだけでGoの標準ライブラリ及び<code>go get/install</code>したライブラリは補完できるようになる。問題なのは<code>vendor</code>ディレクトリに入れたプロジェクトの依存ライブラリだ。</p>
 
 <p>結論から言うと以下のコマンドを打って<code>gocode</code>の<code>autobuild</code>機能を有効にすると、<code>vendor</code>ディレクトリに入れたライブラリも便利に補完可能になる。(但し<code>gocode</code>はこの機能をexperimentalと位置づけてるので動向には注意)</p>
-
-<pre><code>gocode set autobuild true
-</code></pre>
-
+<pre><code>gocode set autobuild true</code></pre>
 <p>上記コマンドを打つと、gocodeの設定ファイルが以下の場所にできる。</p>
-
 <pre><code>$ ll .config/gocode/config.json
 -rw-r--r--  1 achiku  staff  108  2 27 17:54 .config/gocode/config.json
 $ cat .config/gocode/config.json
-{&quot;propose-builtins&quot;:false,&quot;lib-path&quot;:&quot;&quot;,&quot;autobuild&quot;:true,&quot;force-debug-output&quot;:&quot;&quot;,&quot;package-lookup-mode&quot;:&quot;go&quot;}% 
-</code></pre>
-
+{&#34;propose-builtins&#34;:false,&#34;lib-path&#34;:&#34;&#34;,&#34;autobuild&#34;:true,&#34;force-debug-output&#34;:&#34;&#34;,&#34;package-lookup-mode&#34;:&#34;go&#34;}% </code></pre>
 <p><code>gocode</code>は補完候補をソースコードからではなくビルド済みのバイナリから探すので、一度ビルドしないと補完が効かない。上記の設定はエディタで補完候補を探す際に<code>vendor</code>ディレクトリ内のソースをビルドして<code>$GOPATH</code>の中に入れてくれる。実際にどの場所にバイナリが入るかというと、例えば自分が作っているwbsというツールの依存ライブラリは以下の場所にバイナリが入る。</p>
-
 <pre><code>~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/BurntSushi/toml.a
-~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/mattn/go-shellwords.a
-</code></pre>
-
+~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/mattn/go-shellwords.a</code></pre>
 <p>プロジェクト別に依存ライブラリのバイナリが配置されるので、自動でコンパイルされて配置されてもさして影響は無いかなと思ってる。初回補完時にビルドするのである程度ラグを感じるが、一度ビルドされたら次回以降高速に補完されるので現状問題は感じていない。</p>
 
 <ul>
@@ -262,6 +250,8 @@ $ cat .config/gocode/config.json
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -269,8 +259,6 @@ $ cat .config/gocode/config.json
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

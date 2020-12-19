@@ -1,22 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://akirachiku.com/post/2020-12-19-yesarly/</loc>
+    <lastmod>2020-12-19T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://akirachiku.com/post/</loc>
-    <lastmod>2020-04-27T00:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <lastmod>2020-12-19T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://akirachiku.com/</loc>
+    <lastmod>2020-12-19T00:00:00+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://akirachiku.com/post/2020-04-27-user-interview/</loc>
     <lastmod>2020-04-27T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://akirachiku.com/</loc>
-    <lastmod>2020-04-27T00:00:00+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -122,7 +125,6 @@
   <url>
     <loc>https://akirachiku.com/cv/</loc>
     <lastmod>2017-04-24T00:00:00+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -312,12 +314,10 @@
   
   <url>
     <loc>https://akirachiku.com/categories/</loc>
-    <priority>0</priority>
   </url>
   
   <url>
     <loc>https://akirachiku.com/tags/</loc>
-    <priority>0</priority>
   </url>
   
 </urlset>

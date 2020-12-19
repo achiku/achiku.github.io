@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -109,7 +109,6 @@
 <h2 id="実装">実装</h2>
 
 <p>他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。</p>
-
 <pre><code>project
 ├── apps
 │   ├── appA
@@ -128,9 +127,7 @@
 ├── server-config
 ├── static
 ├── templates
-└── tests
-</code></pre>
-
+└── tests</code></pre>
 <p>上から順に概要を説明します。</p>
 
 <ul>
@@ -290,12 +287,9 @@ DATABASES <span style="color:#f92672">=</span> {
 
 <p>各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。
 local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。</p>
-
 <pre><code># -*- coding: utf-8 -*-
 # ローカル環境用設定ファイル。以下のようにコピーして利用すること。
-# cp local.sample.py local.py
-</code></pre>
-
+# cp local.sample.py local.py</code></pre>
 <p>core/settings/local.pyは.gitignoreに記載しておき、リポジトリからは無視しておく。このlocal.pyに各開発者用の独自設定を入れていきます。<a href="http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X">Two Scoops of Django</a>では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。</p>
 
 <p><strong>local_test.py</strong></p>
@@ -324,10 +318,7 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
     execute_from_command_line(sys<span style="color:#f92672">.</span>argv)</code></pre></div>
 
 <p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。</p>
-
-<pre><code>export DJANGO_SETTINGS_MODULE=core.config.staging
-</code></pre>
-
+<pre><code>export DJANGO_SETTINGS_MODULE=core.config.staging</code></pre>
 <p><em>参考文献</em></p>
 
 <ul>
@@ -379,6 +370,8 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -386,8 +379,6 @@ local.sample.py内には特に何も設定されておらず、以下のよう�
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

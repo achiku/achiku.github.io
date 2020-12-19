@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -48,34 +48,24 @@
 <p>vim + syntastic + mypyを使ってPython 3.5から正式に入った型アノテーションを実感する。環境はOSX 10.10.5。</p>
 
 <h3 id="python-3-5の準備">Python 3.5の準備</h3>
-
 <pre><code>$ brew update
 $ brew install python3
 $ ls -l $(which python3)
 lrwxr-xr-x  1 achiku  staff  35  6  9 17:10 /usr/local/bin/python3@ -&gt; ../Cellar/python3/3.5.0/bin/python3
 $ ls -l $(which pyvenv3.5)
-lrwxr-xr-x  1 achiku  staff  38 10 19 01:35 /usr/local/bin/pyvenv3.5@ -&gt; ../Cellar/python3/3.5.0/bin/pyvenv-3.5
-</code></pre>
-
+lrwxr-xr-x  1 achiku  staff  38 10 19 01:35 /usr/local/bin/pyvenv3.5@ -&gt; ../Cellar/python3/3.5.0/bin/pyvenv-3.5</code></pre>
 <h3 id="virtualenv環境の作成">virtualenv環境の作成</h3>
-
 <pre><code>$ pyvenv3.5 mypy
 $ source ./mypy/bin/activate
 $ python --version
-Python 3.5.0
-</code></pre>
-
+Python 3.5.0</code></pre>
 <h3 id="必要なライブラリをインストール">必要なライブラリをインストール</h3>
-
 <pre><code>$ cat requirements.txt
 git+https://github.com/JukkaL/mypy.git@master
 $ pip install -r requirements.txt
 $ pip freeze
-mypy-lang==0.2.0.dev0
-</code></pre>
-
+mypy-lang==0.2.0.dev0</code></pre>
 <p>mypy-langをpip installで入れると0.2.0が入るのだけど、これはPython 3.5では上手く動かなかった。なので上の例ではリポジトリのmasterから入れてる。</p>
-
 <pre><code>$ python --version
 Python 3.5.0
 $ pip install mypy-lang
@@ -83,15 +73,12 @@ $ pip freeze
 mypy-lang==0.2.0
 $ mypy
 Traceback (most recent call last):
-  File &quot;/Users/achiku/.virtualenvs/py3/bin/mypy&quot;, line 14, in &lt;module&gt;
+  File &#34;/Users/achiku/.virtualenvs/py3/bin/mypy&#34;, line 14, in &lt;module&gt;
     from mypy import build
-  File &quot;/Users/achiku/.virtualenvs/py3/lib/python3.5/site-packages/mypy/build.py&quot;, line 19, in &lt;module&gt;
+  File &#34;/Users/achiku/.virtualenvs/py3/lib/python3.5/site-packages/mypy/build.py&#34;, line 19, in &lt;module&gt;
     from typing import Undefined, Dict, List, Tuple, cast, Set, Union
-ImportError: cannot import name 'Undefined'
-</code></pre>
-
+ImportError: cannot import name &#39;Undefined&#39;</code></pre>
 <h3 id="mypyが動く事を確認">mypyが動く事を確認</h3>
-
 <pre><code>$ mypy -h
 usage: mypy [option ...] [-m mod | file]
 
@@ -106,9 +93,7 @@ Optional arguments:
   --version          show the current version information
 
 Environment variables:
-  MYPYPATH     additional module search path
-</code></pre>
-
+  MYPYPATH     additional module search path</code></pre>
 <h3 id="syntasticの準備">syntasticの準備</h3>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;scrooloose/syntastic&#39;</span></code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_check_on_open</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_python_checkers</span> = [<span style="color:#e6db74">&#39;flake8&#39;</span>, <span style="color:#e6db74">&#39;pep257&#39;</span>, <span style="color:#e6db74">&#39;mypy&#39;</span>]<span style="color:#960050;background-color:#1e0010">
@@ -170,6 +155,8 @@ Environment variables:
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -177,8 +164,6 @@ Environment variables:
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -136,15 +136,13 @@
 		<span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>)
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>上のコードでは<code>helloAPI</code>という英語で軽く挨拶をしてくれるAPIのモックが定義されており、これを<code>main</code>関数内で上から順番に実行する。<code>helloAPI</code>の中にはレスポンスタイムのブレを表現するためにランダムにsleepしてから文字列を返すようにしてある。実行結果は以下。確かに順番に挨拶してくれている。</p>
-
 <pre><code>Hello, 8maki!
 Hello, moqada!
 Hello, ide!
-done!
-</code></pre>
-
+done!</code></pre>
 <p>APIのコールは互いに独立なので並列(parallel)に実行したいのでここでgoroutineを使う。<code>helloAPI</code>を呼び出す前に<code>go</code>を付けるだけ。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
 	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
@@ -153,12 +151,10 @@ done!
 		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">helloAPI</span>(<span style="color:#a6e22e">u</span>)
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>以下実行結果。</p>
-
-<pre><code>done!
-</code></pre>
-
+<pre><code>done!</code></pre>
 <p>なんかおかしいのもその通り、<code>go</code>を付けることで<code>helloAPI</code>はメインスレッドとは切り離されて実行されているので、<code>helloAPI</code>が結果を表示する前にメインスレッドが完了してしまっている。強引に<code>helloAPI</code>の結果を標準出力に出そうとするのならば<code>main</code>の中でsleepしてやるしかない。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
 	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">UnixNano</span>())
@@ -168,15 +164,13 @@ done!
 	}
 	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>実行結果は以下の通りで<code>helloAPI</code>の結果を出力できた。</p>
-
 <pre><code>Hello, 8maki!
 Hello, moqada!
 Hello, ide!
-done!
-</code></pre>
-
+done!</code></pre>
 <p>このように<code>go</code>を関数の前に付けることで処理を独立に実行できる。<code>go</code>は関数だけじゃなくてコードのブロックや無名関数にも適用できる便利な道具だ。ただし、上で見たように「処理を独立して実行する」仕組みであるだけであり、雑に例えるならばシェルにアンパサンド付けて実行するのと同じような感じでしかない。</p>
 
 <p>見ての通り上のプログラムはあまりにもナイーブだ。<code>helloAPI</code>が過負荷でレスポンス返すのに時間がかかっていたらどうするのか、挨拶する対象のユーザが増えたらどうするのか、とにかく処理に1秒以上かかったら正しく動作しない。かと言って30秒待つのはあまりに非効率だし、そうなるとどこかで足切りの基準を設けてそれ以上時間がかかったらエラー通知して処理を進める、とかになるがまぁわかりにくい。</p>
@@ -210,22 +204,22 @@ done!
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;You say: %q\n&#34;</span>, <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">c</span>)
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>実行結果。</p>
-
-<pre><code>You say: &quot;Hello, 8maki!&quot;
-You say: &quot;Hello, moqada!&quot;
-You say: &quot;Hello, achiku!&quot;
-You say: &quot;Hello, ide!&quot;
-done!
-</code></pre>
-
+<pre><code>You say: &#34;Hello, 8maki!&#34;
+You say: &#34;Hello, moqada!&#34;
+You say: &#34;Hello, achiku!&#34;
+You say: &#34;Hello, ide!&#34;
+done!</code></pre>
 <p>最初に<code>main</code>の中で<code>channel</code>を作ってやる。Golangが提供する<code>channel</code>はファーストクラスオブジェクトで型を持っている。メインはこのチャネルを使って独立実行する<code>helloAPI</code>とデータのやり取りをする。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)
+</code></pre></div>
 <p>肝は以下の部分。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;You say: %q\n&#34;</span>, <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">c</span>)
-	}</code></pre></div>
+	}
+</code></pre></div>
 <p>ここでメインは<code>&lt;-c</code>を使って<code>go</code>で独立実行した処理がchannelを経由してデータを渡してくれるのを待っている。<code>helloAPI</code>が処理を完了して文字列を自身が引数で受け取ったチャネルに渡した瞬間に上記コードの<code>fmt.Println</code>が実行される。今回のケースではユーザの数分<code>helloAPI</code>を実行しているのでユーザの数分待ち合わせる事になる。チャネルは「データの受け渡し」と「処理の待ち合わせ」の両方の役割を担っている感じ。以下最強の資料から抜粋。</p>
 
 <blockquote>
@@ -287,20 +281,18 @@ Thus channels both communicate and synchronize.</p>
 		}
 	}
 	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;done!&#34;</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>実行結果。</p>
-
 <pre><code>Hello, moqada!
 Hello, 8maki!
-ide's profile
+ide&#39;s profile
 Hello, achiku!
-moqada's profile
-achiku's profile
+moqada&#39;s profile
+achiku&#39;s profile
 Hello, ide!
-8maki's profile
-done!
-</code></pre>
-
+8maki&#39;s profile
+done!</code></pre>
 <p>肝は以下の部分。forループを何回回すかの部分が大分ナイーブだけど一旦説明の為に勘弁してほしい。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">numAPI</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">2</span>
 	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">users</span>)<span style="color:#f92672">*</span><span style="color:#a6e22e">numAPI</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
@@ -310,7 +302,8 @@ done!
 		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">profile</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">profChan</span>:
 			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">profile</span>)
 		}
-	}</code></pre></div>
+	}
+</code></pre></div>
 <p>これはユーザの数xそのユーザに対して実行するAPIの数分<code>select</code>を実行している。<code>helloChan</code>と<code>profChan</code>どちらに先にデータが届いても、届いたものから実行していく(同時に届いた場合はランダムに実行する処理を選択)。このように複数のチャネルを取り回して行く時<code>select</code>があると綺麗に書ける。</p>
 
 <h2 id="まとめ">まとめ</h2>
@@ -351,6 +344,8 @@ done!
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -358,8 +353,6 @@ done!
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

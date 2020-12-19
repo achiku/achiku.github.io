@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -120,29 +120,29 @@ Connected with result code <span style="color:#ae81ff">0</span></code></pre></di
 次にpub.pyでメッセージをsangoに送る。</p>
 
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ python pub.py
-<span style="color:#f92672">[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">2</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">3</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">4</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">5</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">6</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">7</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">8</span><span style="color:#f92672">]</span> Sending message to sango.
-<span style="color:#f92672">[</span><span style="color:#ae81ff">9</span><span style="color:#f92672">]</span> Sending message to sango.</code></pre></div>
+<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>3<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>4<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>5<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>6<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>7<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>8<span style="color:#f92672">]</span> Sending message to sango.
+<span style="color:#f92672">[</span>9<span style="color:#f92672">]</span> Sending message to sango.</code></pre></div>
 
 <p>sub.py側で以下のような表示が確認できるはず。</p>
 
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">2</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">3</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">4</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">5</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">6</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">7</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">8</span><span style="color:#f92672">]</span> message from pub coming through sango!
-achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:#ae81ff">9</span><span style="color:#f92672">]</span> message from pub coming through sango!</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">achiku@github/test_topic <span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>2<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>3<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>4<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>5<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>6<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>7<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>8<span style="color:#f92672">]</span> message from pub coming through sango!
+achiku@github/test_topic <span style="color:#f92672">[</span>9<span style="color:#f92672">]</span> message from pub coming through sango!</code></pre></div>
 
 <p>それでは新宿であいましょう！！(時間がやばい)</p>
 
@@ -180,6 +180,8 @@ achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -187,8 +189,6 @@ achiku@github/test_topic <span style="color:#f92672">[</span><span style="color:
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

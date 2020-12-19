@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -60,10 +60,7 @@
 <h3 id="cnpsの使い方">cnpsの使い方</h3>
 
 <p>まずはイベントのURLを指定して参加希望者のデータをJSONに吐き出す。</p>
-
-<pre><code>cnps dump https://fintech-engineers-drink-up.connpass.com/event/56057/ &gt; user.json
-</code></pre>
-
+<pre><code>cnps dump https://fintech-engineers-drink-up.connpass.com/event/56057/ &gt; user.json</code></pre>
 <p>そうするとこういう感じのデータが取れる。(参加希望者のデータはスクレイピングしてるので、無茶はしないで)。参加希望者の直近参加申請したイベントの日付、ソーシャルリンク等が含まれてる。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">  {
     <span style="color:#f92672">&#34;event_dates&#34;</span>: [
@@ -90,25 +87,13 @@
     <span style="color:#f92672">&#34;user_url&#34;</span>: <span style="color:#e6db74">&#34;https://connpass.com/user/KeisukeKogure/&#34;</span>
   }</code></pre></div>
 <p>あとは出力したファイルの中のデータを好きな条件でフィルタする。例えば直近10件のイベントで、同日に別イベントに登録してる人。(この辺はキャンセルしたとか時間帯が違うとかはあんまし考慮できてないので今後の課題です)</p>
-
-<pre><code>cnps filter ./tests/data/user.json  --duplicate-event
-</code></pre>
-
+<pre><code>cnps filter ./tests/data/user.json  --duplicate-event</code></pre>
 <p>例えばソーシャルリンクが一つも無い人。</p>
-
-<pre><code>cnps filter ./tests/data/user.json  --no-facebook-link --no-github-link --no-twitter-link
-</code></pre>
-
+<pre><code>cnps filter ./tests/data/user.json  --no-facebook-link --no-github-link --no-twitter-link</code></pre>
 <p>例えばGitHubのリンクはある人。</p>
-
-<pre><code>cnps filter ./tests/data/user.json --github-link
-</code></pre>
-
+<pre><code>cnps filter ./tests/data/user.json --github-link</code></pre>
 <p>例えばソーシャルリンクが一つも無くて、直近10件のイベントの平均インターバルが3日以下の人。</p>
-
-<pre><code>cnps filter ./tests/data/user.json --avg-event-interval=3 --no-facebook-link --no-twitter-link --no-github-link
-</code></pre>
-
+<pre><code>cnps filter ./tests/data/user.json --avg-event-interval=3 --no-facebook-link --no-twitter-link --no-github-link</code></pre>
 <h3 id="結論">結論</h3>
 
 <p>はやく会社の知名度を上げて参加費300円とかにしても沢山人が来てくれるようにしたい。</p>
@@ -147,6 +132,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -154,8 +141,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

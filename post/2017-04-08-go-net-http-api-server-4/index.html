@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -113,7 +113,8 @@
 
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:8080&#34;</span>, <span style="color:#a6e22e">router</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
-	}</code></pre></div>
+	}
+</code></pre></div>
 <p><code>PathPrefix</code>を使ってサブルーターも作る事ができるので何度も同じURLを書かなくて良くなり、間違いが減る。また、URLの中で<code>{name}</code>の用にパラメタを設定でき、<code>http.Handler</code>の中で以下のようにして取得することができる。注意点1として、<code>mux.Vars</code>で取得できるURLパラメタは<code>map[string]string</code>なのでその後の処理に応じて適切な型にキャストして利用する必要がある。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// GreetingWithName greeting with name
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">app</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">GreetingWithName</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
@@ -129,11 +130,13 @@
 	}
 	<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ok: %v&#34;</span>, <span style="color:#a6e22e">res</span>)
 	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">res</span>, <span style="color:#66d9ef">nil</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>注意点2としては、URLパラメタを含むURLと同じ階層で静的なURLを使いたい場合、静的なURLを先に登録する必要がある、という事。ちなみに<a href="https://github.com/julienschmidt/httprouter">httprouter</a>は現時点でURLパラメタと同じ階層に静的なURLを登録できない(これもhttprouter使うのを諦めた理由の一つではある)。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">    <span style="color:#75715e">// /hello/staticNameが先、/hello/{name}は後
 </span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/staticName&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">publicChain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
-	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/{name}&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>}))</code></pre></div>
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello/{name}&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>}))
+</code></pre></div>
 <h3 id="テストを書く">テストを書く</h3>
 
 <p>これが若干悩ましい。何が悩ましいかというと「muxの中でURLパラメタをパースして<code>context.Context</code>に値をセットするAPIが開発者には公開されていない」という事。パッケージ作成者としてはgorilla/muxが管理する<code>context.Context</code>のキーを外部に公開しないというのは非常に分かるし、推奨される方法だ(意図せず同一のキーで上書きされるのを防ぐため)。しかし<a href="https://github.com/gorilla/mux/issues/167">このIssue</a>で提案されているコードはやっぱり冗長だし、何よりテストコードの中に本質的でないURLと<code>http.Handler</code>を書かなければいけないのが良くないのではと思う。URL書き間違えたらテストの意味が無いし、URLのルーティング含めたテストは<code>http.Handler</code>単体のテスト(アプリケーション固有ロジックのテスト)とは別途書かれるべきなのではないか、という思いがある。まだ正直この部分は悩み中。</p>
@@ -157,7 +160,8 @@
         <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">status</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Code</span>; <span style="color:#a6e22e">status</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span> {
             <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;wrong status code: got %d want %d&#34;</span>, <span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
         }
-    }</code></pre></div>
+    }
+</code></pre></div>
 <p>一応自分でも「<code>context.Context</code>に値をセットできるようなPublic Test APIを作成したら良いのでは？」と<a href="https://github.com/gorilla/mux/issues/233">このIssue</a>で提案してみたが、作者は上記の方法には興味無さそう(もう少しPushしてみるのはありかもしれない)。</p>
 
 <p>なのでこんな感じのPublic Test APIを付けたforkを現在は利用している。</p>
@@ -182,7 +186,8 @@
 		<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">TestSetURLParam</span>(<span style="color:#a6e22e">req</span>, <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">Name</span>})
 		<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">GreetingWithName</span>(<span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>(), <span style="color:#a6e22e">r</span>)
         <span style="color:#f92672">...</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>このように<code>mux.TestSetURLParam(*http.Request, map[string]string)</code>を使うことで<code>http.Request</code>の中の<code>context.Context</code>にテスト用の値を注入してテストを流せる。まぁ書いてみて思ったけどこれもまだ<code>http.Request</code>を作る時にURL書いてるし微妙な気がしてきた。この辺みんなどうやってテストしてるのか聞いてみたい。</p>
 
 <h3 id="合わせて読みたい">合わせて読みたい</h3>
@@ -227,6 +232,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -234,8 +241,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

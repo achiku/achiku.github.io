@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -58,8 +58,7 @@
 <p>Goのインターフェースを網羅的に説明しようとすると長大な記事が書けてしまうので、今回は<code>http.Handler</code>を理解していくのに必要な部分だけに絞って少し書く。以下のサンプルコードを元に話しを進める。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch02/example/example.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch02/example/example.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
 
 <span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
@@ -124,7 +123,10 @@
 	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">a</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> []<span style="color:#a6e22e">animal</span>{<span style="color:#a6e22e">p1</span>, <span style="color:#a6e22e">p2</span>, <span style="color:#a6e22e">d1</span>, <span style="color:#a6e22e">n1</span>} {
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%s: %s\n&#34;</span>, <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">name</span>(), <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">greeting</span>())
 	}
-}</code></pre></div>
+}
+</code></pre></div></li>
+</ul>
+
 <p>このコードの中で言いたいのは<code>animal</code>インターフェースを実装しているものはどのような型でもanimalとして使えるという事。「どのような型でも」と付けたのは、structに付与したメソッドがインターフェースと一致しているかどうかに限らず、上記サンプルで示した<code>nameType</code>という実態は<code>string</code>の型に付与したメソッドでもインターフェースを満たしていれば<code>animal</code>として扱える、という事。言葉は乱暴かもしれないけどコンパイル時型チェックなduck typingみたいな感じに使える。</p>
 
 <p>詳細は以下の記事がステップバイステップで解説していて面白い。</p>
@@ -138,8 +140,7 @@
 <p>Goのメソッドはカスタム型になら例えそれが関数だろうと付与できる。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch02/example02/main.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch02/example02/main.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
 
 <span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
@@ -157,7 +158,10 @@
 		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;hello!!&#34;</span>
 	})
 	<span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">WrapFunc</span>()
-}</code></pre></div>
+}
+</code></pre></div></li>
+</ul>
+
 <p><code>myFunc</code>型に<code>WrapFunc()</code>メソッドを追加している。ここで面白いのは<code>myFunc</code>は関数だということ。関数にメソッドを付与する、というのが最初は理解しづらかったのを覚えているんだけど、「カスタム型には元が関数だろうがstringだろうがメソッドは付与できる」という事。このサンプルコードが一番<code>http.Handler</code>と<code>http.HandlerFunc</code>の関係性に近い形になっている。</p>
 
 <h3 id="http-handlerというインターフェース">http.Handlerというインターフェース</h3>
@@ -165,7 +169,8 @@
 <p>やっとここまできた。いきなりだけど以下が<code>http.Handler</code>というインターフェースの全量となる。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Handler</span> <span style="color:#66d9ef">interface</span> {
 	<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">Request</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p><code>ServeHTTP(http.ResponseWriter, *http.Request)</code>というメソッド一つ持っていればそれは全て<code>http.Handler</code>として扱う事ができる。なんとも小さくて頼りない感じがするが、<code>http.Request</code>と<code>http.ResponseWriter</code>と合わさってとてもシンプルにHTTPリクエストを扱えるようになっている。以下にあまり現実的ではないけど、こういう風にも作れるという例を示す。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
 
@@ -192,7 +197,8 @@
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;:8080&#34;</span>, <span style="color:#a6e22e">mux</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
 	}
-}</code></pre></div>
+}
+</code></pre></div>
 <p><code>myString</code>型は<code>ServeHTTP(http.ResponseWriter, *http.Request)</code>というシグネチャを満たすので<code>http.Handler</code>として利用できる。<code>http.Handler</code>として利用できるので、<code>mux.Handle(string, http.Handler)</code>に渡せる。そうすることでURLとHTTPリクエスト/レスポンスの処理が紐付き、サーバーとして起動できる、という流れ。</p>
 
 <p>以下は良くGoの<code>net/http</code>の例で見る<code>func(http.ResponseWriter, *http.Request)</code>とURLを紐付けるタイプのやつ。</p>
@@ -201,12 +207,14 @@
 		<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
 		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;myString=%s&#34;</span>, <span style="color:#e6db74">&#34;3&#34;</span>)
 		<span style="color:#66d9ef">return</span>
-	})</code></pre></div>
+	})
+</code></pre></div>
 <p>これも結構面白くて、<code>ServeMux.HandleFunc</code>は以下のような形になってる。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// HandleFunc registers the handler function for the given pattern.
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">mux</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ServeMux</span>) <span style="color:#a6e22e">HandleFunc</span>(<span style="color:#a6e22e">pattern</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">handler</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">Request</span>)) {
 	<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Handle</span>(<span style="color:#a6e22e">pattern</span>, <span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#a6e22e">handler</span>))
-}</code></pre></div>
+}
+</code></pre></div>
 <p><code>http.HandlerFunc</code>が何をやっているかというと。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// The HandlerFunc type is an adapter to allow the use of
 </span><span style="color:#75715e">// ordinary functions as HTTP handlers. If f is a function
@@ -217,7 +225,8 @@
 <span style="color:#75715e">// ServeHTTP calls f(w, r).
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">f</span> <span style="color:#a6e22e">HandlerFunc</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Request</span>) {
 	<span style="color:#a6e22e">f</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
-}</code></pre></div>
+}
+</code></pre></div>
 <p>これは関数<code>func(http.ResponseWriter, *http.Request)</code>を<code>http.HandlerFunc</code>に型変換し<code>ServeHTTP</code>メソッドを持つ形にして、<code>ServeHTTP</code>の中で型変換したその関数を呼ぶ、という形になっており、あくまでもシンタックスシュガーとしてURLと<code>http.Handler</code>が実行する処理の紐付けを行っている事がわかる。たまにURL routing系のライブラリで<code>http.HandlerFunc</code>しか取らないものがあるんだけど、シンタックスシュガーだけ取り入れて肝心の<code>http.Handler</code>を受けれないのはライブラリとしてはもったいないなという思いがある。</p>
 
 <h3 id="何が嬉しいのか">何が嬉しいのか</h3>
@@ -227,8 +236,7 @@
 <p>例えば独自シグネチャをステータスコード、JSONレスポンス用構造体、エラーを返せるように<code>func(http.ResponseWriter, *http.Request) (int, interface{}, error)</code>とおき、<code>AppHandler</code>という<code>ServeHTTP</code>をメソッドとして持つ構造体をアダプターとして使うパターン。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch03/server.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch03/server.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// AppHandler application handler adaptor
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">AppHandler</span> <span style="color:#66d9ef">struct</span> {
 	<span style="color:#a6e22e">h</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>)
@@ -270,7 +278,10 @@
 </span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
 	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
 	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>})
-<span style="color:#f92672">...</span></code></pre></div>
+<span style="color:#f92672">...</span>
+</code></pre></div></li>
+</ul>
+
 <p>こうする事でエラー発生時のロギング、HTTP StatusCodeの値によって別URLにリダイレクト、JSONをResponseWriterへの書き込み等を共通的に扱う事ができるようになった。また、これは主観だけど空returnが無くなるのでうっかりエラー処理時にreturn書き忘れる事も減る気がする。</p>
 
 <p>テストは以下のようになる。<a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">この記事で書いたもの</a>からあまり変化は無いかも。</p>
@@ -295,7 +306,8 @@
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">expected</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;hello!&#34;</span>; <span style="color:#a6e22e">gt</span>.<span style="color:#a6e22e">Message</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">expected</span> {
 		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;want %s got %s&#34;</span>, <span style="color:#a6e22e">expected</span>, <span style="color:#a6e22e">gt</span>.<span style="color:#a6e22e">Message</span>)
 	}
-}</code></pre></div>
+}
+</code></pre></div>
 			</div>
 			<div>
 				<ul id="tags">
@@ -330,6 +342,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -337,8 +351,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -63,8 +63,7 @@
 <p>言葉で書くと長いのでロギング用のミドルウェアとpanicリカバリ用ミドルウェアのコードを書いた。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
 	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
 		<span style="color:#a6e22e">t1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
@@ -86,12 +85,16 @@
 		}()
 		<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
 	})
-}</code></pre></div>
+}
+</code></pre></div></li>
+</ul>
+
 <p><code>http.Handler</code>をチェインさせていくことで、ミドルウェアA-&gt;ミドルウェアB-&gt;ミドルウェアC-&gt;アプリケーションの処理、という形で書けるようになっている。矢印で表現するより本来は順序を持ってネストしていくイメージ。以下のような形でアプリケーションの処理とURLとの紐付けに利用する。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">...</span>
 	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(
 		<span style="color:#a6e22e">recoverMiddleware</span>(<span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>})))
-<span style="color:#f92672">...</span></code></pre></div>
+<span style="color:#f92672">...</span>
+</code></pre></div>
 <p>一点注意としては、ミドルウェアは必ず並べられた順に実行されるので、例えば認証ミドルウェアで作成したユーザー情報を利用するミドルウェアは必ず認証ミドルウェアの後に書かないと正常に動かない。</p>
 
 <h3 id="さらに見通しの良いミドルウェア">さらに見通しの良いミドルウェア</h3>
@@ -105,7 +108,8 @@
 	<span style="color:#75715e">// for gorilla/mux
 </span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
 	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
-	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))</code></pre></div>
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+</code></pre></div>
 <p>だいぶ見通しがよくなった。また、Aliceはミドルウェア連鎖をグループ化しておけるので、例えば共通のミドルウェアチェーンはあるんだけど、publicなエンドポイントだけ別のミドルウェア群を挟みたい、privateなエンドポイントは認証を入れたい、みたいなことも綺麗に書ける。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// middleware chain
 </span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
@@ -117,7 +121,8 @@
 	)
 	<span style="color:#a6e22e">privateChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
 		<span style="color:#a6e22e">authMiddleware</span>,
-	)</code></pre></div>
+	)
+</code></pre></div>
 <h3 id="ミドルウェア内でdbやアプリケーション設定を使いたい">ミドルウェア内でDBやアプリケーション設定を使いたい</h3>
 
 <p><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a>で説明したアプリケーショングローバルな値をミドルウェア内部で使いたくなることがある。特にDBにアクセスする認証や、アプリケーション設定内に記述した特定IPアドレスからのアクセスを拒否する、といった類のもの。<code>func(http.Handler) http.Handler</code>だからそういう値を持ったミドルウェアは書けないのか、と自分は最初思ったが、特定の値(e.g. DBのコネクションやlogger)を取って<code>func(http.Handler) http.Handler</code>を返すクロージャーを使えば簡単に書ける。</p>
@@ -125,8 +130,7 @@
 <p>以下のはアプリケーショングローバルなloggerをミドルウェア内で利用する例。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
 	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
 		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
@@ -137,17 +141,22 @@
 			<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[%s] %s %s&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">String</span>())
 		})
 	}
-}</code></pre></div>
+}
+</code></pre></div></li>
+</ul>
+
 <p><code>*log.Logger</code>を取って<code>func(http.Handler) http.Handler</code>を返す関数になってる。これを以下のように使う。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/server.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/server.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// middleware chain
 </span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
 		<span style="color:#a6e22e">recoverMiddleware</span>,
 		<span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>),
-	)</code></pre></div>
+	)
+</code></pre></div></li>
+</ul>
+
 <p>こうすることで柔軟なミドルウェアを作成する事ができ、それらをグループ化して管理することで、どのエンドポイントはどのミドルウェアチェーンで処理されるのか明確になった。</p>
 
 <h3 id="ライブラリとしてのミドルウェア">ライブラリとしてのミドルウェア</h3>
@@ -202,6 +211,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -209,8 +220,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

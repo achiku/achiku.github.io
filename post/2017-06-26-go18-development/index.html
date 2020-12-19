@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -68,32 +68,26 @@
 <p>今から入るならこれでも良いかなと思うけど、自分はまだGoのバージョンをパスに含めて開発するスタイルでやっていっている。Goは後方互換をめちゃくちゃ大事にしてくれるのでGoのバージョン変えて急に挙動がズレる事はそんなに無いとは思うんだけど、一度バージョンを上げてコンパイルしたバイナリを暫く検証環境で走らす、パフォーマンステストする等の作業が主に仕事で発生して、複数バージョンローカルに持っておきたいケースがあるので以下のようなスタイルになってる。</p>
 
 <p>homebrewでインストール。</p>
-
 <pre><code>$ brew install go
 $ go version
 go version go1.6 darwin/amd64
 $ which go
-/usr/local/bin/go
-</code></pre>
-
+/usr/local/bin/go</code></pre>
 <p>.zshrcに以下の環境変数を設定。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang</span>
-export GOVERSION<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>.8.3
+export GOVERSION<span style="color:#f92672">=</span>1.8.3
 export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
 export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
 <p>Goのバージョンを切り替えるときは以下の <code>brew switch</code> を使ってシンボリックリンクを切り替えてる。</p>
-
 <pre><code>$ go version
 go version go1.8.3 darwin/amd64
 $ brew switch --help
 brew switch name version:
-    Symlink all of the specific version of name's install to Homebrew prefix.
+    Symlink all of the specific version of name&#39;s install to Homebrew prefix.
 $ brew switch go 1.7.3
 3 links created for /usr/local/Cellar/go/1.7.3
 $ go version
-go version go1.7.3 darwin/amd64
-</code></pre>
-
+go version go1.7.3 darwin/amd64</code></pre>
 <h3 id="vendoring">vendoring</h3>
 
 <ul>
@@ -110,7 +104,7 @@ go version go1.7.3 darwin/amd64
 
 <p>現在エディタはneovimをメインで利用。この部分はvimでも良さそうな気がしてる。ベーシックな部分は全て <a href="https://github.com/fatih/vim-go">vim-go</a> におまかせしている。特に <code>:GoRename</code> コマンドと、 <code>&lt;Leader&gt;dt &lt;Plug&gt;(go-def-tab)</code> には大変お世話になっている。 <code>:GoRename</code> 、本当に精神に良くて、これがあるから名前をある程度雑に決めて前に進む事ができる。「あとで別概念が出てくるかも。出てくるとしたら何か。」という思考に使うコストをほぼカットできるのは本当に良い。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34; vim-go</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> =<span style="color:#75715e"> &#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> = <span style="color:#e6db74">&#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_functions</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_methods</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_structs</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
@@ -180,22 +174,24 @@ go version go1.7.3 darwin/amd64
 
 <ul>
 <li><a href="https://github.com/Shougo/deoplete.nvim">github.com/Shougo/deoplete.nvim</a></li>
-<li><a href="https://github.com/zchee/deoplete-go">github.com/zchee/deoplete-go</a></li>
-</ul>
+
+<li><p><a href="https://github.com/zchee/deoplete-go">github.com/zchee/deoplete-go</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34;&#34; deoplete</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_at_startup</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#75715e">
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34;&#34; deoplete-go</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">align_class</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">sort_class</span> = [<span style="color:#e6db74">&#39;package&#39;</span>, <span style="color:#e6db74">&#39;func&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;var&#39;</span>, <span style="color:#e6db74">&#39;const&#39;</span>]<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">package_dot</span> = <span style="color:#ae81ff">1</span></code></pre></div>
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">package_dot</span> = <span style="color:#ae81ff">1</span></code></pre></div></li>
+</ul>
+
 <h3 id="エディタ-テスト">エディタ(テスト)</h3>
 
 <p>エディタで書いてテストして、というサイクルを高速に回すために <code>vim-test</code> というプラグインを入れている。これまた最高のプラグインのうちの一つだと思っててGoに限らずPythonを書くときにも多用している。特にカーソルに一番近いテストを実行してくれる <code>:TestNerest</code> が良い。9割くらいはコレですましている。さらに <code>neoterm</code> というプラグインを入れ、 <code>vim-test</code> がテスト実行時に開く terminal を neovim の機能をフルに活かした良い感じのやつにしている(テスト結果のterminalを開きっぱなしにしたり、その中をvimのキーバインドで移動できたり、もう一回テスト実行したら同じterminal内部で実行してくれたり、色々良いneoterm)。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#75715e">&#34;&#34;&#34; neoterm</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">neoterm_size</span> = <span style="color:#ae81ff">15</span><span style="color:#75715e">
-</span><span style="color:#75715e">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">neoterm_size</span> = <span style="color:#ae81ff">15</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
 </span><span style="color:#75715e">&#34;&#34;&#34; vim-test</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">strategy</span> = <span style="color:#e6db74">&#39;neoterm&#39;</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">preserve_screen</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
@@ -257,6 +253,8 @@ go version go1.7.3 darwin/amd64
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -264,8 +262,6 @@ go version go1.7.3 darwin/amd64
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>

@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.55.6" />
+  <meta name="generator" content="Hugo 0.78.2" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -62,8 +62,7 @@
 <p>そこで以下のサンプルのように<code>App</code>的な<code>struct</code>を作り、その属性としてアプリケーショングローバルな値を入れ、<code>main</code>関数内で初期化する方法が良いのではないかと思っている。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server.go">サンプルコード全量</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server.go">サンプルコード全量</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#75715e">// App application
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">App</span> <span style="color:#66d9ef">struct</span> {
 	<span style="color:#a6e22e">Host</span>   <span style="color:#66d9ef">string</span>
@@ -82,8 +81,11 @@
 		<span style="color:#a6e22e">Host</span>:   <span style="color:#a6e22e">host</span>,
 		<span style="color:#a6e22e">Logger</span>: <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;[host=%s] &#34;</span>, <span style="color:#a6e22e">host</span>), <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>),
 	}
-    <span style="color:#f92672">...</span>.
-}</code></pre></div>
+<span style="color:#f92672">...</span>.
+}
+</code></pre></div></li>
+</ul>
+
 <p>(本来なら<code>NewApp()</code>的な関数を定義しておくべきだけど、今回は省略)</p>
 
 <p>この<code>App</code>にメソッドを付与して各処理を記述していくことで、アプリケーション内で必要となる値には各処理から簡単にアクセスできるようになる。また、このメソッドのシグネチャを<code>func(http.ResponseWriter, *http.Request)</code>にして<code>http.HandlerFunc</code>の型に合うようにする事で、ある程度の規模まではその他標準ライブラリと連携しやすくなる。</p>
@@ -104,7 +106,8 @@
 	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
 	<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
 	<span style="color:#66d9ef">return</span>
-}</code></pre></div>
+}
+</code></pre></div>
 <p>サンプルコード見て「同じような処理(主にhttp.ResponseWriterとエラーハンドリング周辺)が何回も出てきて微妙だな」と思う人もいるかと思うし、自分もちょっとこれは微妙かなと思う部分が多い。後ほど書く予定の記事でこの部分は改善してみようと思うので、一旦このまま進む。</p>
 
 <p>(書いた-&gt;<a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a>)</p>
@@ -116,8 +119,7 @@
 <p>上記のようにアプリケーショングローバルな値をpackageグローバルな形にするのを避け、なるべくコントロール可能な形にすることで比較的テストが書きやすくなる。</p>
 
 <ul>
-<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server_test.go">サンプルコード</a></li>
-</ul>
+<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch01/server_test.go">サンプルコード</a></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">testNewApp</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span> {
 	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">Verbose</span>() {
@@ -152,7 +154,10 @@
 	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">expected</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;hello!&#34;</span>; <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">expected</span> {
 		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;want %s got %s&#34;</span>, <span style="color:#a6e22e">expected</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
 	}
-}</code></pre></div>
+}
+</code></pre></div></li>
+</ul>
+
 <p>何の変哲もないテストだけど注目してほしいのは<code>testNewApp</code>関数の中での<code>App</code>初期化だ。このようにテスト用のAppを外部からの入力によって変更する事がとても簡単にできる。</p>
 
 <p>今回のケースでは<code>go test -v</code>の<code>-v</code>が渡されていた場合、loggerの出力先を変更している。自分は<code>go test</code>の成功すると何も出力されない、という仕様がとても好きなんだけど、時にはテストしたい関数の中にデバッグログを仕込んで出力を見たい、という場合がある。そのような場合に、Appが持つLoggerの属性をパラメタを渡すことで変更している。</p>
@@ -200,6 +205,8 @@
 			<div>
 				<ul>
 					
+					<li><a href="https://akirachiku.com/post/2020-12-19-yesarly/">2020年をesaで振り返る</a></li>
+					
 					<li><a href="https://akirachiku.com/post/2020-04-27-user-interview/">カンムでマーケティングチームがやってるユーザーインタビュー</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2020-01-02-writing/">インターネットと文章</a></li>
@@ -207,8 +214,6 @@
 					<li><a href="https://akirachiku.com/post/2019-12-21-hiring/">カンムと採用活動</a></li>
 					
 					<li><a href="https://akirachiku.com/post/2019-11-04-promotion-dashboard/">カンム流redashを使ったプロモーションDashboardの作り方 その1</a></li>
-					
-					<li><a href="https://akirachiku.com/post/2019-09-22-marketing-books/">マーケティング素人のエンジニアが1年間マーケティングをやった際に読んだ本</a></li>
 					
 				</ul>
 			</div>
