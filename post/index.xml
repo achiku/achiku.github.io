@@ -6,7 +6,16 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sun, 24 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>カンムで使ってるユーザーセグメントを分ける為のクエリ(1)</title>
+      <link>https://akirachiku.com/post/2021-01-30-segment-sql/</link>
+      <pubDate>Sat, 30 Jan 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2021-01-30-segment-sql/</guid>
+      <description>実績系の集計 は前回書いたんだけど、ユーザーセグメントを分けるクエリ、ユーザーセグメントの前月比較、継続率を見る為のクエリ、というのは少し思考</description>
+    </item>
+    
     <item>
       <title>モチベーションに関して</title>
       <link>https://akirachiku.com/post/2021-01-24-motivation/</link>
