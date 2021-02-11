@@ -6,7 +6,16 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 11 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>仕事の定式化</title>
+      <link>https://akirachiku.com/post/2021-02-11-formula-of-job/</link>
+      <pubDate>Thu, 11 Feb 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2021-02-11-formula-of-job/</guid>
+      <description>何か事柄の構造を定式化できると「どのような変数があるのか、どの変数をどの程度動かせるのか、現状と望む状態の差分を埋める為にどうすべきか」等を</description>
+    </item>
+    
     <item>
       <title>カンムで使ってるユーザーセグメントを分ける為のクエリ(1)</title>
       <link>https://akirachiku.com/post/2021-01-30-segment-sql/</link>
