@@ -6,7 +6,16 @@
     <description>Recent content in Posts on 包丁一本さらしに巻いて</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>ja-jp</language>
-    <lastBuildDate>Thu, 11 Feb 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 13 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://akirachiku.com/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>数値感</title>
+      <link>https://akirachiku.com/post/2021-03-13-suchi-kan/</link>
+      <pubDate>Sat, 13 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://akirachiku.com/post/2021-03-13-suchi-kan/</guid>
+      <description>数値感ってのが自分の中にある。これは実験計画を立てる際に必要なサンプルサイズを算定し、対照群/介入群の前提を整理して複数ある手法から適切な効</description>
+    </item>
+    
     <item>
       <title>仕事の定式化</title>
       <link>https://akirachiku.com/post/2021-02-11-formula-of-job/</link>
