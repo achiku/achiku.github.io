@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -44,12 +44,9 @@
 			<time>2010/09/04</time>
 			<div>
 				<p>このツール超便利だ。Oracle DBを標準入出力で操れる。Linux/GNU最高。</p>
-
 <p><a href="http://www.asahi-net.or.jp/~nq7t-kwbt/">ORACLEの部屋</a></p>
-
 <p>tarボールをダウンロードしてきてmakeしてみたけど、そのままでは利用できなかったので、11gR2、Exaでも使えるmakeつくってみた。標準装備のmakeを分解してるだけ。</p>
-
-<pre><code class="language-basemake" data-lang="basemake">ORAHOME = ${ORACLE_HOME}
+<pre tabindex="0"><code class="language-basemake" data-lang="basemake">ORAHOME = ${ORACLE_HOME}
 OBJS = chcsv.o sqlda.o Option.o OutPut.o Signal.o
 
 build : chcsv

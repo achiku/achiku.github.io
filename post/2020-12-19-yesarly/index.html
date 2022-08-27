@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -44,43 +44,31 @@
 			<time>2020/12/19</time>
 			<div>
 				<p>そういう時期ですが、この一年、振り返ってますか。この記事は <a href="https://adventar.org/calendars/5396">カンムアドベントカレンダーの19日目</a>です。</p>
-
 <p>会社では <a href="https://esa.io/">esa</a> をドキュメント管理ツールとして使っている。</p>
-
-<p><blockquote class="twitter-tweet"><p lang="ja" dir="ltr">会社のesa、8,629件のポストがあった</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1314893416388464640?ref_src=twsrc%5Etfw">October 10, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
-
+<blockquote class="twitter-tweet"><p lang="ja" dir="ltr">会社のesa、8,629件のポストがあった</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1314893416388464640?ref_src=twsrc%5Etfw">October 10, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>かなり使っている。</p>
-
-<p><blockquote class="twitter-tweet"><p lang="ja" dir="ltr">社内esaに「まおゆう」「ガンパレードマーチ」「からくりサーカス」「蒼天航路」の引用を作り始めてしまった</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1112198183059259392?ref_src=twsrc%5Etfw">March 31, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
-
+<blockquote class="twitter-tweet"><p lang="ja" dir="ltr">社内esaに「まおゆう」「ガンパレードマーチ」「からくりサーカス」「蒼天航路」の引用を作り始めてしまった</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1112198183059259392?ref_src=twsrc%5Etfw">March 31, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>様々な用途で利用している。</p>
-
-<p><blockquote class="twitter-tweet"><p lang="ja" dir="ltr">俺今日「手触り感」ってesaに書いちゃったンすよね&hellip;.</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1214146281775349760?ref_src=twsrc%5Etfw">January 6, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
-
+<blockquote class="twitter-tweet"><p lang="ja" dir="ltr">俺今日「手触り感」ってesaに書いちゃったンすよね....</p>&mdash; _achiku (@_achiku) <a href="https://twitter.com/_achiku/status/1214146281775349760?ref_src=twsrc%5Etfw">January 6, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>手触り感な。</p>
-
 <p>一年を振り返るにあたり、日常で使い込んでいるツールからログを出力するというのは一つ便利なのではないかと思い、以下のツールを作った。</p>
-
 <ul>
-<li><p><a href="https://github.com/achiku/yesarly">yeasrly</a></p>
-<pre><code>$ ./yesarly --help
-Usage of ./yesarly:
--apikey string
-    esa api key
--team string
-    esa team
--user string
-    esa username
--from string
-    from (format: 2020-01-01) (default: 1/1 of this year)
--to string
-    to (format: 2020-12-31) (default: 12/31 of this year)</code></pre></li>
+<li><a href="https://github.com/achiku/yesarly">yeasrly</a></li>
 </ul>
-
-<p>Markdownのリンク形式 <code>[title](url)</code> で作成日降順ソートされて出力されるので、出力をesaに張るとそのままその年の振り返りとできる。やってみたら結構便利だったので <code>from</code> / <code>to</code> を指定できるようにして月一回くらい振り返りの為のesa作っても良いなと思った。</p>
-
+<pre tabindex="0"><code>$ ./yesarly --help
+Usage of ./yesarly:
+  -apikey string
+        esa api key
+  -team string
+        esa team
+  -user string
+        esa username
+  -from string
+        from (format: 2020-01-01) (default: 1/1 of this year)
+  -to string
+        to (format: 2020-12-31) (default: 12/31 of this year)
+</code></pre><p>Markdownのリンク形式 <code>[title](url)</code> で作成日降順ソートされて出力されるので、出力をesaに張るとそのままその年の振り返りとできる。やってみたら結構便利だったので <code>from</code> / <code>to</code> を指定できるようにして月一回くらい振り返りの為のesa作っても良いなと思った。</p>
 <p>久しぶりにコードを書いたんだけどめちゃくちゃ忘れてるし、制限時間内でしっかりしたテストコードを書くことができなかった。これはかなりショック。後でちゃんとリファクタしておきたい。</p>
-
 <p>esaをどのように使ってるのかというのは一つかなり面白いトピックなので来年はまとめたい。文章は少ないけどコード書くのに時間使ってしまったので一旦これにて！</p>
 
 			</div>

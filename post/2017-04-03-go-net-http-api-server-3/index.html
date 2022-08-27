@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,134 +43,104 @@
 			<h2>net/httpで作るGo APIサーバー #3</h2>
 			<time>2017/04/03</time>
 			<div>
-				
-
-<p>この一連の記事では<code>net/http</code>を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
-
+				<p>この一連の記事では<code>net/http</code>を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
 <ul>
 <li><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
 <li><a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
 </ul>
-
 <p>今回は<code>http.Handler</code>を使い、HTTPリクエストの共通処理を記述するミドルウェアについて書く。</p>
-
 <h3 id="ミドルウェアとは">ミドルウェアとは</h3>
-
 <p>特にそういった構造体や関数が標準ライブラリの中にあるわけではない。Goではミドルウェアを連鎖させていくことでHTTPリクエストを処理する際に必要な共通処理(e.g. ロギング、認証、panicリカバリ、etc)を記述していく。</p>
-
 <p>ミドルウェアとは実際に何かというと、<code>func(http.Handler) http.Handler</code>というシグネチャを持ち、引数として渡ってきた<code>http.Handler</code>の<code>ServeHTTP(http.ResponseWriter, *http.Request)</code>を内部で実行する<code>http.Handler</code>インターフェースを満たすオブジェクトを返す関数、という感じ。<code>http.Handler</code>とは何か、何が便利なのかは<a href="http://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a>を読んで欲しい。</p>
-
 <p>言葉で書くと長いのでロギング用のミドルウェアとpanicリカバリ用ミドルウェアのコードを書いた。</p>
-
 <ul>
-<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-		<span style="color:#a6e22e">t1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-		<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
-		<span style="color:#a6e22e">t2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-		<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t2</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">t1</span>)
-		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[%s] %s %s&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">String</span>())
-	})
-}
-
-<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">recoverMiddleware</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-		<span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
-			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> recover(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-				<span style="color:#a6e22e">debug</span>.<span style="color:#a6e22e">PrintStack</span>()
-				<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;panic: %+v&#34;</span>, <span style="color:#a6e22e">err</span>)
-				<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#ae81ff">500</span>), <span style="color:#ae81ff">500</span>)
-			}
-		}()
-		<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
-	})
-}
-</code></pre></div></li>
+<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></li>
 </ul>
-
-<p><code>http.Handler</code>をチェインさせていくことで、ミドルウェアA-&gt;ミドルウェアB-&gt;ミドルウェアC-&gt;アプリケーションの処理、という形で書けるようになっている。矢印で表現するより本来は順序を持ってネストしていくイメージ。以下のような形でアプリケーションの処理とURLとの紐付けに利用する。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#f92672">...</span>
-	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(
-		<span style="color:#a6e22e">recoverMiddleware</span>(<span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>})))
-<span style="color:#f92672">...</span>
-</code></pre></div>
-<p>一点注意としては、ミドルウェアは必ず並べられた順に実行されるので、例えば認証ミドルウェアで作成したユーザー情報を利用するミドルウェアは必ず認証ミドルウェアの後に書かないと正常に動かない。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t2</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">t1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[%s] %s %s&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">recoverMiddleware</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> recover(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">debug</span>.<span style="color:#a6e22e">PrintStack</span>()
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;panic: %+v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#ae81ff">500</span>), <span style="color:#ae81ff">500</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}()
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>http.Handler</code>をチェインさせていくことで、ミドルウェアA-&gt;ミドルウェアB-&gt;ミドルウェアC-&gt;アプリケーションの処理、という形で書けるようになっている。矢印で表現するより本来は順序を持ってネストしていくイメージ。以下のような形でアプリケーションの処理とURLとの紐付けに利用する。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">recoverMiddleware</span>(<span style="color:#a6e22e">loggingMiddleware</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>})))
+</span></span><span style="display:flex;"><span><span style="color:#f92672">...</span>
+</span></span></code></pre></div><p>一点注意としては、ミドルウェアは必ず並べられた順に実行されるので、例えば認証ミドルウェアで作成したユーザー情報を利用するミドルウェアは必ず認証ミドルウェアの後に書かないと正常に動かない。</p>
 <h3 id="さらに見通しの良いミドルウェア">さらに見通しの良いミドルウェア</h3>
-
 <p><code>func(http.Handler) http.Handler</code>というシグネチャのシンプルな形は良いのだけど、標準ライブラリだけだと<code>middlewareA(middlewareB(middlewareC(handler)))</code>という形になってしまいmiddlewareをグループ化して使いまわしにくいし、何より不格好で視認性が低い。そこで、ミドルウェアのグルーピングやその他細かい事を良い感じに埋めてくれる薄い<a href="https://github.com/justinas/alice">Alice</a>というライブラリをお勧めしたい。Aliceを使うと以下のように書ける。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// middleware chain
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">recoverMiddleware</span>,
-		<span style="color:#a6e22e">loggingMiddleware</span>,
-	)
-	<span style="color:#75715e">// for gorilla/mux
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
-	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
-	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
-</code></pre></div>
-<p>だいぶ見通しがよくなった。また、Aliceはミドルウェア連鎖をグループ化しておけるので、例えば共通のミドルウェアチェーンはあるんだけど、publicなエンドポイントだけ別のミドルウェア群を挟みたい、privateなエンドポイントは認証を入れたい、みたいなことも綺麗に書ける。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// middleware chain
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">recoverMiddleware</span>,
-		<span style="color:#a6e22e">loggingMiddleware</span>,
-	)
-	<span style="color:#a6e22e">publicChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
-		<span style="color:#a6e22e">publicMiddleware</span>,
-	)
-	<span style="color:#a6e22e">privateChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
-		<span style="color:#a6e22e">authMiddleware</span>,
-	)
-</code></pre></div>
-<h3 id="ミドルウェア内でdbやアプリケーション設定を使いたい">ミドルウェア内でDBやアプリケーション設定を使いたい</h3>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span>	<span style="color:#75715e">// middleware chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">recoverMiddleware</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">loggingMiddleware</span>,
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// for gorilla/mux
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+</span></span></code></pre></div><p>だいぶ見通しがよくなった。また、Aliceはミドルウェア連鎖をグループ化しておけるので、例えば共通のミドルウェアチェーンはあるんだけど、publicなエンドポイントだけ別のミドルウェア群を挟みたい、privateなエンドポイントは認証を入れたい、みたいなことも綺麗に書ける。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span>	<span style="color:#75715e">// middleware chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">recoverMiddleware</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">loggingMiddleware</span>,
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">publicChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">publicMiddleware</span>,
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">privateChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">authMiddleware</span>,
+</span></span><span style="display:flex;"><span>	)
+</span></span></code></pre></div><h3 id="ミドルウェア内でdbやアプリケーション設定を使いたい">ミドルウェア内でDBやアプリケーション設定を使いたい</h3>
 <p><a href="http://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a>で説明したアプリケーショングローバルな値をミドルウェア内部で使いたくなることがある。特にDBにアクセスする認証や、アプリケーション設定内に記述した特定IPアドレスからのアクセスを拒否する、といった類のもの。<code>func(http.Handler) http.Handler</code>だからそういう値を持ったミドルウェアは書けないのか、と自分は最初思ったが、特定の値(e.g. DBのコネクションやlogger)を取って<code>func(http.Handler) http.Handler</code>を返すクロージャーを使えば簡単に書ける。</p>
-
 <p>以下のはアプリケーショングローバルなloggerをミドルウェア内で利用する例。</p>
-
 <ul>
-<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
-	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-			<span style="color:#a6e22e">t1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-			<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
-			<span style="color:#a6e22e">t2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
-			<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t2</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">t1</span>)
-			<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[%s] %s %s&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">String</span>())
-		})
-	}
-}
-</code></pre></div></li>
+<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/middleware.go">サンプルコード</a></li>
 </ul>
-
-<p><code>*log.Logger</code>を取って<code>func(http.Handler) http.Handler</code>を返す関数になってる。これを以下のように使う。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>) <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">next</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandlerFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">t1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">next</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">t2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t2</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">t1</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[%s] %s %s&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">URL</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>*log.Logger</code>を取って<code>func(http.Handler) http.Handler</code>を返す関数になってる。これを以下のように使う。</p>
 <ul>
-<li><p><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/server.go">サンプルコード</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-golang" data-lang="golang">	<span style="color:#75715e">// middleware chain
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">recoverMiddleware</span>,
-		<span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>),
-	)
-</code></pre></div></li>
+<li><a href="https://github.com/achiku/go-http-api-server/blob/master/ch04/server.go">サンプルコード</a></li>
 </ul>
-
-<p>こうすることで柔軟なミドルウェアを作成する事ができ、それらをグループ化して管理することで、どのエンドポイントはどのミドルウェアチェーンで処理されるのか明確になった。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span>	<span style="color:#75715e">// middleware chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">recoverMiddleware</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">appLoggingMiddleware</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Logger</span>),
+</span></span><span style="display:flex;"><span>	)
+</span></span></code></pre></div><p>こうすることで柔軟なミドルウェアを作成する事ができ、それらをグループ化して管理することで、どのエンドポイントはどのミドルウェアチェーンで処理されるのか明確になった。</p>
 <h3 id="ライブラリとしてのミドルウェア">ライブラリとしてのミドルウェア</h3>
-
 <p>このように<code>func(http.Handler) http.Handler</code>シグネチャを守りながらミドルウェアチェーンを構築すると、同じインターフェースに対応しているサードパーティ製のライブラリを組み込みやすくなる。例えば、以下に一覧がある。</p>
-
 <ul>
 <li><a href="https://github.com/avelino/awesome-go#actual-middlewares">Awesome Go - actual middleware</a></li>
 </ul>
-
 <p>便利なミドルウェアを書いてライブラリとして公開する場合も<code>func(http.Handler) http.Handler</code>を守るのが良いと思う。</p>
-
 <h3 id="参考資料">参考資料</h3>
-
 <ul>
 <li><a href="https://justinas.org/alice-painless-middleware-chaining-for-go/">Alice –Painless Middleware Chaining for Go</a></li>
 <li><a href="http://www.alexedwards.net/blog/making-and-using-middleware">Making and Using HTTP Middleware</a></li>

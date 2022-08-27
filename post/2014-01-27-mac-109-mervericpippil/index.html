@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,19 +43,15 @@
 			<h2>Mac 10.9 Mervericsでpip install PILが失敗する</h2>
 			<time>2014/01/27</time>
 			<div>
-				
-
-<p>Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
+				<p>Mac OSX 10.9.1、Python 2.7.5でpipを利用したPILのインストールが失敗する。
 OSアップグレード前はうまくいっていた。</p>
-
 <h2 id="エラー詳細">エラー詳細</h2>
-
 <p>どうやらヘッダファイルが無いらしい。</p>
-<pre><code>building &#39;_imagingft&#39; extension
+<pre><code>building '_imagingft' extension
 
 cc -fno-strict-aliasing -fno-common -dynamic -I/usr/local/include -I/usr/local/opt/sqlite/include -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -I/System/Library/Frameworks/Tcl.framework/Headers -I/System/Library/Frameworks/Tk.framework/Headers -I/usr/local/include/freetype2 -IlibImaging -I/Users/achiku/.virtualenvs/pil/include -I/usr/local/include -I/usr/include -I/usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/include/python2.7 -c _imagingft.c -o build/temp.macosx-10.7-x86_64-2.7/_imagingft.o
 
-_imagingft.c:73:10: fatal error: &#39;freetype/fterrors.h&#39; file not found
+_imagingft.c:73:10: fatal error: 'freetype/fterrors.h' file not found
 
 #include &lt;freetype/fterrors.h&gt;
 
@@ -63,18 +59,16 @@ _imagingft.c:73:10: fatal error: &#39;freetype/fterrors.h&#39; file not found
 
 1 error generated.
 
-error: command &#39;cc&#39; failed with exit status 1
+error: command 'cc' failed with exit status 1
 
-----------------------------------------</code></pre>
+----------------------------------------
+</code></pre>
 <h2 id="対応">対応</h2>
-
 <p>結論から言うと、イメージ上のフォントを弄るfreetypeをbrew経由でインストールし、PILコンパイル時に見える位置にシンボリックリンクを貼って再度pip installすることで解決。
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ brew install freetype
-$ ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
-$ pip install PIL</code></pre></div></p>
-
-<h2 id="参考-こんなになった経緯等">参考/こんなになった経緯等</h2>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ brew install freetype
+</span></span><span style="display:flex;"><span>$ ln -s /usr/local/Cellar/freetype/2.5.1/include/freetype2 /usr/local/include/freetype
+</span></span><span style="display:flex;"><span>$ pip install PIL</span></span></code></pre></div></p>
+<h2 id="参考こんなになった経緯等">参考/こんなになった経緯等</h2>
 <p><a href="http://stackoverflow.com/questions/20325473/error-installing-python-image-library-using-pip-on-mac-os-x-10-9">Error installing Python Image Library using pip on Mac OS X 10.9</a></p>
 
 			</div>

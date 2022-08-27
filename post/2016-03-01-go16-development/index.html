@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,12 +43,8 @@
 			<h2>Go 1.6開発環境整備</h2>
 			<time>2016/03/01</time>
 			<div>
-				
-
-<p>しっくり来る所まで来たのでまとめ。</p>
-
+				<p>しっくり来る所まで来たのでまとめ。</p>
 <h3 id="前提">前提</h3>
-
 <ul>
 <li>Mac OS X 10.11.3</li>
 <li>homebrew</li>
@@ -56,164 +52,142 @@
 <li>zsh</li>
 <li>neovim 1.3-dev</li>
 </ul>
-
 <h3 id="go自体の管理">Go自体の管理</h3>
-
 <p>homebrewでインストール。</p>
-<pre><code>$ brew install go
+<pre tabindex="0"><code>$ brew install go
 $ go version
 go version go1.6 darwin/amd64
 $ which go
-/usr/local/bin/go</code></pre>
-<p><code>.zshrc</code>に以下の環境変数を設定。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># for golang</span>
-export GOVERSION<span style="color:#f92672">=</span>1.6
-export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
-export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH</code></pre></div>
-<p>一応バージョンをGOPATHに入れて新しいバージョンのGoがリリースされても最初から綺麗にディレクトリ分けてビルドできるようにしてる。後方互換結構大事にしているように見受けられるのであまり心配してないけど念の為。</p>
-
+/usr/local/bin/go
+</code></pre><p><code>.zshrc</code>に以下の環境変数を設定。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># for golang</span>
+</span></span><span style="display:flex;"><span>export GOVERSION<span style="color:#f92672">=</span>1.6
+</span></span><span style="display:flex;"><span>export GOPATH<span style="color:#f92672">=</span>$HOME/.go/$GOVERSION
+</span></span><span style="display:flex;"><span>export PATH<span style="color:#f92672">=</span>$GOPATH/bin:$PATH
+</span></span></code></pre></div><p>一応バージョンをGOPATHに入れて新しいバージョンのGoがリリースされても最初から綺麗にディレクトリ分けてビルドできるようにしてる。後方互換結構大事にしているように見受けられるのであまり心配してないけど念の為。</p>
 <p>若干ディレクトリが深いので良く使うディレクトリにはaliasを張ってる。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">alias gp<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;cd $GOPATH/src/github.com/achiku/&#39;</span></code></pre></div>
-<h3 id="vendoring">vendoring</h3>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>alias gp<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;cd $GOPATH/src/github.com/achiku/&#39;</span>
+</span></span></code></pre></div><h3 id="vendoring">vendoring</h3>
 <p>Go 1.6からデフォルトでGo公式各コマンド(go buildとかgo testとか)が<code>vendor</code>ディレクトリを意識してくれるようになった。<code>gb</code>も良いんだけど現在はGoのvendoringで結構満足してる。vendoring tool自体は色々ある。色々あるんだけど自分はgomが好きだ。好きな点は以下の2つ。</p>
-
 <ol>
 <li><code>vendor/bin</code>にコマンドラインツールを入れる事ができる</li>
 <li>設定ファイル1つで開発環境、その他環境でインストールするべきものを分けれる</li>
 </ol>
-
 <p>この2点、意外にその他シンプルなvendoring toolは無視しがちだと思うんだけどグローバルに特定プロジェクトの開発にだけ使いたいツールいれるの嫌だなぁと思う人には嬉しい。</p>
-
 <p>gomにvendorディレクトリを意識させるには以下の設定が必要。Go 1.6でGO15VENDOREXPERIMENTがデフォルトでオンになっていてもgom自体は以下の環境変数見てるので設定しないといけない。(追記: この設定は不要になりました。Go 1.6以上であれば設定不要です。<a href="https://github.com/mattn/gom/pull/74">mattn/gom/pull/74</a>)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export GO15VENDOREXPERIMENT<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>   <span style="color:#75715e"># for gom</span></code></pre></div>
-<p>これを設定しておくとgomが作るライブラリ入れるディレクトリが<code>vendor</code>になり、インストールするディレクトリもGo標準のvendoringを意識した形にしてくれる。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>export GO15VENDOREXPERIMENT<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>   <span style="color:#75715e"># for gom</span>
+</span></span></code></pre></div><p>これを設定しておくとgomが作るライブラリ入れるディレクトリが<code>vendor</code>になり、インストールするディレクトリもGo標準のvendoringを意識した形にしてくれる。</p>
 <p>Go標準のツール(go buildとかgo testとか)が<code>vendor</code>ディレクトリを意識してくれるので<code>gom build</code>や<code>gom test</code>は使わなくなり、ほぼ<code>gom install</code>と<code>gom exec</code>しか使ってない。この辺りの機能はGo 1.5以前から存在してるのでもはや役目を終えつつある。しかしながら考えぬかれた便利な道具だ。</p>
-
 <ul>
 <li><a href="https://github.com/mattn/gom">github.com/mattn/gom</a></li>
 </ul>
-
 <p>その他新し目の(vendorディレクトリを意識する)vendoring toolでシンプルで良いなと思ったのは以下の二つ。</p>
-
 <ul>
 <li><a href="https://github.com/govend/govend">github.com/govend/govend</a></li>
 <li><a href="https://github.com/FiloSottile/gvt">github.com/FiloSottile/gvt</a></li>
 </ul>
-
-<h3 id="エディタ-基礎">エディタ(基礎)</h3>
-
+<h3 id="エディタ基礎">エディタ(基礎)</h3>
 <p>現在エディタはneovimをメインで利用。この部分はvimでも良さそうな気がしてる。以下Goを書くための入れているプラグインと設定の抜粋。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;scrooloose/syntastic&#39;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;fatih/vim-go&#39;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
-</span><span style="color:#75715e">&#34;&#34; syntastic</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_go_checkers</span> = [<span style="color:#e6db74">&#39;golint&#39;</span>, <span style="color:#e6db74">&#39;gotype&#39;</span>, <span style="color:#e6db74">&#39;govet&#39;</span>, <span style="color:#e6db74">&#39;go&#39;</span>]<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
-</span><span style="color:#75715e">
-</span><span style="color:#75715e">&#34;&#34; vim-go</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> = <span style="color:#e6db74">&#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_functions</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_methods</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_structs</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_operators</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_term_enabled</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_build_constraints</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">GolangSettings</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span>!<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gb</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">build</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">test</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">ds</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">split</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">tab</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gd</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">highlight</span> <span style="color:#a6e22e">goErr</span> <span style="color:#a6e22e">cterm</span>=bold <span style="color:#a6e22e">ctermfg</span>=<span style="color:#ae81ff">214</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">match</span> <span style="color:#a6e22e">goErr</span> <span style="color:#e6db74">/\&lt;err\&gt;/</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">END</span></code></pre></div>
-<p><code>vim-go</code>を入れてからvimのコマンドで<code>:GoInstallBinaries</code>を実行すると、デフォルトでは<code>$GOPATH/bin</code>に<code>goimports</code>, <code>golint</code>, <code>gocode</code>等のGoを書くときに便利なツールが一気に入る。全ツールアップデートしたい場合は<code>:GoUpdateBinaries</code>を実行するとアップデート可能。この二つのプラグインは本当に良く出来ていて、毎日大変お世話になってる。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-vim" data-lang="vim"><span style="display:flex;"><span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;scrooloose/syntastic&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;fatih/vim-go&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">&#34;&#34; syntastic</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">syntastic_go_checkers</span> = [<span style="color:#e6db74">&#39;golint&#39;</span>, <span style="color:#e6db74">&#39;gotype&#39;</span>, <span style="color:#e6db74">&#39;govet&#39;</span>, <span style="color:#e6db74">&#39;go&#39;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">&#34;&#34; vim-go</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_fmt_command</span> = <span style="color:#e6db74">&#34;goimports&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_functions</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_methods</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_structs</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_operators</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_term_enabled</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">go_highlight_build_constraints</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">GolangSettings</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span>!<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gb</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">build</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">gt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">test</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">ds</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">split</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">dt</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">def</span>-<span style="color:#a6e22e">tab</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gd</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> <span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">Leader</span>&gt;<span style="color:#a6e22e">gv</span> &lt;<span style="color:#a6e22e">Plug</span>&gt;(<span style="color:#a6e22e">go</span>-<span style="color:#a6e22e">doc</span>-<span style="color:#a6e22e">vertical</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">highlight</span> <span style="color:#a6e22e">goErr</span> <span style="color:#a6e22e">cterm</span>=bold <span style="color:#a6e22e">ctermfg</span>=<span style="color:#ae81ff">214</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#a6e22e">autocmd</span> <span style="color:#a6e22e">FileType</span> <span style="color:#a6e22e">go</span> :<span style="color:#a6e22e">match</span> <span style="color:#a6e22e">goErr</span> <span style="color:#e6db74">/\&lt;err\&gt;/</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">augroup</span> <span style="color:#a6e22e">END</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p><code>vim-go</code>を入れてからvimのコマンドで<code>:GoInstallBinaries</code>を実行すると、デフォルトでは<code>$GOPATH/bin</code>に<code>goimports</code>, <code>golint</code>, <code>gocode</code>等のGoを書くときに便利なツールが一気に入る。全ツールアップデートしたい場合は<code>:GoUpdateBinaries</code>を実行するとアップデート可能。この二つのプラグインは本当に良く出来ていて、毎日大変お世話になってる。</p>
 <ul>
 <li><a href="https://github.com/fatih/vim-go">github.com/fatih/vim-go</a></li>
 <li><a href="https://github.com/scrooloose/syntastic">github.com/scrooloose/syntastic</a></li>
 </ul>
-
-<h3 id="エディタ-コード補完">エディタ(コード補完)</h3>
-
+<h3 id="エディタコード補完">エディタ(コード補完)</h3>
 <p>エディタ上でのコード補完に関しては<code>gocode</code>がデファクトになってる。neovimでは<code>deoplete</code>というプラグインを使って一般的な補完をし、<code>deoplete-go</code>というプラグインを利用してGo関連補完を補強してる。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;Shougo/deoplete.nvim&#39;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;zchee/deoplete-go&#39;</span>, {<span style="color:#e6db74">&#39;build&#39;</span>: {<span style="color:#e6db74">&#39;unix&#39;</span>: <span style="color:#e6db74">&#39;make&#39;</span>}}<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
-</span><span style="color:#75715e">&#34;&#34;&#34; deoplete</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_at_startup</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">C</span>-<span style="color:#a6e22e">h</span>&gt; <span style="color:#a6e22e">deolete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">BS</span>&gt; <span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
-</span><span style="color:#75715e">&#34;&#34;&#34; deoplete-go</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">align_class</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">sort_class</span> = [<span style="color:#e6db74">&#39;package&#39;</span>, <span style="color:#e6db74">&#39;func&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;var&#39;</span>, <span style="color:#e6db74">&#39;const&#39;</span>]<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">package_dot</span> = <span style="color:#ae81ff">1</span></code></pre></div>
-<p>これだけの設定をするだけでGoの標準ライブラリ及び<code>go get/install</code>したライブラリは補完できるようになる。問題なのは<code>vendor</code>ディレクトリに入れたプロジェクトの依存ライブラリだ。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-vim" data-lang="vim"><span style="display:flex;"><span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;Shougo/deoplete.nvim&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;zchee/deoplete-go&#39;</span>, {<span style="color:#e6db74">&#39;build&#39;</span>: {<span style="color:#e6db74">&#39;unix&#39;</span>: <span style="color:#e6db74">&#39;make&#39;</span>}}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">&#34;&#34;&#34; deoplete</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_at_startup</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">enable_smart_case</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">C</span>-<span style="color:#a6e22e">h</span>&gt; <span style="color:#a6e22e">deolete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">inoremap</span> &lt;<span style="color:#a6e22e">expr</span>&gt;&lt;<span style="color:#a6e22e">BS</span>&gt; <span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">mappings</span>#<span style="color:#a6e22e">smart_close_popup</span>().<span style="color:#e6db74">&#34;\&lt;C-h&gt;&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">&#34;&#34;&#34; deoplete-go</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">align_class</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">sort_class</span> = [<span style="color:#e6db74">&#39;package&#39;</span>, <span style="color:#e6db74">&#39;func&#39;</span>, <span style="color:#e6db74">&#39;type&#39;</span>, <span style="color:#e6db74">&#39;var&#39;</span>, <span style="color:#e6db74">&#39;const&#39;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">deoplete</span>#<span style="color:#a6e22e">sources</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">package_dot</span> = <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>これだけの設定をするだけでGoの標準ライブラリ及び<code>go get/install</code>したライブラリは補完できるようになる。問題なのは<code>vendor</code>ディレクトリに入れたプロジェクトの依存ライブラリだ。</p>
 <p>結論から言うと以下のコマンドを打って<code>gocode</code>の<code>autobuild</code>機能を有効にすると、<code>vendor</code>ディレクトリに入れたライブラリも便利に補完可能になる。(但し<code>gocode</code>はこの機能をexperimentalと位置づけてるので動向には注意)</p>
-<pre><code>gocode set autobuild true</code></pre>
-<p>上記コマンドを打つと、gocodeの設定ファイルが以下の場所にできる。</p>
-<pre><code>$ ll .config/gocode/config.json
+<pre tabindex="0"><code>gocode set autobuild true
+</code></pre><p>上記コマンドを打つと、gocodeの設定ファイルが以下の場所にできる。</p>
+<pre tabindex="0"><code>$ ll .config/gocode/config.json
 -rw-r--r--  1 achiku  staff  108  2 27 17:54 .config/gocode/config.json
 $ cat .config/gocode/config.json
-{&#34;propose-builtins&#34;:false,&#34;lib-path&#34;:&#34;&#34;,&#34;autobuild&#34;:true,&#34;force-debug-output&#34;:&#34;&#34;,&#34;package-lookup-mode&#34;:&#34;go&#34;}% </code></pre>
-<p><code>gocode</code>は補完候補をソースコードからではなくビルド済みのバイナリから探すので、一度ビルドしないと補完が効かない。上記の設定はエディタで補完候補を探す際に<code>vendor</code>ディレクトリ内のソースをビルドして<code>$GOPATH</code>の中に入れてくれる。実際にどの場所にバイナリが入るかというと、例えば自分が作っているwbsというツールの依存ライブラリは以下の場所にバイナリが入る。</p>
-<pre><code>~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/BurntSushi/toml.a
-~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/mattn/go-shellwords.a</code></pre>
-<p>プロジェクト別に依存ライブラリのバイナリが配置されるので、自動でコンパイルされて配置されてもさして影響は無いかなと思ってる。初回補完時にビルドするのである程度ラグを感じるが、一度ビルドされたら次回以降高速に補完されるので現状問題は感じていない。</p>
-
+{&#34;propose-builtins&#34;:false,&#34;lib-path&#34;:&#34;&#34;,&#34;autobuild&#34;:true,&#34;force-debug-output&#34;:&#34;&#34;,&#34;package-lookup-mode&#34;:&#34;go&#34;}% 
+</code></pre><p><code>gocode</code>は補完候補をソースコードからではなくビルド済みのバイナリから探すので、一度ビルドしないと補完が効かない。上記の設定はエディタで補完候補を探す際に<code>vendor</code>ディレクトリ内のソースをビルドして<code>$GOPATH</code>の中に入れてくれる。実際にどの場所にバイナリが入るかというと、例えば自分が作っているwbsというツールの依存ライブラリは以下の場所にバイナリが入る。</p>
+<pre tabindex="0"><code>~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/BurntSushi/toml.a
+~/.go/1.6/pkg/darwin_amd64/github.com/achiku/wbs/vendor/github.com/mattn/go-shellwords.a
+</code></pre><p>プロジェクト別に依存ライブラリのバイナリが配置されるので、自動でコンパイルされて配置されてもさして影響は無いかなと思ってる。初回補完時にビルドするのである程度ラグを感じるが、一度ビルドされたら次回以降高速に補完されるので現状問題は感じていない。</p>
 <ul>
 <li><a href="https://github.com/nsf/gocode">github.com/nsf/gocode</a></li>
 <li><a href="https://github.com/Shougo/deoplete.nvim">github.com/Shougo/deoplete.nvim</a></li>
 <li><a href="https://github.com/zchee/deoplete-go">github.com/zchee/deoplete-go</a></li>
 </ul>
-
-<h3 id="エディタ-テスト">エディタ(テスト)</h3>
-
+<h3 id="エディタテスト">エディタ(テスト)</h3>
 <p>エディタで書いてテストして、というサイクルを高速に回すために<code>vim-test</code>というプラグインを入れている。これまた最高のプラグインのうちの一つだと思っててGoに限らずPythonを書くときにも多用している。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-vim" data-lang="vim"><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;janko-m/vim-test&#39;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">strategy</span> = <span style="color:#e6db74">&#39;neovim&#39;</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">f</span> :<span style="color:#a6e22e">TestNearest</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">i</span> :<span style="color:#a6e22e">TestFile</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">a</span> :<span style="color:#a6e22e">TestSuite</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">l</span> :<span style="color:#a6e22e">TestLast</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">g</span> :<span style="color:#a6e22e">TestVisit</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">python</span>#<span style="color:#a6e22e">pytest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>\}<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">gotest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>\}</code></pre></div>
-<p><code>let g:test#strategy</code>で<code>neovim</code>を指定してneovimの機能は使ってるけどvimでもこの部分の設定を変えれば普通にいける。</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-vim" data-lang="vim"><span style="display:flex;"><span><span style="color:#a6e22e">NeoBundle</span> <span style="color:#e6db74">&#39;janko-m/vim-test&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>(..<span style="color:#a6e22e">snip</span>..)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">g</span>:<span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">strategy</span> = <span style="color:#e6db74">&#39;neovim&#39;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">f</span> :<span style="color:#a6e22e">TestNearest</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">i</span> :<span style="color:#a6e22e">TestFile</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">a</span> :<span style="color:#a6e22e">TestSuite</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">l</span> :<span style="color:#a6e22e">TestLast</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">nmap</span> &lt;<span style="color:#a6e22e">silent</span>&gt; &lt;<span style="color:#a6e22e">leader</span>&gt;<span style="color:#a6e22e">g</span> :<span style="color:#a6e22e">TestVisit</span>&lt;<span style="color:#a6e22e">CR</span>&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">python</span>#<span style="color:#a6e22e">pytest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>\}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">test</span>#<span style="color:#a6e22e">go</span>#<span style="color:#a6e22e">gotest</span>#<span style="color:#a6e22e">options</span> = {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;nearest&#39;</span>: <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;file&#39;</span>:    <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  \ <span style="color:#e6db74">&#39;suite&#39;</span>:   <span style="color:#e6db74">&#39;-v&#39;</span>,<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>\}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p><code>let g:test#strategy</code>で<code>neovim</code>を指定してneovimの機能は使ってるけどvimでもこの部分の設定を変えれば普通にいける。</p>
 <ul>
 <li><a href="https://github.com/janko-m/vim-test">github.com/janko-m/vim-test</a></li>
 </ul>
-
 <p>以上現在のGo 1.6開発環境でした。</p>
 
 			</div>

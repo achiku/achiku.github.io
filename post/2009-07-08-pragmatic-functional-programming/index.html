@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -44,31 +44,24 @@
 			<time>2009/07/08</time>
 			<div>
 				<p>実際の作業で「あるディレクトリ配下の全てのファイルのフルパス、ファイル名、タイムスタンプ（yyyymmddhhmmss）、ファイルサイズをタブ区切りにしてファイルに書き出せ。ちなみにあるディレクトリには数百ファイルあるぴょん。」というフザケたものがあった。</p>
-
 <p>無理。</p>
-
 <p>面倒くさすぎて無理。「面倒くさいことをしないためにはどんな面倒くさいこともする」っちゅー格言にしたがい、自分はスクリプトで何とかしようと考えた。一応完成してちゃんとやりたいことやってくれるようになってから試しにググってみたら、こんなものが見つかった。</p>
-
 <p><a href="http://www.shido.info/misc/misc.php?id=29">関数プログラミング的シェルスクリプト</a></p>
-
 <p>おおおおおお。シェルでも関数プログラミング的に書けるんだ。</p>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#! /bin/bash
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">function</span> rec <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">for</span> FILE in <span style="color:#e6db74">`</span>ls <span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>
-        <span style="color:#66d9ef">do</span>
-           local FULL<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span>/<span style="color:#e6db74">${</span>FILE<span style="color:#e6db74">}</span>
-           <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> $1 $FULL
-           <span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> -d $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> rec $1 $FULL
-           <span style="color:#66d9ef">fi</span>
-        <span style="color:#66d9ef">done</span>
-<span style="color:#f92672">}</span>
-
-rec $1 <span style="color:#e6db74">`</span>pwd<span style="color:#e6db74">`</span>/<span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span></code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e">#! /bin/bash
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">function</span> rec <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> FILE in <span style="color:#e6db74">`</span>ls <span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">do</span>
+</span></span><span style="display:flex;"><span>           local FULL<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span>/<span style="color:#e6db74">${</span>FILE<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -f $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> $1 $FULL
+</span></span><span style="display:flex;"><span>           <span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> -d $FULL <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span> rec $1 $FULL
+</span></span><span style="display:flex;"><span>           <span style="color:#66d9ef">fi</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>rec $1 <span style="color:#e6db74">`</span>pwd<span style="color:#e6db74">`</span>/<span style="color:#e6db74">${</span>2<span style="color:#e6db74">}</span></span></span></code></pre></div>
 <p>これを読んで一人感動した。関数プログラミングをもう少し深く理解した気分になった。上のスクリプトが言っているのは「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」ってこと。この「ほげほげ」って部分が第一引数になる。「二つ目の引数で与えられたディレクトリ以下のファイルにほげほげしろ」っていう指示は抽象的である。抽象的であるが故に「ほげほげ」の部分を自由に組み替えることができる。それはつまり、拡張性・再利用性が高いってことだ。「関数プログラミングは拡張性・再利用性の高いものが書きやすい」ってのをほんの少し（たぶん自分が思っているよりもだいぶほんの少し）体感した気がする。</p>
-
 <p>いいこと学んだ！</p>
 
 			</div>

@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,21 +43,15 @@
 			<h2>Django Best Practiceへの道 #1</h2>
 			<time>2014/04/01</time>
 			<div>
-				
-
-<p>DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。</p>
-
+				<p>DjangoのWebアプリを開発している際、リファクタ/テスト拡充のために集めた情報をまとめます。</p>
 <ul>
 <li><a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">#1 Djangoプロジェクト/アプリケーション/設定ファイル構成</a></li>
 <li><a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">#2 Djangoテスト戦術</a></li>
 <li><a href="http://achiku.github.io/2014/04/14/django-pytest-webtest.html">#2 補足編</a></li>
 <li><a href="http://achiku.github.io/2014/04/07/road-to-django-best-practice.html">#3 Django Model/View/From/Template戦術</a></li>
 </ul>
-
 <p>戦略よりも、自分が入社した時既にあった前提に対応する為に考えた戦術を中心に書いていきます。また、自分の思考をダンプして記録しておくという目的もあるので、記述が冗長な部分もありますがご容赦ください。</p>
-
 <h1 id="前提">前提</h1>
-
 <ul>
 <li>既に本番リリースされてる</li>
 <li>Django 1.5で作られてる</li>
@@ -69,45 +63,30 @@
 <li>トラフィックは少ない</li>
 <li>インフラはAWS(VPC + ELB + EC2 + RDS)</li>
 </ul>
-
-<h1 id="プロジェクト-アプリケーション構成">プロジェクト/アプリケーション構成</h1>
-
+<h1 id="プロジェクトアプリケーション構成">プロジェクト/アプリケーション構成</h1>
 <h2 id="アプリケーション構成に何を求めるか">アプリケーション構成に何を求めるか</h2>
-
 <ul>
 <li>巨大な1ファイルのコードが存在しえない</li>
 <li>コードの見通しが自然とよくなる</li>
 <li>各モジュールの依存関係が少ない</li>
 </ul>
-
-<p>Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、&rdquo;Do one thing, and one thing well&rdquo;って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。</p>
-
+<p>Djangoにはプロジェクトとアプリケーションという思想がある。Djangoが生まれた時からある概念で、1つのプロジェクトの中に、複数のアプリケーションを入れ、各アプリケーションの依存は可能な限り少なくし、取替え可能な形にする事を目指している。では実戦レベルでどのように分割するのが良いのか、という指針を実例を交えながら語ってくれているのが以下の資料。2008年の資料だけど、Djangoの根本的な思想は変わっていないので未だ有効だと思う。あと、&ldquo;Do one thing, and one thing well&quot;って本当にすごいかっこいいし、この思想を実装しているGNUやUNIX的なものはさらにかっこいいと思う。</p>
 <p><em>DjangoCon 2008: Reusable Apps</em></p>
-
 <ul>
 <li><a href="http://www.youtube.com/watch?v=A-S0tqpPga4">YouTube: DjangoCon 2008: Reusable Apps</a></li>
 <li><a href="http://media.b-list.org/presentations/2008/pycon/reusable_apps.pdf">Developing reusable apps</a></li>
 </ul>
-
 <p>上の資料を参考に設計する利点は主に2つ。</p>
-
 <p><strong>メンテナンスしやすくなる</strong></p>
-
 <p>このアプリケーション分割をすることで、「巨大な1ファイルのコード」が存在し得ない構成となる。誰かが意識してメンテしにくい巨大な1ファイルを作らないようにする、ではなく、そもそもそんなものが発生し得ない構成にすることが肝要だと思った。</p>
-
 <p><strong>各モジュールの再利用可能性向上</strong></p>
-
 <p>普通の単独自社サービスであれば、そこまで再利用性を高める為に時間をかける必要はない気がするけど、Djangoを使った自社サービスが複数ある中でのライブラリ作成や、個別のお客さんによってカスタマイズが必要なパッケージ、というシチュエーションであればある程度時間をかけて設計する価値はあると思う。実際上の資料内でJamesさんが自社パッケージを各お客さん用にカスタマイズする際に、プラガブルに設計してて助かったぜ、という話がある。</p>
-
 <h2 id="プロジェクト構成に何を求めるか">プロジェクト構成に何を求めるか</h2>
-
 <ul>
 <li>共通な部分と固有な部分を直感的に分けたい</li>
 <li>何かを作る時にどのディレクトリに入れるべきか可能な限り迷いたくない</li>
 </ul>
-
 <h2 id="実装">実装</h2>
-
 <p>他の流派もあるのですが、一旦現在は以下のような形に落ち着いています。まだまだ継続改善中。</p>
 <pre><code>project
 ├── apps
@@ -127,125 +106,113 @@
 ├── server-config
 ├── static
 ├── templates
-└── tests</code></pre>
+└── tests
+</code></pre>
 <p>上から順に概要を説明します。</p>
-
 <ul>
-<li><p>apps</p>
-
+<li>
+<p>apps</p>
 <ul>
 <li>Djangoアプリケーションを格納。</li>
 <li>アプリケーションを何単位で作るのかは先述の資料を参考に要議論。</li>
 <li>apps内のディレクトリ構成は、tests, migrations, templatesが基本。(South利用前提)</li>
 <li>&ldquo;Do one thing, and one thing well.&ldquo;の原則。</li>
-</ul></li>
-
-<li><p>core</p>
-
+</ul>
+</li>
+<li>
+<p>core</p>
 <ul>
 <li>設定ファイル群を格納。各環境用の設定ファイルをsettingsディレクトリに格納しておく。(詳細後述)</li>
 <li>wsgiファイルを格納。</li>
 <li>ROOT_URLを格納し、必ずここから各アプリケーションにルーティング。</li>
-</ul></li>
-
-<li><p>docs</p>
-
+</ul>
+</li>
+<li>
+<p>docs</p>
 <ul>
 <li>プロジェクトのドキュメントを格納(仕様等)</li>
 <li>README.rstをリポジトリのトップにおいておき、そこから参照させる形で。</li>
-</ul></li>
-
-<li><p>fixtures</p>
-
+</ul>
+</li>
+<li>
+<p>fixtures</p>
 <ul>
 <li>Djangoのコンテクストでのfixtureは極力使わないけど、マスタデータセットアップで必要な場合は使う(住所コード等)。</li>
 <li>テスト時に利用するアップロード用ファイルを置いておく。</li>
-</ul></li>
-
-<li><p>libs</p>
-
+</ul>
+</li>
+<li>
+<p>libs</p>
 <ul>
 <li>各Djangoアプリケーションから利用される共通的な処理を格納、定数を格納。</li>
 <li>カスタムで作成するmanage.pyのコマンドもここに入れていく。</li>
-</ul></li>
-
-<li><p>requirements</p>
-
+</ul>
+</li>
+<li>
+<p>requirements</p>
 <ul>
 <li>プロジェクトに必要なライブラリを記載したrequirements.txtを入れる。</li>
 <li>各環境用 x テスト+開発に必須なrequirementsを分け、同じライブラリが複数ファイルに入るのを防ぐ。</li>
 <li>requirements/common.txt, test.txt, development.txt等(詳細は後で)</li>
-</ul></li>
-
-<li><p>server-config</p>
-
+</ul>
+</li>
+<li>
+<p>server-config</p>
 <ul>
 <li>サーバ(OS)レベルで必要なファイルの格納(e.g. bash_profile, ssh_config)。</li>
 <li>ミドルウェア(e.g. uwsgi, nginx, celery, supervisor)を動かす為に必要なファイルの格納。</li>
 <li>本当はこの辺Ansibleで統一したい。</li>
-</ul></li>
-
-<li><p>static</p>
-
+</ul>
+</li>
+<li>
+<p>static</p>
 <ul>
 <li>CSS, JS, Image等を入れる。</li>
-</ul></li>
-
-<li><p>templates</p>
-
+</ul>
+</li>
+<li>
+<p>templates</p>
 <ul>
 <li>アプリ全体で使いまわすテンプレ(ナビゲーションとか)を格納。</li>
-</ul></li>
-
-<li><p>tests</p>
-
+</ul>
+</li>
+<li>
+<p>tests</p>
 <ul>
 <li>各Djangoアプリケーション内のテストで共通的に利用するものを格納。</li>
 <li>具体例でいうと、factories.py, conftest.py。(factory_boy, py.test利用前提)</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p>この辺りはDjangoのテンプレート系ライブラリをかなり参考にしました。
 有名なものになると、色々な知見が凝縮されており、読んでいるだけで楽しくなれます。</p>
-
 <ul>
 <li><a href="https://github.com/rdegges/django-skel">django-skel</a></li>
 <li><a href="https://github.com/amccloud/django-project-skel">django-project-skel</a></li>
 <li><a href="https://github.com/theduke/django-kickstart">django-kickstart</a></li>
 </ul>
-
 <p>Two Scoops of Djangoで紹介されていた構成。これも非常に参考になる。</p>
-
 <ul>
 <li><a href="https://github.com/twoscoops/django-twoscoops-project">django-twoscoops-project</a></li>
 </ul>
-
 <p>参考になるライブラリ群</p>
-
 <ul>
 <li><a href="https://www.djangopackages.com/grids/g/project-templates/">Django Packages - Project Templates</a></li>
 </ul>
-
 <h1 id="設定ファイル構成">設定ファイル構成</h1>
-
 <h2 id="設定ファイル構成に何を求めるか">設定ファイル構成に何を求めるか</h2>
-
 <ul>
 <li>各環境別に異なる設定が明確</li>
 <li>全環境で共通な設定が明確</li>
 <li>各環境別に柔軟な設定変更が可能</li>
 <li>ローカルでは自分だけの設定も入れれる柔軟性が必要</li>
 </ul>
-
 <p>1番目と2番めが非常に重要だと思ってます。可能な限り1番目と2番めの目標が達成できるようにする、という指針で以下のようにしました。</p>
-
 <h2 id="設定ファイル実装">設定ファイル実装</h2>
-
 <ul>
 <li>common.pyに各環境共通の設定を入れる
 (大事なのは「本当に共通で使う」ものだけ入れる。DBの設定は後のimportで上書きされるから一応いれる、とかやらない。)</li>
 <li>各環境用の設定ファイルを作成し、最初にcommon.pyから設定を全てimport
-
 <ul>
 <li>development.py</li>
 <li>staging.py</li>
@@ -253,82 +220,67 @@
 <li>local_test.py</li>
 <li>ci.py</li>
 <li>local.sample.py</li>
-</ul></li>
+</ul>
+</li>
 <li>各環境用設定ファイルの最後でlocal.pyから設定をimportする</li>
 </ul>
-
 <p>common.py以外は大体以下のような形になってます。</p>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
-<span style="color:#f92672">from</span> core.settings.common <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>  <span style="color:#75715e"># NOQA</span>
-
-DEBUG <span style="color:#f92672">=</span> True
-TEMPLATE_DEBUG <span style="color:#f92672">=</span> True
-ENVIRONMENT <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;staging&#39;</span>
-DATABASES <span style="color:#f92672">=</span> {
-    <span style="color:#e6db74">&#39;default&#39;</span>: {
-        <span style="color:#e6db74">&#39;ENGINE&#39;</span>: <span style="color:#e6db74">&#39;django.db.backends.mysql&#39;</span>,
-        <span style="color:#e6db74">&#39;NAME&#39;</span>: <span style="color:#e6db74">&#39;django2&#39;</span>,
-        <span style="color:#e6db74">&#39;USER&#39;</span>: <span style="color:#e6db74">&#39;hoge_user&#39;</span>,
-        <span style="color:#e6db74">&#39;PASSWORD&#39;</span>: <span style="color:#e6db74">&#39;hoge_password&#39;</span>,
-        <span style="color:#e6db74">&#39;HOST&#39;</span>: <span style="color:#e6db74">&#39;hogehost&#39;</span>,
-        <span style="color:#e6db74">&#39;PORT&#39;</span>: <span style="color:#e6db74">&#39;&#39;</span>,
-    }
-}
-
-<span style="color:#66d9ef">try</span>:
-    <span style="color:#f92672">from</span> core.settings.local <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>  <span style="color:#75715e"># NOQA</span>
-<span style="color:#66d9ef">except</span> <span style="color:#a6e22e">ImportError</span>:
-    <span style="color:#66d9ef">pass</span></code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> core.settings.common <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>  <span style="color:#75715e"># NOQA</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>DEBUG <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>TEMPLATE_DEBUG <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>ENVIRONMENT <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;staging&#39;</span>
+</span></span><span style="display:flex;"><span>DATABASES <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;default&#39;</span>: {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;ENGINE&#39;</span>: <span style="color:#e6db74">&#39;django.db.backends.mysql&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;NAME&#39;</span>: <span style="color:#e6db74">&#39;django2&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;USER&#39;</span>: <span style="color:#e6db74">&#39;hoge_user&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;PASSWORD&#39;</span>: <span style="color:#e6db74">&#39;hoge_password&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;HOST&#39;</span>: <span style="color:#e6db74">&#39;hogehost&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;PORT&#39;</span>: <span style="color:#e6db74">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">from</span> core.settings.local <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>  <span style="color:#75715e"># NOQA</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">except</span> <span style="color:#a6e22e">ImportError</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pass</span></span></span></code></pre></div>
 <p>以下若干わかりにくそうな部分を解説します。</p>
-
 <p><strong>local.sample.py</strong></p>
-
 <p>各開発者がローカルで開発/テストする際に独自で入れる設定用ファイル。
 local.sample.py内には特に何も設定されておらず、以下のようなコメントがあるのみ。</p>
-<pre><code># -*- coding: utf-8 -*-
+<pre tabindex="0"><code># -*- coding: utf-8 -*-
 # ローカル環境用設定ファイル。以下のようにコピーして利用すること。
-# cp local.sample.py local.py</code></pre>
-<p>core/settings/local.pyは.gitignoreに記載しておき、リポジトリからは無視しておく。このlocal.pyに各開発者用の独自設定を入れていきます。<a href="http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X">Two Scoops of Django</a>では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。</p>
-
+# cp local.sample.py local.py
+</code></pre><p>core/settings/local.pyは.gitignoreに記載しておき、リポジトリからは無視しておく。このlocal.pyに各開発者用の独自設定を入れていきます。<a href="http://www.amazon.com/Two-Scoops-Django-Best-Practices/dp/098146730X">Two Scoops of Django</a>では各開発チームメンバーの独自設定もVCSに入れる事を推奨しています。理由としてあげているのは、「有害な設定を入れていたら指摘できる」「便利な設定を入れていたら共有できる」という事でしたが、正直独自設定を入れなくとも上記2点は達成可能なのであまりしっくり来ていませんので弊社では採用していません。</p>
 <p><strong>local_test.py</strong></p>
-
 <p>ローカルでテストを実行する時に利用する設定で、PASSWORD_HASHERSとかを変更、DBをsqliteのインメモリにしたり、テストを高速化するための工夫が施してある。この中身についてはテスト戦術で詳細に書きます。</p>
-
 <p>その他の設定ファイルは大体名前の通りの内容が入ってます。</p>
-
 <h2 id="設定ファイル切り替え実装">設定ファイル切り替え実装</h2>
-
 <p>manage.pyにはcore.developmentを直書きで指定し、開発用サーバ(manage.py runserver)は開発用設定がデフォルトで動くようにしています。これでローカルには特に環境変数設定せずともシンプルにmanage.py runserverすれば開発用サーバを起動できるようになってます。</p>
-
 <ul>
 <li><a href="https://gist.github.com/voluntas/6855579">Djangoトラノマキ</a>参照</li>
 </ul>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python</span>
-<span style="color:#f92672">import</span> os
-<span style="color:#f92672">import</span> sys
-
-<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
-    os<span style="color:#f92672">.</span>environ<span style="color:#f92672">.</span>setdefault(<span style="color:#e6db74">&#34;DJANGO_SETTINGS_MODULE&#34;</span>, <span style="color:#e6db74">&#34;core.settings.development&#34;</span>)
-
-    <span style="color:#f92672">from</span> django.core.management <span style="color:#f92672">import</span> execute_from_command_line
-
-    execute_from_command_line(sys<span style="color:#f92672">.</span>argv)</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    os<span style="color:#f92672">.</span>environ<span style="color:#f92672">.</span>setdefault(<span style="color:#e6db74">&#34;DJANGO_SETTINGS_MODULE&#34;</span>, <span style="color:#e6db74">&#34;core.settings.development&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">from</span> django.core.management <span style="color:#f92672">import</span> execute_from_command_line
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    execute_from_command_line(sys<span style="color:#f92672">.</span>argv)</span></span></code></pre></div>
 <p>各環境(CI、ステージング、本番)用に作成したファイルは、アプリケーション実行ユーザの環境変数にDJANGO_SETTINGS_MODULEを設定して切り替える方式としています。</p>
-<pre><code>export DJANGO_SETTINGS_MODULE=core.config.staging</code></pre>
-<p><em>参考文献</em></p>
-
+<pre tabindex="0"><code>export DJANGO_SETTINGS_MODULE=core.config.staging
+</code></pre><p><em>参考文献</em></p>
 <ul>
 <li><a href="http://d.hatena.ne.jp/nullpobug/20131015/1381763671">Djangoのsettingsの分割と構造化について &ndash;偏った言語信者の垂れ流し</a></li>
 <li><a href="https://gist.github.com/voluntas/6855579">Django トラノマキ</a></li>
 <li><a href="http://surgo.jp/2010/02/django.html">パーフェクトな Django の設定ファイル</a></li>
 </ul>
-
 <p>次回はDjangoにおけるテスト戦術について書きます。</p>
-
 <ul>
 <li><a href="http://achiku.github.io/2014/04/01/road-to-django-best-practice.html">#1 Djangoプロジェクト/アプリケーション/設定ファイル構成</a></li>
 <li><a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">#2 Djangoテスト戦術</a></li>

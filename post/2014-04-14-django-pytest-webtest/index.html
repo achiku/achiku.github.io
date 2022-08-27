@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,140 +43,104 @@
 			<h2>Django &#43; py.test &#43; WebTest</h2>
 			<time>2014/04/14</time>
 			<div>
-				
-
-<p>以前書いた<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">Django Best Practice への道 #2</a>の補足を書きます。</p>
-
+				<p>以前書いた<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">Django Best Practice への道 #2</a>の補足を書きます。</p>
 <p>以下の課題を解決するために実施したこととなります。</p>
-
 <p><strong>Django Webアプリの機能テストはpy.testとWebTestを同時に使いたいけどunittest形式は嫌</strong></p>
-
 <p>分解していきます。</p>
-
-<h2 id="djangoのテストにpy-testを使う">Djangoのテストにpy.testを使う</h2>
-
+<h2 id="djangoのテストにpytestを使う">Djangoのテストにpy.testを使う</h2>
 <p>以下のライブラリを利用する。
 (なぜpy.testを選択したかは<a href="http://achiku.github.io/2014/04/04/road-to-django-best-practice.html">コチラ</a>)</p>
-
 <ul>
 <li><a href="https://github.com/pelme/pytest_django">pelme/pytest_django</a></li>
 </ul>
-
 <p>とにかくparameterizedテストで同一処理 x 別データパターンのテストを効率よく書きたかったので、py.testを選択。また、fixtureという仕組みを使い、テストデータやモックを効率よく各テストに注入できるのも嬉しいところ。</p>
-
 <h2 id="djangoのテストにwebtestを使う">DjangoのテストにWebTestを使う</h2>
-
 <p>以下のライブラリを利用する。</p>
-
 <ul>
 <li><a href="https://github.com/kmike/django-webtest">kmike/django-webtest</a></li>
 </ul>
-
 <p>これを利用する目的は前回のポストで書いた「機能テスト」で利用するためです。機能テストはレンダリングされたHTMLも含む形でテストをしたい。一般的に利用されるDjangoのテストクライアントは、どのテンプレートが使われたか、テンプレートに渡るcontext variablesが正しいか、をチェックするものなので、カンムで想定している機能テストに関してはそもそも出番じゃない。よって、機能テストを実施するにはWebTestを利用することとしています。</p>
-
 <p><em>参考文献</em></p>
-
 <ul>
 <li><a href="http://codeinthehole.com/writing/prefer-webtest-to-djangos-test-client-for-functional-tests/">Prefer WebTest to Djangos test client for functional tests</a></li>
 </ul>
-
 <h2 id="unittest形式が嫌">unittest形式が嫌</h2>
-
 <p>そんなに毛嫌いしているわけではないのですが、py.testの機能をフルに使おうと思うと、unittest.TestCaseを継承しているテストクラスでは色々具合がよくない(parameterizeアノテーションが使えなかったり、fixture使えなかったり)。</p>
-
 <p>そこでWebTestも含めて全てpy.test形式でつくろうと思ったのですが、django_webtestパッケージ内のWebTestは既にdjango.test.TestCaseを継承しており、unittest.TestCaseを継承しているので、そのままではpy.test形式で使えない。</p>
-
 <p><a href="https://github.com/kmike/django-webtest/blob/master/django_webtest/__init__.py">django-webtest/django_webtest/__init__.py</a></p>
-
 <p>ちょっと悩んで諦めようかなとも思ったのですが、WebTestを使うために必要な部分はなんとdjango_webtest.WebTestMixinというクラスに切りだされ、django_webtest.WebTestは、django_webtest.WebTextMixinとdjango.test.TestCaseをmixinしたものだという事に気づきました。</p>
-
 <p>ということは、unittestを脱してDjangoでWebTestを簡単に使うには、このdjango_webtest.WebTestMixinだけ切り出して使えばいけるのでは、、という事でconftest.pyに以下のように設定してみたらすんなり使えました。</p>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
-<span style="color:#f92672">from</span> django_webtest <span style="color:#f92672">import</span> WebTestMixin
-
-
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">app</span>():
-    wt <span style="color:#f92672">=</span> WebTestMixin()
-    wt<span style="color:#f92672">.</span>_patch_settings()
-    wt<span style="color:#f92672">.</span>renew_app()
-    <span style="color:#66d9ef">return</span> wt<span style="color:#f92672">.</span>app</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> django_webtest <span style="color:#f92672">import</span> WebTestMixin
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">app</span>():
+</span></span><span style="display:flex;"><span>    wt <span style="color:#f92672">=</span> WebTestMixin()
+</span></span><span style="display:flex;"><span>    wt<span style="color:#f92672">.</span>_patch_settings()
+</span></span><span style="display:flex;"><span>    wt<span style="color:#f92672">.</span>renew_app()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> wt<span style="color:#f92672">.</span>app</span></span></code></pre></div>
 <p>前回掲載したURLに対するGETのスモークテストのサンプルでいくと、</p>
-
 <p><em>apps/appA/tests/conftest.py</em></p>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
-<span style="color:#f92672">from</span> django_webtest <span style="color:#f92672">import</span> WebTestMixin
-<span style="color:#f92672">from</span> tests.factories <span style="color:#f92672">import</span> (
-    AdminUserFactory, NormalUserFactory,
-)
-
-
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">app</span>():
-    wt <span style="color:#f92672">=</span> WebTestMixin()
-    wt<span style="color:#f92672">.</span>_patch_settings()
-    wt<span style="color:#f92672">.</span>renew_app()
-    <span style="color:#66d9ef">return</span> wt<span style="color:#f92672">.</span>app
-
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">users</span>():
-    admin <span style="color:#f92672">=</span> AdminUserFactory<span style="color:#f92672">.</span>create()
-    user <span style="color:#f92672">=</span> NormalUserFactory<span style="color:#f92672">.</span>create()
-    <span style="color:#66d9ef">return</span> {
-        <span style="color:#e6db74">&#39;admin&#39;</span>: admin,
-        <span style="color:#e6db74">&#39;user&#39;</span>: user
-    }</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> django_webtest <span style="color:#f92672">import</span> WebTestMixin
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tests.factories <span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    AdminUserFactory, NormalUserFactory,
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">app</span>():
+</span></span><span style="display:flex;"><span>    wt <span style="color:#f92672">=</span> WebTestMixin()
+</span></span><span style="display:flex;"><span>    wt<span style="color:#f92672">.</span>_patch_settings()
+</span></span><span style="display:flex;"><span>    wt<span style="color:#f92672">.</span>renew_app()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> wt<span style="color:#f92672">.</span>app
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">users</span>():
+</span></span><span style="display:flex;"><span>    admin <span style="color:#f92672">=</span> AdminUserFactory<span style="color:#f92672">.</span>create()
+</span></span><span style="display:flex;"><span>    user <span style="color:#f92672">=</span> NormalUserFactory<span style="color:#f92672">.</span>create()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;admin&#39;</span>: admin,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;user&#39;</span>: user
+</span></span><span style="display:flex;"><span>    }</span></span></code></pre></div>
 <p><em>apps/appA/tests/test_url.py</em></p>
-
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
-<span style="color:#f92672">import</span> pytest
-<span style="color:#f92672">from</span> hamcrest <span style="color:#f92672">import</span> (
-    assert_that, contains_string, equal_to,
-)
-
-
-<span style="color:#a6e22e">@pytest.mark.django_db</span>
-<span style="color:#a6e22e">@pytest.mark.parametrize</span>(<span style="color:#e6db74">&#39;login_user, url, message, status_code&#39;</span>, [
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=0&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=1&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=2&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=3&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/1&#39;</span>, <span style="color:#e6db74">&#39;クーポン詳細&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupon/add&#39;</span>, <span style="color:#e6db74">&#39;クーポンの登録&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=0&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=1&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=2&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=3&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/1&#39;</span>, <span style="color:#e6db74">&#39;クーポン詳細&#39;</span>, <span style="color:#ae81ff">200</span>),
-    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupon/add&#39;</span>, <span style="color:#e6db74">&#39;クーポンの登録&#39;</span>, <span style="color:#ae81ff">200</span>),
-])
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test_coupon_urls</span>(app, users, login_user, url, message, status_code):
-    resp <span style="color:#f92672">=</span> app<span style="color:#f92672">.</span>get(url, user<span style="color:#f92672">=</span>users[login_user])
-    assert_that(resp<span style="color:#f92672">.</span>status_code, equal_to(status_code))
-    assert_that(resp<span style="color:#f92672">.</span>content, contains_string(message))</code></pre></div>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> pytest
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> hamcrest <span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    assert_that, contains_string, equal_to,
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@pytest</span><span style="color:#f92672">.</span>mark<span style="color:#f92672">.</span>django_db
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@pytest</span><span style="color:#f92672">.</span>mark<span style="color:#f92672">.</span>parametrize(<span style="color:#e6db74">&#39;login_user, url, message, status_code&#39;</span>, [
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=0&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=1&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=2&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=3&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupons/1&#39;</span>, <span style="color:#e6db74">&#39;クーポン詳細&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;admin&#39;</span>, <span style="color:#e6db74">&#39;/coupon/add&#39;</span>, <span style="color:#e6db74">&#39;クーポンの登録&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=0&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=1&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=2&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/?status=3&#39;</span>, <span style="color:#e6db74">&#39;クーポン一覧&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupons/1&#39;</span>, <span style="color:#e6db74">&#39;クーポン詳細&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#39;user&#39;</span>, <span style="color:#e6db74">&#39;/coupon/add&#39;</span>, <span style="color:#e6db74">&#39;クーポンの登録&#39;</span>, <span style="color:#ae81ff">200</span>),
+</span></span><span style="display:flex;"><span>])
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test_coupon_urls</span>(app, users, login_user, url, message, status_code):
+</span></span><span style="display:flex;"><span>    resp <span style="color:#f92672">=</span> app<span style="color:#f92672">.</span>get(url, user<span style="color:#f92672">=</span>users[login_user])
+</span></span><span style="display:flex;"><span>    assert_that(resp<span style="color:#f92672">.</span>status_code, equal_to(status_code))
+</span></span><span style="display:flex;"><span>    assert_that(resp<span style="color:#f92672">.</span>content, contains_string(message))</span></span></code></pre></div>
 <p>シンプル！</p>
-
 <p>これを発見した時はライブラリのソースコードに潜り込んで何かを自分の思い通りに動かせた！しかもまだ誰も見つけてない！と非常にうれしかったのですが、より洗練されたやり方が以下に紹介されていました(フランス語読めないけどコードは読める)。世の中甘くないっす。</p>
-
 <ul>
 <li><a href="http://mathieu.agopian.info/presentations/2013_09_djangocong/">PyTest et WebTest</a></li>
 </ul>
-
 <h2 id="おまけ">おまけ</h2>
-
 <p>django.test.TestCaseを継承しない、という選択をしたのですが、この選択の副作用として、Djangoにデフォルトで備わっている便利なassertionが使えなくなってしまう、という点があります。</p>
-
 <p>弊社ではPyHamcrestを利用することでなんとなく回避していますが、以下にDjangoデフォルトのassertionをpy.testの名前空間にぶっこむ事で回避するという実装があり、これはこれですごい便利だなぁと思ってます。</p>
-
 <ul>
 <li><a href="http://www.slideshare.net/pfctdayelise/funcargs-other-fun-with-pytest">Funcargs &amp; other fun with pytest</a>
 P12に記載あり</li>
 </ul>
-
 <h2 id="まとめ">まとめ</h2>
-
 <p>py.testとWebTestはDjangoとも組み合わせて使えますし、なんならテストを書くのが少し楽になる気がしています。</p>
 
 			</div>

@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,170 +43,149 @@
 			<h2>net/httpで作るGo APIサーバー #5</h2>
 			<time>2018/06/23</time>
 			<div>
-				
-
-<p>この一連の記事では <code>net/http</code> を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
-
+				<p>この一連の記事では <code>net/http</code> を主軸に据え、取替可能な部品となるライブラリを利用してAPIサーバーを作成する方法を紹介する。</p>
 <ul>
 <li><a href="https://akirachiku.com/2017/04/01/go-net-http-api-server-1.html">net/httpで作るGo APIサーバー #1</a></li>
 <li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-2.html">net/httpで作るGo APIサーバー #2</a></li>
 <li><a href="https://akirachiku.com/2017/04/02/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a></li>
 <li><a href="https://akirachiku.com/2017/04/08/go-net-http-api-server-4.html">net/httpで作るGo APIサーバー #4</a></li>
 </ul>
-
 <p>上記4つの記事で <code>net/http</code> 単体でも小さいライブラリを利用しながらある程度の機能を満たせる形でAPIサーバーを構築できる事を示した。今回はサーバーを実装する上で欠かせないロギングについて書く。</p>
-
 <h3 id="ロギングライブラリ">ロギングライブラリ</h3>
-
 <p>まずはHTTP APIサーバーのロギングライブラリに求める事を書きだす。</p>
-
 <ul>
 <li>リクエスト単位で設定した情報(例: <code>user_id</code>、<code>source_ip</code>、<code>request_id</code> 等)をメタ情報として保持し、メッセージと同時に出力
-
 <ul>
 <li>これは毎回手で書けばいけるけど、毎回手で書くのはだるいし忘れる</li>
 <li>middlewareでリクエストID等を振り出してログに出力すると、そのIDで検索すれば処理の流れが一発でわかる等、メタ情報がデフォルトで出力されていると何か発生した際の初動速度が上がる</li>
-</ul></li>
+</ul>
+</li>
 <li>エラートラッキングサービスとの連携用フック
-
 <ul>
 <li>output系の処理にプラグインを組み込める機構になっていると嬉しい</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p>逆に下はあまり重要視しなかったもの。</p>
-
 <ul>
 <li>Leveled Logging
-
 <ul>
 <li>これは外部ライブラリ使おうと思うと大体ついてくるのでそこまで重要視しなかった</li>
 <li><a href="https://dave.cheney.net/2015/11/05/lets-talk-about-logging">Let&rsquo;s talk about logging</a>
-
 <ul>
 <li>自分はdaveのこのブログポストがロギングの本当の課題は何かを再度検証しようとしてて結構好き</li>
 <li>leveled loggingは大体のログライブラリにデフォルトでついてるので、なぜついてるのか考える契機になる気がする</li>
-</ul></li>
-</ul></li>
+</ul>
+</li>
+</ul>
+</li>
 <li>パフォーマンス
-
 <ul>
 <li>作っていたのがそこまでパフォーマンス要件が厳しいアプリケーションではなかったのであまり見なかった</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p>上記の要件で選んだ時に当時良いなと思ったのは以下のライブラリ。</p>
-
 <ul>
 <li><a href="https://github.com/rs/xlog">rs/xlog</a></li>
 </ul>
-
 <p>(現在は <code>xlog</code> の後継 <a href="https://github.com/rs/zerolog">rs/zerolog</a> が出ているので今作るならそっちを使う方が良いと思う。めっちゃ速いらしいのでパフォーマンスきついところでも使えるんじゃないだろうか。)</p>
-
 <h3 id="実例">実例</h3>
-
 <p>xlogは Go HTTP サーバーの middleware chain に組み込んで、リクエスト毎に logger を作成(もしくはPoolから取得)し、<code>http.Request</code> 内の <code>context.Context</code> に logger を入れて次の処理に渡してくれる形になっている。<a href="https://github.com/justinas/alice">justinas/alice</a> を使った例を書くとこのような感じで初期化することになる。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">app</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewApp</span>(<span style="color:#a6e22e">cfgPath</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
-	}
-
-	<span style="color:#75715e">// middleware chain
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
-		<span style="color:#a6e22e">recoverMiddleware</span>,
-	)
-	<span style="color:#a6e22e">apiChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">NewHandler</span>(<span style="color:#a6e22e">NewLogConfig</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Config</span>)),
-	)
-	<span style="color:#75715e">// for gorilla/mux
-</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
-	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
-	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">apiChain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
-</code></pre></div>
-<p>(middleware chainやaliceに関してはこちら <a href="https://akirachiku.com/2017/04/03/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a>)</p>
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#a6e22e">app</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewApp</span>(<span style="color:#a6e22e">cfgPath</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// middleware chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">chain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">alice</span>.<span style="color:#a6e22e">New</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">recoverMiddleware</span>,
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">apiChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">NewHandler</span>(<span style="color:#a6e22e">NewLogConfig</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Config</span>)),
+</span></span><span style="display:flex;"><span>	)
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// for gorilla/mux
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">router</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">NewRouter</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">PathPrefix</span>(<span style="color:#e6db74">&#34;/api&#34;</span>).<span style="color:#a6e22e">Subrouter</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Methods</span>(<span style="color:#e6db74">&#34;GET&#34;</span>).<span style="color:#a6e22e">Path</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>).<span style="color:#a6e22e">Handler</span>(<span style="color:#a6e22e">apiChain</span>.<span style="color:#a6e22e">Then</span>(<span style="color:#a6e22e">AppHandler</span>{<span style="color:#a6e22e">h</span>: <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Greeting</span>}))
+</span></span></code></pre></div><p>(middleware chainやaliceに関してはこちら <a href="https://akirachiku.com/2017/04/03/go-net-http-api-server-3.html">net/httpで作るGo APIサーバー #3</a>)</p>
 <p>xlog にデフォルトでついている関数を利用すると、サクッと以下のように logger が出力するメタデータを追加できる。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">apiChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">NewHandler</span>(<span style="color:#a6e22e">NewLogConfig</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Config</span>)),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">MethodHandler</span>(<span style="color:#e6db74">&#34;method&#34;</span>),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">URLHandler</span>(<span style="color:#e6db74">&#34;url&#34;</span>),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RemoteAddrHandler</span>(<span style="color:#e6db74">&#34;ip&#34;</span>),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">UserAgentHandler</span>(<span style="color:#e6db74">&#34;user_agent&#34;</span>),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RefererHandler</span>(<span style="color:#e6db74">&#34;referer&#34;</span>),
-		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RequestIDHandler</span>(<span style="color:#e6db74">&#34;req_id&#34;</span>, <span style="color:#e6db74">&#34;Request-Id&#34;</span>),
-	)
-</code></pre></div>
-<p>初期化した後に以下のような形で handler 側で利用する。肝は渡ってくる <code>http.Request</code> から logger を取得して利用している3行目の部分。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// Greeting greeting
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">app</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">Greeting</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
-	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
-	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HelloService</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>(), <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>())
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ErrorResponse</span>{
-			<span style="color:#a6e22e">Code</span>:    <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>,
-			<span style="color:#a6e22e">Message</span>: <span style="color:#e6db74">&#34;something went wrong&#34;</span>,
-		}
-		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">e</span>, <span style="color:#a6e22e">err</span>
-	}
-	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;%s %s&#34;</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
-	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">res</span>, <span style="color:#66d9ef">nil</span>
-}
-</code></pre></div>
-<p>リクエストすると、</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ http http://localhost:8080/api/hello/achiku
-HTTP/1.1 <span style="color:#ae81ff">200</span> OK
-Content-Length: <span style="color:#ae81ff">36</span>
-Content-Type: text/plain; charset<span style="color:#f92672">=</span>utf-8
-Date: Sat, <span style="color:#ae81ff">23</span> Jun <span style="color:#ae81ff">2018</span> 10:11:20 GMT
-Request-Id: bcn1pi6jc9mjbucnus10
-
-<span style="color:#f92672">{</span>
-    <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;hello&#34;</span>,
-    <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;achiku&#34;</span>
-<span style="color:#f92672">}</span></code></pre></div>
-<p>以下のようなログが出力される。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;file&#34;</span>:<span style="color:#e6db74">&#34;server.go:76&#34;</span>,<span style="color:#e6db74">&#34;ip&#34;</span>:<span style="color:#e6db74">&#34;::1&#34;</span>,<span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;debug&#34;</span>,<span style="color:#e6db74">&#34;message&#34;</span>:<span style="color:#e6db74">&#34;achiku hello&#34;</span>,<span style="color:#e6db74">&#34;method&#34;</span>:<span style="color:#e6db74">&#34;GET&#34;</span>,<span style="color:#e6db74">&#34;req_id&#34;</span>:<span style="color:#e6db74">&#34;bcn1pi6jc9mjbucnus10&#34;</span>,<span style="color:#e6db74">&#34;role&#34;</span>:<span style="color:#e6db74">&#34;my-service&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>:<span style="color:#e6db74">&#34;2018-06-23T19:11:20.029910256+09:00&#34;</span>,<span style="color:#e6db74">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;/api/hello/achiku&#34;</span>,<span style="color:#e6db74">&#34;user_agent&#34;</span>:<span style="color:#e6db74">&#34;HTTPie/0.9.9&#34;</span><span style="color:#f92672">}</span></code></pre></div>
-<p>便利なのは上記ログ、以下の1行から出されている事。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;%s %s&#34;</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
-</code></pre></div>
-<p>ログを出力する部分はメッセージだけにフォーカスでき、その他のメタデータは自動でセットされるようにできた。更に、logger にセットしておくメタデータは middleware chain の中で独自に追加することも可能。例えば、認証ミドルウェアが取得してきたユーザー情報を logger にセットしたい場合、リクエストヘッダーに入っているクライアントのバージョン情報を logger にセットしたい場合等は、以下のようにアプリケーションハンドラーをラップする <code>ServeHTTP</code> メソッドの中に書くと良いのではないだろうか。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// AppHandler application handler adaptor
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">AppHandler</span> <span style="color:#66d9ef">struct</span> {
-	<span style="color:#a6e22e">h</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>)
-}
-
-<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">AppHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
-	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">getUserFromContext</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>())
-	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
-	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;user_id&#34;</span>, <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">ID</span>)
-	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;user_name&#34;</span>, <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span>)
-	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;app_version&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;App-Version&#34;</span>))
-	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;x_forwarded_for&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;X-Forwarded-For&#34;</span>))
-
-	<span style="color:#a6e22e">encoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#a6e22e">w</span>)
-	<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">h</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
-	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;error: %s&#34;</span>, <span style="color:#a6e22e">err</span>)
-		<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">status</span>)
-		<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
-		<span style="color:#66d9ef">return</span>
-	}
-	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">status</span>)
-	<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
-	<span style="color:#66d9ef">return</span>
-}
-</code></pre></div>
-<p>リクエスト</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ http http://localhost:8080/api/hello/achiku <span style="color:#e6db74">&#34;App-Version: 1.0.1&#34;</span> <span style="color:#e6db74">&#34;X-Forwarded-For: 192.168.11.111&#34;</span></code></pre></div>
-<p>ログ</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;app_version&#34;</span>:<span style="color:#e6db74">&#34;1.0.1&#34;</span>,<span style="color:#e6db74">&#34;file&#34;</span>:<span style="color:#e6db74">&#34;server.go:84&#34;</span>,<span style="color:#e6db74">&#34;ip&#34;</span>:<span style="color:#e6db74">&#34;::1&#34;</span>,<span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;debug&#34;</span>,<span style="color:#e6db74">&#34;message&#34;</span>:<span style="color:#e6db74">&#34;achiku hello&#34;</span>,<span style="color:#e6db74">&#34;method&#34;</span>:<span style="color:#e6db74">&#34;GET&#34;</span>,<span style="color:#e6db74">&#34;req_id&#34;</span>:<span style="color:#e6db74">&#34;bcn2eiujc9mmeq0c7ba0&#34;</span>,<span style="color:#e6db74">&#34;role&#34;</span>:<span style="color:#e6db74">&#34;my-service&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>:<span style="color:#e6db74">&#34;2018-06-23T19:56:11.907778774+09:00&#34;</span>,<span style="color:#e6db74">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;/api/hello/achiku&#34;</span>,<span style="color:#e6db74">&#34;user_agent&#34;</span>:<span style="color:#e6db74">&#34;HTTPie/0.9.9&#34;</span>,<span style="color:#e6db74">&#34;user_id&#34;</span>:10,<span style="color:#e6db74">&#34;user_name&#34;</span>:<span style="color:#e6db74">&#34;achiku&#34;</span>,<span style="color:#e6db74">&#34;x_forwarded_for&#34;</span>:<span style="color:#e6db74">&#34;192.168.11.111&#34;</span><span style="color:#f92672">}</span></code></pre></div>
-<ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#a6e22e">apiChain</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">chain</span>.<span style="color:#a6e22e">Append</span>(
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">NewHandler</span>(<span style="color:#a6e22e">NewLogConfig</span>(<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">Config</span>)),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">MethodHandler</span>(<span style="color:#e6db74">&#34;method&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">URLHandler</span>(<span style="color:#e6db74">&#34;url&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RemoteAddrHandler</span>(<span style="color:#e6db74">&#34;ip&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">UserAgentHandler</span>(<span style="color:#e6db74">&#34;user_agent&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RefererHandler</span>(<span style="color:#e6db74">&#34;referer&#34;</span>),
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">RequestIDHandler</span>(<span style="color:#e6db74">&#34;req_id&#34;</span>, <span style="color:#e6db74">&#34;Request-Id&#34;</span>),
+</span></span><span style="display:flex;"><span>	)
+</span></span></code></pre></div><p>初期化した後に以下のような形で handler 側で利用する。肝は渡ってくる <code>http.Request</code> から logger を取得して利用している3行目の部分。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Greeting greeting
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">app</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">App</span>) <span style="color:#a6e22e">Greeting</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">HelloService</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>(), <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ErrorResponse</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Code</span>:    <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Message</span>: <span style="color:#e6db74">&#34;something went wrong&#34;</span>,
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">e</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;%s %s&#34;</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">res</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>リクエストすると、</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ http http://localhost:8080/api/hello/achiku
+</span></span><span style="display:flex;"><span>HTTP/1.1 <span style="color:#ae81ff">200</span> OK
+</span></span><span style="display:flex;"><span>Content-Length: <span style="color:#ae81ff">36</span>
+</span></span><span style="display:flex;"><span>Content-Type: text/plain; charset<span style="color:#f92672">=</span>utf-8
+</span></span><span style="display:flex;"><span>Date: Sat, <span style="color:#ae81ff">23</span> Jun <span style="color:#ae81ff">2018</span> 10:11:20 GMT
+</span></span><span style="display:flex;"><span>Request-Id: bcn1pi6jc9mjbucnus10
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;hello&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;achiku&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>以下のようなログが出力される。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;file&#34;</span>:<span style="color:#e6db74">&#34;server.go:76&#34;</span>,<span style="color:#e6db74">&#34;ip&#34;</span>:<span style="color:#e6db74">&#34;::1&#34;</span>,<span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;debug&#34;</span>,<span style="color:#e6db74">&#34;message&#34;</span>:<span style="color:#e6db74">&#34;achiku hello&#34;</span>,<span style="color:#e6db74">&#34;method&#34;</span>:<span style="color:#e6db74">&#34;GET&#34;</span>,<span style="color:#e6db74">&#34;req_id&#34;</span>:<span style="color:#e6db74">&#34;bcn1pi6jc9mjbucnus10&#34;</span>,<span style="color:#e6db74">&#34;role&#34;</span>:<span style="color:#e6db74">&#34;my-service&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>:<span style="color:#e6db74">&#34;2018-06-23T19:11:20.029910256+09:00&#34;</span>,<span style="color:#e6db74">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;/api/hello/achiku&#34;</span>,<span style="color:#e6db74">&#34;user_agent&#34;</span>:<span style="color:#e6db74">&#34;HTTPie/0.9.9&#34;</span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>便利なのは上記ログ、以下の1行から出されている事。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Debugf</span>(<span style="color:#e6db74">&#34;%s %s&#34;</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>, <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Message</span>)
+</span></span></code></pre></div><p>ログを出力する部分はメッセージだけにフォーカスでき、その他のメタデータは自動でセットされるようにできた。更に、logger にセットしておくメタデータは middleware chain の中で独自に追加することも可能。例えば、認証ミドルウェアが取得してきたユーザー情報を logger にセットしたい場合、リクエストヘッダーに入っているクライアントのバージョン情報を logger にセットしたい場合等は、以下のようにアプリケーションハンドラーをラップする <code>ServeHTTP</code> メソッドの中に書くと良いのではないだろうか。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// AppHandler application handler adaptor
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">AppHandler</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">h</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">a</span> <span style="color:#a6e22e">AppHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">user</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">getUserFromContext</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Context</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">xlog</span>.<span style="color:#a6e22e">FromRequest</span>(<span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;user_id&#34;</span>, <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">ID</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;user_name&#34;</span>, <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Name</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;app_version&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;App-Version&#34;</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">SetField</span>(<span style="color:#e6db74">&#34;x_forwarded_for&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;X-Forwarded-For&#34;</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">encoder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">NewEncoder</span>(<span style="color:#a6e22e">w</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">status</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">a</span>.<span style="color:#a6e22e">h</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">r</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;error: %s&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">status</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#a6e22e">status</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">encoder</span>.<span style="color:#a6e22e">Encode</span>(<span style="color:#a6e22e">res</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>リクエスト</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ http http://localhost:8080/api/hello/achiku <span style="color:#e6db74">&#34;App-Version: 1.0.1&#34;</span> <span style="color:#e6db74">&#34;X-Forwarded-For: 192.168.11.111&#34;</span>
+</span></span></code></pre></div><p>ログ</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;app_version&#34;</span>:<span style="color:#e6db74">&#34;1.0.1&#34;</span>,<span style="color:#e6db74">&#34;file&#34;</span>:<span style="color:#e6db74">&#34;server.go:84&#34;</span>,<span style="color:#e6db74">&#34;ip&#34;</span>:<span style="color:#e6db74">&#34;::1&#34;</span>,<span style="color:#e6db74">&#34;level&#34;</span>:<span style="color:#e6db74">&#34;debug&#34;</span>,<span style="color:#e6db74">&#34;message&#34;</span>:<span style="color:#e6db74">&#34;achiku hello&#34;</span>,<span style="color:#e6db74">&#34;method&#34;</span>:<span style="color:#e6db74">&#34;GET&#34;</span>,<span style="color:#e6db74">&#34;req_id&#34;</span>:<span style="color:#e6db74">&#34;bcn2eiujc9mmeq0c7ba0&#34;</span>,<span style="color:#e6db74">&#34;role&#34;</span>:<span style="color:#e6db74">&#34;my-service&#34;</span>,<span style="color:#e6db74">&#34;time&#34;</span>:<span style="color:#e6db74">&#34;2018-06-23T19:56:11.907778774+09:00&#34;</span>,<span style="color:#e6db74">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;/api/hello/achiku&#34;</span>,<span style="color:#e6db74">&#34;user_agent&#34;</span>:<span style="color:#e6db74">&#34;HTTPie/0.9.9&#34;</span>,<span style="color:#e6db74">&#34;user_id&#34;</span>:10,<span style="color:#e6db74">&#34;user_name&#34;</span>:<span style="color:#e6db74">&#34;achiku&#34;</span>,<span style="color:#e6db74">&#34;x_forwarded_for&#34;</span>:<span style="color:#e6db74">&#34;192.168.11.111&#34;</span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><ul>
 <li><a href="https://github.com/achiku/go-http-api-server/tree/master/ch08">この記事で使ったコード</a></li>
 <li><a href="https://twitter.com/_achiku/status/907561841450147840">deeeeetさんとの会話</a></li>
 </ul>
-
-<p><blockquote class="twitter-tweet" data-lang="ja"><p lang="ja" dir="ltr">似た感じですね．今はrequest idだけですがcontext.Valueに入ってるリクエスト限定の値などをデフォルトでannotateさせるログを毎回作るようにすればいいかなという結論になりました現状は</p>&mdash; Taichi Nakashima (@deeeet) <a href="https://twitter.com/deeeet/status/907589519758594048?ref_src=twsrc%5Etfw">2017年9月12日</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+<blockquote class="twitter-tweet" data-lang="ja"><p lang="ja" dir="ltr">似た感じですね．今はrequest idだけですがcontext.Valueに入ってるリクエスト限定の値などをデフォルトでannotateさせるログを毎回作るようにすればいいかなという結論になりました現状は</p>&mdash; Taichi Nakashima (@deeeet) <a href="https://twitter.com/deeeet/status/907589519758594048?ref_src=twsrc%5Etfw">2017年9月12日</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 			</div>
 			<div>

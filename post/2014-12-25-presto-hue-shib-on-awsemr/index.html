@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
   <link rel="stylesheet" href="https://akirachiku.com/css/style.css">
   <link rel="icon" href="/favicon.ico">
-  <meta name="generator" content="Hugo 0.78.2" />
+  <meta name="generator" content="Hugo 0.101.0" />
 </head>
 <body>
   <div id="container" class="pure-g">
@@ -43,50 +43,32 @@
 			<h2>AWS EMRでPrestoを動かしてshibからクエリ流してみる</h2>
 			<time>2014/12/25</time>
 			<div>
-				
-
-<p><a href="http://qiita.com/advent-calendar/2014/distributedcomputing">Spark, SQL on Hadoop etc. Advent Calendar 2014</a>の最終日です。</p>
-
+				<p><a href="http://qiita.com/advent-calendar/2014/distributedcomputing">Spark, SQL on Hadoop etc. Advent Calendar 2014</a>の最終日です。</p>
 <h2 id="書くこと">書くこと</h2>
-
 <p>AWS EMR/S3 + Hive + Presto + Hue + Shibの環境を構築し、簡単にトライアルしてみる。</p>
-
 <h2 id="prestoについて">Prestoについて</h2>
-
 <p>Facebookがオープンソースで開発しているMPP(Massively Parallel Processing)クエリエンジン。</p>
-
 <ul>
 <li>本家: <a href="http://prestodb.io/">Presto - Distributed SQL Query Engine for Big Data</a></li>
 <li>TDさんのわかりやすい解説: <a href="http://treasure-data.hateblo.jp/entry/2014/07/10/150250">『Prestoとは何か，Prestoで何ができるか』</a></li>
 </ul>
-
 <p>同じ系統のクエリエンジン括りだとImpalaやApache DrillがOSSとして開発されている。MPPクエリエンジン/データベースの大まかな流れや種類、それぞれの使いドコロについてははコチラの記事が最高にまとまっていて参考になる。
 <a href="http://repeatedly.github.io/ja/2014/07/mpp-on-hadoop-redshift-bigquery/">MPP on Hadoop, Redshift, BigQuery</a></p>
-
 <p>Facebook以外にもNetfilixやTreasureData等、デカイデータ扱う企業がこぞって開発に参加している印象があり、開発のスピードが速く矢継ぎ早にリリースを繰り返し、リリース毎に便利になっていく。「商用DWHを置き換えっぞ」っていう気合の入った目標に見合うパフォーマンスに加え、SQL分析関数を早々に実装しANSI SQLを完コピしつつJSONも華麗に扱る上、既存Hadoopエコシステムとのつなぎ込み部分(HiveのDDL/メタストアを利用)や、RDBMSとのつなぎ込み部分(MySQL Connector等)含め、なんというか、本当にいつも大変お世話になっています。</p>
-
 <h2 id="shibについて">shibについて</h2>
-
 <p>PrestoとHiveにクエリを実行できるWebUI。最初はnodeで作られていて不思議だなーって思ったのですが、このエントリを読んでnodeを選んだ理由がわかり、かっこいいなーと思っております。</p>
-
 <ul>
 <li>本家: <a href="https://github.com/tagomoris/shib">shib -WebUI for query engines: Hive and Presto</a></li>
 <li>なぜnodeか: <a href="http://d.hatena.ne.jp/tagomoris/20110805/1312536706">Node.jsなWebアプリでJobQueueなしにラクラク巨大処理を実行</a></li>
 </ul>
-
 <h2 id="aws-emrについて">AWS EMRについて</h2>
-
 <p>AWSが提供するAPIで操作できるマネージドHadoop環境。APIを利用してHadoopクラスタを作成し、監視等もよしなにやってくれる。要らなくなったら消しておける。</p>
-
 <ul>
 <li>本家: <a href="http://aws.amazon.com/jp/elasticmapreduce/">AWS Elastic MapReduce</a></li>
 <li>知る限り最強のEMR資料: <a href="https://media.amazonwebservices.com/AWS_Amazon_EMR_Best_Practices.pdf">Best Practices for Amazon EMR</a></li>
 </ul>
-
 <p>前置きが長くなるとアレなので早速awscliを利用し環境を構築。</p>
-
 <h2 id="環境概要">環境概要</h2>
-
 <ul>
 <li>HadoopはEMRを使ってクラスタ起動</li>
 <li>AMI 3.3.1 (Hadoop Amazon 2.4.0, Hive 0.13.1)</li>
@@ -98,20 +80,16 @@
 <li>S3からHDFS上にフラットファイルで持ってきてPrestoからクエリを投げる</li>
 <li>S3からHDFS上にORCファイルに変換して持ってきてPrestoからクエリを投げる</li>
 </ul>
-
 <h2 id="構築方法">構築方法</h2>
-
 <h3 id="aws-cliの準備">AWS CLIの準備</h3>
-
 <p>CUIからEMRのAPIを叩くためにawscliを利用します。Python若干古いけどとりあえず実行した環境は以下</p>
-
 <ul>
 <li>Python 2.7.5</li>
 <li>virtualenv==1.10.1</li>
 <li>virtualenvwrapper==4.1.1</li>
-
-<li><p>awscli==1.6.10</p>
-<pre><code>$ mkvirtualenv emr
+<li>awscli==1.6.10</li>
+</ul>
+<pre tabindex="0"><code>$ mkvirtualenv emr
 (emr)$ pip install awscli
 (emr)$ pip freeze | grep awscli
 awscli==1.6.10
@@ -126,34 +104,27 @@ EOF
 export AWS_CONFIG_FILE=~/.awscli/config
 export AWS_DEFAULT_PROFILE=development
 source aws_zsh_completer.sh
-EOF</code></pre></li>
-</ul>
-
-<h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
-
+EOF
+</code></pre><h3 id="s3に必要なプログラムを配置">S3に必要なプログラムを配置</h3>
 <p>2014/12/25時点でPrestoの最新版は0.89ですが、0.86以降はJava8が必要で、EMRで立ち上げるAmazon Linuxに入っているJavaがJava7という都合上今回は0.85を利用して環境構築します。たぶんJava8入れて頑張ればできるはずですがサクッといきましょう。</p>
-
 <p>今回使ったソースは以下</p>
-
 <ul>
 <li><a href="https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz">presto-server-0.85.tar.gz</a></li>
 <li><a href="https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar">presto-cli-0.85-executable.jar</a></li>
 <li><a href="https://github.com/tagomoris/shib/tree/v0.3.8">shib v0.3.8</a></li>
 </ul>
-
 <p>上記をダウンロードし、適当なS3キーに配置しておきます。以下例。</p>
-<pre><code>$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
+<pre tabindex="0"><code>$ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.85/presto-server-0.85.tar.gz
 $ aws s3 cp presto-server-0.85.tar.gz s3://yourbucket/libs/
 $ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.85/presto-cli-0.85-executable.jar
 $ aws s3 cp presto-cli-0.85-executable.jar s3://yourbucket/libs/
 $ wget https://github.com/tagomoris/shib/archive/v0.3.8.zip
 $ unzip v0.3.8.zip &amp;&amp; mv shib-0.3.8 shib
 $ tar cvfz shib.tar.gz shib
-$ aws s3 cp v0.3.8.zip s3://yourbucket/libs/</code></pre>
-<h3 id="s3に必要な設定ファイルを配置">S3に必要な設定ファイルを配置</h3>
-
+$ aws s3 cp v0.3.8.zip s3://yourbucket/libs/
+</code></pre><h3 id="s3に必要な設定ファイルを配置">S3に必要な設定ファイルを配置</h3>
 <p>shibがPrestoにクエリするための設定ファイル。</p>
-<pre><code>var servers = exports.servers = {
+<pre tabindex="0"><code>var servers = exports.servers = {
   listen: 3000,
   fetch_lines: 1000,   // lines per fetch in shib
   query_timeout: null, // shib waits queries forever
@@ -174,30 +145,25 @@ $ aws s3 cp v0.3.8.zip s3://yourbucket/libs/</code></pre>
       monitor: null
     },
   ],
-};</code></pre><pre><code>$ aws s3 cp shib-config.js s3://yourbucket/libs/</code></pre>
-<h3 id="s3に必要なbootstrap-actionを配置">S3に必要なBootstrap Actionを配置</h3>
-
+};
+</code></pre><pre tabindex="0"><code>$ aws s3 cp shib-config.js s3://yourbucket/libs/
+</code></pre><h3 id="s3に必要なbootstrap-actionを配置">S3に必要なBootstrap Actionを配置</h3>
 <p>Bootstrap ActionとはEMRが管理するHadoopクラスタ構築時に差し挟める任意の処理です。HiveやPig等はデフォルトでEMRのAPIからインストールを指定できるのですが、それ以外のソフトウェアに関してはBootstrap Actionで指定してインストール、設定を行う事になります。</p>
-
 <h4 id="prestoのbootstrap-action">PrestoのBootstrap Action</h4>
-
 <p>こちらのAWS Labリポジトリにあるので流用します。</p>
-
 <ul>
 <li><a href="https://github.com/awslabs/emr-bootstrap-actions">awslabs/emr-bootstrap-actions</a></li>
 <li><a href="https://github.com/awslabs/emr-bootstrap-actions/tree/master/presto">Presto BootstrapAction</a></li>
 </ul>
-
 <p>PrestoのBootstrap Actionはそんなオフィシャルにサポートしてはいないですが、READMEもちゃんと書いてあるし、そこまで複雑ではないので要件によっては自作も有りかなと思います。</p>
-<pre><code>$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
-$ aws s3 cp install-presto.rb s3://yourbucket/libs/</code></pre>
-<h4 id="shibのbootstrap-action">shibのBootstrap Action</h4>
-
+<pre tabindex="0"><code>$ wget https://raw.githubusercontent.com/awslabs/emr-bootstrap-actions/master/presto/install-presto.rb
+$ aws s3 cp install-presto.rb s3://yourbucket/libs/
+</code></pre><h4 id="shibのbootstrap-action">shibのBootstrap Action</h4>
 <p>shibは公開されているBootstrap Actionが無いのでシェルを雑に書いた。プロセスの立ち上げ部分もnohupとバックグラウンド実行でペイっと起動してるだけなので本番運用に耐えれるしろものではないですが一旦これで。</p>
-
 <ul>
-<li><p>install-shib.sh</p>
-<pre><code>#!/bin/bash
+<li>install-shib.sh</li>
+</ul>
+<pre tabindex="0"><code>#!/bin/bash
 
 shib_tarball_path=$1
 config_file_path=$2
@@ -208,125 +174,110 @@ sudo yum install -y nodejs npm --enablerepo=epel
 
 aws s3 cp ${shib_tarball_path} /home/hadoop/shib.tar.gz
 {
-cd /home/hadoop &amp;&amp; tar xvfz /home/hadoop/shib.tar.gz
-cd /home/hadoop/shib &amp;&amp; npm install
+  cd /home/hadoop &amp;&amp; tar xvfz /home/hadoop/shib.tar.gz
+  cd /home/hadoop/shib &amp;&amp; npm install
 }
 aws s3 cp ${config_file_path} /home/hadoop/shib/config.js
 {
-cd /home/hadoop/shib &amp;&amp; nohup npm start &amp;
-}</code></pre></li>
-</ul>
-
-<p>これも同様にS3にあげる。</p>
-<pre><code>$ aws s3 cp install-shib.sh s3://yourbucket/libs/</code></pre>
-<h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
-
+  cd /home/hadoop/shib &amp;&amp; nohup npm start &amp;
+}
+</code></pre><p>これも同様にS3にあげる。</p>
+<pre tabindex="0"><code>$ aws s3 cp install-shib.sh s3://yourbucket/libs/
+</code></pre><h3 id="aws-cliでクラスタ立ち上げ">AWS CLIでクラスタ立ち上げ</h3>
 <ul>
-<li><p>create-cluster.sh</p>
-<pre><code>#!/bin/bash
+<li>create-cluster.sh</li>
+</ul>
+<pre tabindex="0"><code>#!/bin/bash
 
 aws emr create-cluster --ami-version 3.3.1 \
---name &#34;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date &#39;+%Y%m%d%H%M&#39; )&#34; \
---tags Name=presto-on-emr environment=development \
---ec2-attributes KeyName=yourkey \
---applications Name=hive Name=hue \
---instance-groups file://./large-instance-setup.json \
---bootstrap-actions file://./bootstrap-presto.json \
---log-uri &#39;s3://yourbucket/jobflow_logs/&#39; \
---no-auto-terminate \
---use-default-roles \
---visible-to-all-users</code></pre></li>
-</ul>
-
-<p>※AWSアカウントによっては&ndash;use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。</p>
-
+    --name &#34;$USER (AMI 3.3.1 Hive + Hue + Presto + shib) $( date &#39;+%Y%m%d%H%M&#39; )&#34; \
+    --tags Name=presto-on-emr environment=development \
+    --ec2-attributes KeyName=yourkey \
+    --applications Name=hive Name=hue \
+    --instance-groups file://./large-instance-setup.json \
+    --bootstrap-actions file://./bootstrap-presto.json \
+    --log-uri &#39;s3://yourbucket/jobflow_logs/&#39; \
+    --no-auto-terminate \
+    --use-default-roles \
+    --visible-to-all-users
+</code></pre><p>※AWSアカウントによっては&ndash;use-default-rolesをつけているとPrestoからS3にクエリできない事があります。ご注意。</p>
 <p>instance-groupとbootstrap-actionsは長くなったのでJSONファイルに切り出しています。内容は以下。</p>
-
 <ul>
-<li><p>large-instance-setup.json</p>
-<pre><code>[
-{
- &#34;Name&#34;: &#34;emr-master-production&#34;,
- &#34;InstanceGroupType&#34;: &#34;MASTER&#34;,
- &#34;InstanceCount&#34;: 1,
- &#34;InstanceType&#34;: &#34;m3.xlarge&#34;
-},
-{
- &#34;Name&#34;: &#34;emr-core-production&#34;,
- &#34;InstanceGroupType&#34;: &#34;CORE&#34;,
- &#34;InstanceCount&#34;: 2 ,
- &#34;InstanceType&#34;: &#34;m3.xlarge&#34;
-}
-]</code></pre></li>
-
-<li><p>bootstrap-presto.json</p>
-<pre><code>[
-{
-&#34;Name&#34;: &#34;Install/Setup Shib&#34;,
-&#34;Path&#34;: &#34;s3://yourbucket/libs/install-shib.sh&#34;,
-&#34;Args&#34;: [
-    &#34;s3://yourbucket/libs/shib.tar.gz&#34;,
-    &#34;s3://yourbucket/libs/shib-config.js&#34;
-]
-},
-{
-&#34;Name&#34;: &#34;Install/Setup Presto&#34;,
-&#34;Path&#34;: &#34;s3://yourbucket/libs/install-presto.rb&#34;,
-&#34;Args&#34;: [
-    &#34;--s3-path-to-presto-server-bin&#34;,&#34;s3://yourbucket/libs/presto-server-0.85.tar.gz&#34;,
-    &#34;--s3-path-to-presto-cli&#34;, &#34;s3://yourbucket/libs/presto-cli-0.85-executable.jar&#34;
-]
-}
-]</code></pre></li>
+<li>large-instance-setup.json</li>
 </ul>
-
-<h2 id="shib-hueアクセス方法">Shib/Hueアクセス方法</h2>
-
+<pre tabindex="0"><code>[
+  {
+     &#34;Name&#34;: &#34;emr-master-production&#34;,
+     &#34;InstanceGroupType&#34;: &#34;MASTER&#34;,
+     &#34;InstanceCount&#34;: 1,
+     &#34;InstanceType&#34;: &#34;m3.xlarge&#34;
+  },
+  {
+     &#34;Name&#34;: &#34;emr-core-production&#34;,
+     &#34;InstanceGroupType&#34;: &#34;CORE&#34;,
+     &#34;InstanceCount&#34;: 2 ,
+     &#34;InstanceType&#34;: &#34;m3.xlarge&#34;
+  }
+]
+</code></pre><ul>
+<li>bootstrap-presto.json</li>
+</ul>
+<pre tabindex="0"><code>[
+  {
+    &#34;Name&#34;: &#34;Install/Setup Shib&#34;,
+    &#34;Path&#34;: &#34;s3://yourbucket/libs/install-shib.sh&#34;,
+    &#34;Args&#34;: [
+        &#34;s3://yourbucket/libs/shib.tar.gz&#34;,
+        &#34;s3://yourbucket/libs/shib-config.js&#34;
+    ]
+  },
+  {
+    &#34;Name&#34;: &#34;Install/Setup Presto&#34;,
+    &#34;Path&#34;: &#34;s3://yourbucket/libs/install-presto.rb&#34;,
+    &#34;Args&#34;: [
+        &#34;--s3-path-to-presto-server-bin&#34;,&#34;s3://yourbucket/libs/presto-server-0.85.tar.gz&#34;,
+        &#34;--s3-path-to-presto-cli&#34;, &#34;s3://yourbucket/libs/presto-cli-0.85-executable.jar&#34;
+    ]
+  }
+]
+</code></pre><h2 id="shibhueアクセス方法">Shib/Hueアクセス方法</h2>
 <h3 id="foxyproxyとsshトネリングを利用">FoxyProxyとSSHトネリングを利用</h3>
-
 <p>FoxyProxyインストールしてXMLを設定。sshコマンドを使ってトネリング。</p>
-
 <ul>
-<li><p><a href="http://getfoxyproxy.org/">FoxyProxy - Firefox/Chrome</a></p></li>
-
-<li><p>sample-emr-proxy.xml</p>
-<pre><code>&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;
-&lt;foxyproxy&gt;
-&lt;proxies&gt;
-    &lt;proxy name=&#34;emr-socks-proxy&#34; id=&#34;2322596116&#34; notes=&#34;&#34; fromSubscription=&#34;false&#34; enabled=&#34;true&#34; mode=&#34;manual&#34; selectedTabIndex=&#34;2&#34; lastresort=&#34;false&#34; animatedIcons=&#34;true&#34; includeInCycle=&#34;true&#34; color=&#34;#0055E5&#34; proxyDNS=&#34;true&#34; noInternalIPs=&#34;false&#34; autoconfMode=&#34;pac&#34; clearCacheBeforeUse=&#34;false&#34; disableCache=&#34;false&#34; clearCookiesBeforeUse=&#34;false&#34; rejectCookies=&#34;false&#34;&gt;
-        &lt;matches&gt;
-            &lt;match enabled=&#34;true&#34; name=&#34;*ec2*.amazonaws.com*&#34; pattern=&#34;*ec2*.amazonaws.com*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
-            &lt;match enabled=&#34;true&#34; name=&#34;*ec2*.compute*&#34; pattern=&#34;*ec2*.compute*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
-            &lt;match enabled=&#34;true&#34; name=&#34;10.*&#34; pattern=&#34;http://10.*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
-        &lt;/matches&gt;
-        &lt;manualconf host=&#34;localhost&#34; port=&#34;8157&#34; socksversion=&#34;5&#34; isSocks=&#34;true&#34; username=&#34;&#34; password=&#34;&#34; domain=&#34;&#34; /&gt;
-    &lt;/proxy&gt;
-&lt;/proxies&gt;
-&lt;/foxyproxy&gt;</code></pre><pre><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com</code></pre></li>
+<li>
+<p><a href="http://getfoxyproxy.org/">FoxyProxy - Firefox/Chrome</a></p>
+</li>
+<li>
+<p>sample-emr-proxy.xml</p>
+</li>
 </ul>
-
-<p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
-
+<pre tabindex="0"><code>&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;
+&lt;foxyproxy&gt;
+    &lt;proxies&gt;
+        &lt;proxy name=&#34;emr-socks-proxy&#34; id=&#34;2322596116&#34; notes=&#34;&#34; fromSubscription=&#34;false&#34; enabled=&#34;true&#34; mode=&#34;manual&#34; selectedTabIndex=&#34;2&#34; lastresort=&#34;false&#34; animatedIcons=&#34;true&#34; includeInCycle=&#34;true&#34; color=&#34;#0055E5&#34; proxyDNS=&#34;true&#34; noInternalIPs=&#34;false&#34; autoconfMode=&#34;pac&#34; clearCacheBeforeUse=&#34;false&#34; disableCache=&#34;false&#34; clearCookiesBeforeUse=&#34;false&#34; rejectCookies=&#34;false&#34;&gt;
+            &lt;matches&gt;
+                &lt;match enabled=&#34;true&#34; name=&#34;*ec2*.amazonaws.com*&#34; pattern=&#34;*ec2*.amazonaws.com*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
+                &lt;match enabled=&#34;true&#34; name=&#34;*ec2*.compute*&#34; pattern=&#34;*ec2*.compute*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
+                &lt;match enabled=&#34;true&#34; name=&#34;10.*&#34; pattern=&#34;http://10.*&#34; isRegEx=&#34;false&#34; isBlackList=&#34;false&#34; isMultiLine=&#34;false&#34; caseSensitive=&#34;false&#34; fromSubscription=&#34;false&#34; /&gt;
+            &lt;/matches&gt;
+            &lt;manualconf host=&#34;localhost&#34; port=&#34;8157&#34; socksversion=&#34;5&#34; isSocks=&#34;true&#34; username=&#34;&#34; password=&#34;&#34; domain=&#34;&#34; /&gt;
+        &lt;/proxy&gt;
+    &lt;/proxies&gt;
+&lt;/foxyproxy&gt;
+</code></pre><pre tabindex="0"><code>$ ssh -i ~/yourkey.pem -ND 8157 hadoop@youremrhost.compute.amazonaws.com
+</code></pre><p>これでFoxyProxyがインストールされているブラウザを介すると、以下のURLにアクセスするとShibにアクセスできます。</p>
 <ul>
 <li><a href="http://youremrhost.compute.amazonaws.com:3000">http://youremrhost.compute.amazonaws.com:3000</a></li>
 </ul>
-
 <p>また、以下のURLにアクセスするとHueにアクセスできます。</p>
-
 <ul>
 <li><a href="http://youremrhost.compute.amazonaws.com:8888">http://youremrhost.compute.amazonaws.com:8888</a></li>
 </ul>
-
 <h3 id="aws-securitygroupを変更">AWS SecurityGroupを変更</h3>
-
 <p>EMRのMasterノードに付与されるSecurityGroupにオフィスのIPからの3000/8888を許可する。これはIPアドレスでのアクセス制限はできますが、通信自体は暗号化されずにHTTPでやりとりされるのであまりお勧めしません。</p>
-
 <h2 id="パフォーマンス">パフォーマンス</h2>
-
 <p>パフォーマンスもやりたかった。。S3とHDFS FlatFileとHDFS ORCでかなり差がでるのでたぶん後ほど追記します。</p>
-
 <h2 id="終わりに">終わりに</h2>
-
 <p>いかがでしたでしょうか。
 PrestoとEMRはまだそんなにビッグじゃないけど、大きくなりそうなデータに対して、インタラクティブクエリとスケールしやすさを与えてくれるいいコンビなんじゃないかなと思っております。
 もうあと25日は2時間しか残ってませんがハッピーメリークリスマス！</p>
